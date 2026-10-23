@@ -83,6 +83,15 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Açık:** Nişancı görüşü, ayarlanabilir stabilizasyon karakteri, namlu/gövde/çevre kesişmelerinin tam çözümü, atış ve geri tepme. Mevcut taret kinematik; ayrı Havok gövdesi eklenmedi. M1/M2 kabul maddeleri sürüyor.
 
 
+## 2026-10-24 — Ses sistemi planı
+
+- **Kullanıcı isteği:** Ses sistemini planla; sesleri ajanın kendisi halledebilir mi?
+- **Öneri (kesin karar değil):** İlk sürüm tamamen prosedürel Web Audio sentezi. Motor, iki palet, rüzgâr, süspansiyon, fren/hava ve taret servo M2; top, geri tepme, mermi ve isabet M3. Dış ses dosyası ve müzik MVP dışında.
+- **Gerekçe:** Özgünlük, lisans temizliği, küçük paket ve araç parametrelerinden yönetilebilirlik. Ajan sesleri üretip sayısal olarak doğrulayabilir; estetik dengeyi tarayıcıda insan dinlemesi belirler.
+- **Plan:** [Ses sistemi planı](SOUND_DESIGN.md). Mimari `src/game/audio/`, sınırlı ses havuzu, ilk kullanıcı girdisinde AudioContext, sekme gizlenince askıya alma ve kaynak temizliği.
+- **Açık:** Prosedürel mi gerçek kayıt katmanı mı; düzey kalıcılığı; ayrı silah/efekt kaydırıcısı; dinleme referansı; reverb miktarı. Bunlar kullanıcı kararı veya prototip ayarı olarak S1–S3'te netleşecek.
+- **Durum:** Yalnızca belge; ses kodu, model ve paketler bu görevde değişmedi. M1/M2/M3 kabulü açık.
+
 ## 2026-10-23 — İlk üç hareket efekti
 
 - **Kesin kapsam:** Kullanıcı palet temas, hızlı sürüş ve dönüş tozunu istedi; uygulandı.

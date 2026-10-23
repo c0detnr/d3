@@ -26,7 +26,8 @@ Kodlamaya geçildiğinde ihtiyaç oldukça oluşturulacak; bu dizinler henüz me
 | src/game/vehicle/ | Araç tanımı, gövde, sürüş, süspansiyon, kule |
 | src/game/camera/ | Takip ve nişancı kameraları |
 | src/game/combat/ | Mermi, isabet ve hasar — M3 |
-| src/game/effects/ | Toz, atış ve ses |
+| src/game/effects/ | Toz ve atış görsel efektleri |
+| src/game/audio/ | Motor, palet, ortam ve savaş sesleri (prosedürel Web Audio) |
 | src/ui/ | React ekranları ve HUD |
 | src/state/ | UI durumu |
 | public/assets/ | Dağıtılabilir modeller, sesler ve kaplamalar |
