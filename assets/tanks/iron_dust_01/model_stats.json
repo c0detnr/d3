@@ -1,0 +1,16 @@
+{
+  "visible_triangles": 14512,
+  "collision_triangles": 12,
+  "visible_meshes": 42,
+  "materials": [
+    "Armor_Olive_404B42.001",
+    "Armor_Secondary_828575.001",
+    "Edge_Steel.001",
+    "Marking_Dust_D5C7AB.001",
+    "Optics_Teal.001",
+    "Recess_Dark.001",
+    "Track_Graphite_34383B.001",
+    "Wheel_Rubber.001"
+  ],
+  "blender_version": "5.2.1 LTS"
+}

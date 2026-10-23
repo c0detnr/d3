@@ -1,0 +1,35 @@
+{
+  "source": {
+    "yaw_90deg": true,
+    "pitch_up_15deg": true,
+    "road_wheels": 12,
+    "wheel_centers_stable": true
+  },
+  "glb_roundtrip": {
+    "yaw_90deg": true,
+    "pitch_up_15deg": true,
+    "road_wheels": 12,
+    "wheel_centers_stable": true
+  },
+  "parenting_preserved": true,
+  "max_position_error_m": 0.0,
+  "material_slots_preserved": true,
+  "bounds_m": {
+    "min": [
+      -2.0799999237060547,
+      -5.949999809265137,
+      0.07644130289554596
+    ],
+    "max": [
+      2.0799999237060547,
+      3.2850000858306885,
+      3.8399999141693115
+    ]
+  },
+  "dimensions_xyz_m": [
+    4.159999847412109,
+    9.234999895095825,
+    3.7635586112737656
+  ],
+  "roundtrip_rotation_mode_note": "Imported quaternion rotations converted to XYZ Euler before rotation tests."
+}

@@ -1,0 +1,78 @@
+# Geliştirme yol haritası
+
+Durum: **M1 devam ediyor: doğal arazi, orman çevresi ve gerçek tankın bağımsız önizlemesi mevcut. M2 ve M3 başlamadı.**
+
+## Uygulamaya geçiş hazırlığı
+
+- Kullanıcı kodlamaya başlamayı istediğinde mevcut aşama kaydını güncelle.
+- Paket sürümlerini, Babylon/Havok entegrasyonunu ve dağıtım koşullarını resmi kaynaklardan doğrula.
+- Referans test cihazını ve ilk tarayıcıyı kaydet.
+- Vite/TypeScript temelini ve gerçek çalıştırma komutlarını oluştur.
+- İlk çizim ve fizik yükleme denemesini tamamla; uyumluluk sorununu detay üretmeden çöz.
+
+## M1 — Temel 3D dünya
+
+**Durum:** Devam ediyor. Doğal arazi, orman çevresi ve statik çarpışmalar hazır; gerçek tank GLB entegrasyonu ve tarayıcıda model görünümü doğrulandı. Takip kamerası, kamera kesişme incelemesi ve performans kaydı bekliyor.
+
+Küçük arazi, gökyüzü, akşam ışığı, üçüncü şahıs kamera ve basit tank modeli.
+
+Kabul koşulları:
+
+- Sahne tarayıcıda açılır, yeniden boyutlandırmaya uyum sağlar; yükleme hatası kullanıcıya görünür.
+- Tank ve arazi aynı ölçektedir; kule/namlu pivotları daha sonraki hareket için uygundur.
+- Kamera hedefi takip eder; yakınlaşma ve çevreyle kesişme davranışı incelenir.
+- Seçilen palet ve ışıkla temel görsel yön okunur.
+- Referans cihazda başlangıç performans ölçümü kaydedilir.
+
+## M2 — Sürüş fiziği / ilk sürüş teslimi
+
+**Durum:** Başlanmadı. **Bağımlılık:** M1.
+
+WASD, palet bazlı dönüş, hızlanma/frenleme, geri sürüş, eğim, süspansiyon, temel ses ve toz. Üçüncü şahıs kamera sürüşle birlikte ayarlanır.
+
+Kabul koşulları:
+
+- Düz zeminde ileri, fren, geri ve iki yöne dönüş çalışır.
+- Yerinde dönüş ile hareketli dönüşün tepkileri tutarlıdır.
+- Tank tepede, yan eğimde ve engebede sürekli titreme veya zemine batma göstermez.
+- Süspansiyon görselleri gövde hareketiyle uyumludur.
+- Sekme odağı kaybedilince tuş takılı kalmaz; dönüşte simülasyon sıçramaz.
+- Farklı render hızlarında aynı girdinin benzer fizik sonucu verdiği kontrol edilir.
+- On dakikalık serbest sürüş yapılır; kontrol, kamera ve ağırlık hissi hakkındaki gözlemler kaydedilir.
+
+Bu teslimde savaş mekanikleri zorunlu değildir. Kullanıcı tek başına haritada tank sürebilir.
+
+## M3 — Savaş sistemi / vertical slice
+
+**Durum:** Başlanmadı. **Bağımlılık:** M2 sürüş değerlendirmesi.
+
+Hareketli kule ve namlu, nişancı görüşü, top ateşi, mermi fiziği, isabet, temel zırh ve modül hasarı. İlk test için sabit hedefler önerilir.
+
+Kabul koşulları:
+
+- Kule/namlu sınırları ve dönüş hızları uygulanır; hedef ve gerçek nişan yönü ayırt edilir.
+- Mermi namludan çıkar; yakın engel, uçuş süresi ve uzak mesafe düşüşü doğru geri bildirim verir.
+- Yüksek hızlı mermi sabit ince hedefi sorgu hatası nedeniyle atlamaz.
+- Aynı mühimmatla açı ve zırh bölgesi değiştiğinde anlaşılır sonuçlar oluşur.
+- Palet, motor ve kule hasarı ilgili hareket kabiliyetini etkiler; sıfırlama tekrar denemeye izin verir.
+- Ateş ve isabet efektleri çalışırken sürüş performansı yeniden ölçülür.
+
+## Kapsam kontrolü
+
+Multiplayer, mağaza, geniş araç listesi, dev haritalar ve kapsamlı yapı yıkımı planın dışında. M3 için düşman AI zorunlu değil. Her aşama sonunda ancak tespit edilen ihtiyaçlar sonraki plana alınır.
+
+### 2026-10-23 — Basit test alanı kanıtı
+
+`npm run map:check`, `npm run map:test`, `npm run map:build` geçti. Gerçek Havok ile başlangıç zemini, iki rampa eğimi, tepe, tümsek, sınır ve üç kur/temizle çevrimi kontrol edildi. Tarayıcı bağlantı aracı hata verdiği için görsel inceleme yapılamadı. M1 tamamlandı sayılmaz; sürüş teslimi değildir.
+
+### 2026-10-23 — İlk tank varlığı kanıtı
+
+Blender MCP ile kaynak ve GLB üretildi. GLB'den sayılan 14.512 görünür üçgen ve 12 çarpışma üçgeni; ayrı hareket grupları ve 12 yol tekerleği. Kaynakta ve yeniden içe aktarımda kule/namlu/tekerlek pivotları, ebeveynlik, materyal yuvaları ve konumlar kontrol edildi. Üç açı render incelendi. [Dosyalar ve kanıt](../assets/tanks/iron_dust_01/README.md). M1 tarayıcı ve motor entegrasyonu kabulü bu varlık kontrolüyle tamamlanmış sayılmaz.
+
+### 2026-10-23 — Gerçek tank entegrasyonu
+
+Geçici maket yerine IRON DUST 01 GLB yüklendi; palet tabanı zeminle hizalandı, COL_Hull gizlendi. `npm run tank:test`, `npm run map:test`, `npm run map:build` geçti. Chrome içinde model görünümü, yakınlaşma ve kamera düğmeleri kontrol edildi. Tank sabit; M2 başlamadı. M1 takip/kesişme ve performans maddeleri açık.
+
+### 2026-10-23 — Doğal arazi ve orman
+
+Düz test pisti doğal yükseltiler, toprak patika, kayalar ve ileride sıklaşan ormanla değiştirildi. Tankın başlangıç çevresi açık/düz tutuldu; gökyüzü, sıcak ışık, gölge ve uzaklık sisi eklendi. `map:test`, `tank:test` ve `map:build` geçti. Chrome içinde başlangıç ve genel görünüm düğmeleri incelendi; [görsel kanıt](previews/forest-clearing.png). M1 takip/kesişme ve referans performans maddeleri açık; M2 başlamadı.

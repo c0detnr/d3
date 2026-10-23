@@ -1,0 +1,14 @@
+{
+  "format_version": 2,
+  "declared_bytes_match": true,
+  "visible_triangles": 14512,
+  "collision_triangles": 12,
+  "node_count": 53,
+  "material_count": 8,
+  "unique_node_names": true,
+  "no_external_uris": true,
+  "collision_metadata": {
+    "collision_only": true,
+    "asset_node_id": "COL_Hull"
+  }
+}

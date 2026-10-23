@@ -1,0 +1,9 @@
+import { defineConfig } from 'vite';
+export default defineConfig({
+  server: { host: '127.0.0.1' },
+  build: {
+    outDir: 'dist-map',
+    assetsInlineLimit: 0,
+    rollupOptions: { input: ['index.html', 'map-preview.html'] },
+  },
+});
