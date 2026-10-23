@@ -2,7 +2,7 @@
 
 ## 2026-10-23 — Git kurulumu
 
-- GitHub CLI hesabı Emirix; proje henüz Git deposu değildi, Emirix/d3 de mevcut değildi.
+- GitHub CLI hesabı Emirix; proje henüz Git deposu değildi, c0detnr/d3 de mevcut değildi.
 - Tank kaynakları ve teslim varlıkları küçük: standart Git yeterli. `.blend1` otomatik yedeği ve `.backups/` yerel tutulacak.
 - Paket kilidi, `.blend`, `.glb` ve belge önizlemeleri izlenecek. Bağımlılık ve derleme klasörleri dışlanacak.
 
@@ -75,3 +75,5 @@
 - Ters yüz yönü giderildi; Chrome başlangıç görünümünde arazi, tank, patika, ağaç kümeleri ve gökyüzü görünüyor.
 - 380 ağaç için tekrar kullanılan geometri ve thin instance matrisleri var; yakın gövdeler statik Havok şekli, uzak orman görsel arka plan.
 - Havok doğrulaması görsel üçgenlerin ara noktalarını, düz başlangıcı, doğal eğimleri, patika açıklığını ve kaynak temizliğini kontrol ediyor.
+
+- GitHub CLI yerel auth kaydı eski `Emirix` adını gösterdi; ilk oluşturma isteği HTTP 404 döndü. `gh api user` ile güncel hesap `c0detnr` olarak doğrulandı; depo bu hesapta oluşturulacak.

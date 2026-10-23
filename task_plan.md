@@ -2,14 +2,14 @@
 
 ## Git kurulumu — 2026-10-23
 
-- Depo/hesap incelemesi: complete. Yerel Git deposu ve `Emirix/d3` uzak deposu yok; GitHub hesabı Emirix.
+- Depo/hesap incelemesi: complete. Yerel Git deposu ve `c0detnr/d3` uzak deposu yok; GitHub hesabı Emirix.
 - `.gitignore` ve ajan commit/push kuralları: complete.
-- İlk commit, özel uzak depo oluşturma ve push doğrulaması: in_progress.
+- İlk commit, özel uzak depo oluşturma ve push doğrulaması: complete. `0db1108`, `c0detnr/d3`, PRIVATE ve uzak `main` doğrulandı.
 - Kurulum öncesi `git status` depo olmadığı için çalışmadı; `gh repo view` hedef deponun bulunmadığını doğruladı.
 
 ## Next Step
 
-Stage listesini ve gizli dosya dışlamalarını kontrol et; ilk commit'i özel depoya gönder ve uzak dalı doğrula.
+Git kurulumu tamamlandı; hesap düzeltmesi ve doğrulama kaydını commit edip push et. Devam eden sürüş çalışmasının yeni değişiklikleri ayrı tutulur.
 
 ## Goal
 
@@ -166,3 +166,7 @@ Modelden fizik rigini çıkar; 60 Hz tek fizik döngüsünde süspansiyon ve pal
 ## Next Step
 
 Doğal arazi ve orman görevi tamamlandı. M1 için takip/kesişme kamerası ve referans performans ölçümü sonraki adımlardır.
+
+### Git kurulumu hata kaydı
+
+- CLI eski `Emirix` hesabını gösterdiği için ilk uzak depo oluşturma isteği 404 döndü. API güncel hesabı `c0detnr` olarak doğruladı; hedef ve belge bağlantısı düzeltildi.

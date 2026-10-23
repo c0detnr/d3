@@ -57,3 +57,13 @@
 - map:test, tank:test ve map:build geçti. Chrome başlangıç/genel kamera görünümü incelendi; docs/previews/forest-clearing.png kaydedildi. Büyük paket uyarısı sürüyor; FPS ölçülmedi.
 - İlk yüz yönü ve test üçgen örnekleme indeksi düzeltildi. Tarayıcıda kod yenilendiği için eski düğme indeksi geçersiz kaldı; güncel erişilebilirlik ağacı alınarak kamera kontrolü tamamlandı.
 - README, görsel yön, kararlar, yol haritası ve doğrulama kanıtı güncellendi. M1 tamamlanmadı, sürüş henüz yok.
+
+## 2026-10-23 — Özel Git deposu kurulumu
+
+- `main` dalıyla Git başlatıldı; ilk proje anlık görüntüsü `0db1108` commit'iyle gönderildi.
+- Özel depo: https://github.com/c0detnr/d3 ; GitHub API görünürlüğü PRIVATE, varsayılan dal main. İlk uzak commit yerel HEAD ile eşleşti.
+- `.gitignore`: node_modules, dist/dist-map, ortam dosyaları, kimlik bilgileri, yerel yedekler ve Blender otomatik yedekleri dışlandı; paket kilidi ve teslim tank kaynakları korundu. 10 dışlama ve 4 izleme kontrolü geçti.
+- Stage diff whitespace kontrolü geçti; metin dosyalarında yaygın gizli anahtar desenleri bulunmadı. Oyun testleri bu Git yapılandırma görevinde çalıştırılmadı.
+- AGENTS.md tamamlanan işler için kontrol, commit ve push kuralını içeriyor.
+- CLI eski hesap adını gösterdiğinden ilk oluşturma 404 verdi; API'den güncel c0detnr hesabı doğrulanıp işlem tamamlandı.
+- Kurulum sırasında devam eden sürüş çalışmasına ait kamera/araç dosyaları yeniden değişti; ilk anlık görüntüden sonraki bu değişiklikler Git kurulum commit'ine katılmadı.
