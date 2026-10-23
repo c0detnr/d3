@@ -84,3 +84,13 @@
 - Mevcut sürüş düzeltmeleri, otomatik Havok kabul senaryoları, test çıktısı ve geliştirme gözlem aracı commit kapsamına alındı. Paket sürümleri, kilit dosyası ve Blender/GLB korunuyor.
 - README, ROADMAP ve VALIDATION mevcut prototipi ve açık kabul maddelerini ayıracak şekilde güncellendi. 600 saniye sonucu kaydedilmedi; M1/M2 tamamlandı iddiası yok.
 - Git teslimi öncesi yeniden çalıştırıldı: `npm test`, `npm run drive:test`, `npm run map:test`, `npm run tank:test`, `npm run map:build`; tümü geçti. Derlemenin büyük paket uyarısı sürüyor.
+
+## 2026-10-23 — Taret prototipi
+
+- Mevcut sürüşe kinematik TurretController eklendi. Merkezi araç ayarları, sabit zaman adımı, kısa yönden yaw, sınırlı yükseliş ve render interpolasyonu; gövde Havok fiziği ayrı kaldı.
+- Kamera hedefi/namlu doğrultusu ayrı. Fizik sorgusuyla hedef/engel, hizalanma ve açı sınırı göstergeleri; Alt/C serbest bakış; R sıfırlama; genel görünüşte hedef korunması. Nişan sırasında otomatik kamera toparlanması kapalı.
+- TankVisual.syncHull sabit adımda yalnızca gövde pozunu günceller; tekerlek animasyonu render aşamasında kalır. GLB, Blender ve paket kilidi değiştirilmedi.
+- turret:test, npm test, tank:test, drive:test, map:test ve map:build geçti. Chrome hedef takibi, C serbest bakış/takibe dönüş, genel görünüş, R sıfırlama kontrol edildi; warn/error kaydı boş. Görsel: docs/previews/turret-free-look.png.
+- İlk test Hull'u transformNodes içinde aradığı için başarısızdı; mesh/transform metadata aramasıyla düzeltildi. Eski kamera bakışı namlu sınırını aştığından başlangıç nişan açısı ayarlandı.
+- README, DECISIONS, ROADMAP, VALIDATION güncellendi. Nişancı görüşü/atış ve tam namlu kesişme çözümü açık; M1/M2 kabulü tamamlanmadı.
+- Paralel hareket efektleri belge çalışması d522ee0 commit'iyle ayrı kaydedildi; bu göreve katılmadı.

@@ -73,3 +73,11 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Uygulanan taslak:** Düz test pistini doğal yükseklikler ve kıvrılan toprak patikayla değiştir; tank çevresini açık tut, +Z yönünde ormanı yoğunlaştır. Ayrıntılı bölge 320 × 320 m, çevresindeki seyrek geometri yalnızca ufuk devamlılığını sağlar. Bu ölçüler kesin oyun haritası boyutu değildir.
 - **Teknik tercih:** Aynı mesh üzerinden çizim/çarpışma; tekrar kullanılan ağaç geometrisi, yakın gövdelerde statik çarpışma; uzak ağaçlar görsel arka plan. Blender varlığı korunur.
 - **Açık:** Oynanabilir alan sınırı, uzak ağaçlara erişim, sürüşe göre eğim/tutuş ayarı ve referans performans. M1/M2 tamamlandı kabul edilmez.
+
+## 2026-10-23 — Taret prototipi
+
+- **Kullanıcı kararı:** Taret planının uygulanmasına başla. Bu adım bağımsız taret/namlu takibi; sürüş teslimi savaş sistemine bağlanmıyor.
+- **Prototip ayarları:** 360° taret, 35°/s yatay hız; −8°…+20° namlu, 15°/s yükseliş hızı. Oyun ayarlarıdır; kesin araç özellikleri değildir. Merkezi `VehicleDefinition` içinde radyan/saniye kullanılır.
+- **Uygulanan kontrol:** Fareyi sürükleyerek kamera/nişan hedefi; Alt basılıyken veya C aç/kapat ile serbest bakış. Serbest bakış son dünya hedefini korur. Nişan sırasında otomatik arkaya kamera toparlanması kapalıdır.
+- **Uygulanan gösterim:** Merkez artısı hedef yönü, hareketli halka gerçek namlu doğrultusundaki ilk fizik engeli; engel yoksa 800 m referansı. 12 m içindeki engel turuncu uyarı verir. Bu halka mermi düşüşü hesabı değildir.
+- **Açık:** Nişancı görüşü, ayarlanabilir stabilizasyon karakteri, namlu/gövde/çevre kesişmelerinin tam çözümü, atış ve geri tepme. Mevcut taret kinematik; ayrı Havok gövdesi eklenmedi. M1/M2 kabul maddeleri sürüyor.

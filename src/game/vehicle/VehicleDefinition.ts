@@ -13,6 +13,10 @@ export interface VehicleDefinition {
   staticCompression: number;
   dampingRatio: number;
   reverseDelay: number;
+  turretYawSpeed: number;
+  gunPitchSpeed: number;
+  gunMinElevation: number;
+  gunMaxElevation: number;
 }
 export const IRON_DUST_01: Readonly<VehicleDefinition> = Object.freeze({
   mass: 42000, forwardSpeed: 48 / 3.6, reverseSpeed: 18 / 3.6,
@@ -20,4 +24,6 @@ export const IRON_DUST_01: Readonly<VehicleDefinition> = Object.freeze({
   grip: 1.25, lateralResponse: 4, rollingResistance: 0.025,
   suspensionTravel: 0.45, staticCompression: 0.22, dampingRatio: 0.7,
   reverseDelay: 0.25,
+  turretYawSpeed: 35 * Math.PI / 180, gunPitchSpeed: 15 * Math.PI / 180,
+  gunMinElevation: -8 * Math.PI / 180, gunMaxElevation: 20 * Math.PI / 180,
 });

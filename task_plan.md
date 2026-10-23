@@ -189,3 +189,20 @@ Kullanıcı sürüş geliştirmesini yeni sohbete taşıdı; bu sohbette kapsam 
 ## Next Step
 
 İlgili diff'i kontrol edip commit oluştur; origin/main'e push et ve uzak HEAD eşleşmesini doğrula. Son sürüş/tarayıcı kabulüne yeni sohbette devam et.
+
+## Taret prototipi — 2026-10-23
+
+Kullanıcı taret planının uygulanmasını istedi. Önce mevcut sürüşü koruyarak bağımsız taret/namlu takibi; atış ve hasar bu adımda yok. M1/M2 kabulünü tamamlandı sayma.
+
+### Phase 14: Taret denetleyicisi ve kamera hedefi
+**Status:** complete
+
+### Phase 15: Gerçek GLB ile nişan testleri ve tarayıcı kontrolü
+**Status:** complete
+
+### Phase 16: Belgeler ve teslim kontrolleri
+**Status:** complete
+
+## Next Step
+
+Taret prototipi ve kontroller tamamlandı. Git tesliminden sonra sıradaki özellik nişancı görüşü; M1/M2 son kabulü ve tam namlu kesişme çözümü açık.

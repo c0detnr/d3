@@ -45,12 +45,16 @@ export class TankVisual {
       this.currentCompression[i] = contact.compression;
     });
   }
-  render(vehicle: TankVehicle, alpha: number) {
+  syncHull(vehicle: TankVehicle, alpha: number) {
     const rotation = Quaternion.Slerp(vehicle.previous.rotation, vehicle.current.rotation, alpha);
     const position = Vector3.Lerp(vehicle.previous.position, vehicle.current.position, alpha);
     const offset = Vector3.TransformNormal(this.rig.center.subtract(this.rig.visualOffset), Matrix.Compose(Vector3.One(), rotation, Vector3.Zero()));
     this.tank.anchor.position.copyFrom(position.subtract(offset));
     this.tank.anchor.rotationQuaternion = rotation;
+    this.tank.anchor.computeWorldMatrix(true);
+  }
+  render(vehicle: TankVehicle, alpha: number) {
+    this.syncHull(vehicle, alpha);
     this.rig.wheels.forEach((wheel, i) => {
       const compression = this.previousCompression[i] * (1 - alpha) + this.currentCompression[i] * alpha;
       wheel.node.position.copyFrom(wheel.basePosition);

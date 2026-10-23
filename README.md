@@ -58,3 +58,11 @@ Harita kodla, tank Blender MCP ile bu projede üretildi; dış görsel varlık k
 Son görünüm: [Orman eşiği](docs/previews/forest-clearing.png). Çevre geometrisi ve zemin tanesi bu proje için kodla üretildi; dış model veya kaplama eklenmedi.
 
 Sürüş ayarları `src/game/vehicle/VehicleDefinition.ts` içinde SI birimleriyle tutulur. Palet geometrisi korunur; yürüyen bant deseni geçici prosedürel görseldir. Ses ve toz henüz yok; M2 tamamlanmadı. Geliştirme sunucusunda `/map-preview.html?driveTest`, isteğe bağlı 10 dakika otomatik gözlem aracını açar; bu insan sürüş hissi değerlendirmesinin yerini tutmaz.
+
+## Taret prototipi
+
+Harita önizlemesinde fareyi sürükleyerek taret hedefini değiştir. Taret 35°/s hızla yetişir; namlu −8°…+20° arasında 15°/s hareket eder. Bunlar ilk oyun ayarlarıdır. Alt basılıyken sürükle veya C ile serbest bakışı aç/kapat: kamera dönerken son nişan hedefi korunur. R tankla birlikte tareti sıfırlar.
+
+Merkez artısı hedef yönünü, halka namlunun gerçek doğrultusunu gösterir. Turuncu halka 12 m içindeki fizik engelini belirtir; mermi düşüşü tahmini değildir. Nişan sırasında kamera kendiliğinden gövdenin arkasına dönmez. Genel görünüş yeni hedef vermez.
+
+`npm run turret:test` gerçek GLB üzerinde dönüş/yükseliş, hedef takibi, eğimli gövde, interpolasyon, kare hızından bağımsızlık ve kaynak temizliğini kontrol eder. Nişancı görüşü, atış, geri tepme ve tam namlu kesişme çözümü henüz yok. M1/M2 son kabulü açık.

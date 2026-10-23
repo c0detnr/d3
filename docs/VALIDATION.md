@@ -82,3 +82,12 @@ Başlangıç hedefi, belirlenecek referans masaüstü cihazda 1920×1080 çözü
 - **Tamamlanmadı:** 600 saniyelik otomatik gözlem başlatıldı, ancak nihai kayıt alınmadı. İlk 180 saniyede sayısal hata görülmedi; bu süre 10 dakika kabulü değildir. Nihai FPS sonucu verilmedi.
 - **Son tarayıcı kabulü bekliyor:** engel yakınında kamera, tekerlek/palet yönleri, odak kaybı, gizli sekmeden dönüş, R ile sıfırlama, sürüş hissi ve insan tarafından 10 dakika serbest sürüş. Ses ve toz uygulanmadı.
 - Geçici palet çözümü: mevcut birleşik geometri üzerinde taraf hareketine göre kaydırılan prosedürel bant deseni. Kaynak model ve Blender dosyaları değişmedi; dış varlık eklenmedi.
+
+## 2026-10-23 — Taret prototipi
+
+- `npm run turret:test` geçti: gerçek GLB namlu yönünün dünya hedefine yakınsaması; gövde matrisinin korunması; 35°/s yatay ve 15°/s düşey hız sınırları; −8°/+20° sınırlar; ±π kısa yön geçişi; eğimli/dönmüş gövde; görsel interpolasyonun simülasyonu değiştirmemesi; 30/60/120 FPS aynı sonuç; üç kur/temizle çevrimi.
+- `npm test`, `npm run tank:test`, `npm run drive:test`, `npm run map:test` geçti. `npm run map:build` geçti; mevcut büyük paket uyarısı sürüyor. Node NullEngine kontrollerinin localStorage uyarısı tarayıcı hatası değildir.
+- Chrome yerel harita önizlemesinde fareyle yeni hedef, taretin hedefe yetişmesi, C ile serbest bakışta hedefin korunması ve takibe dönüş görüldü. Genel görünüşte nişan işaretleri gizlendi; R ile tank/taret sıfırlaması ve takip görünüşü doğrulandı. Tarayıcı warn/error kaydı boş.
+- [Görsel kanıt: gövdeden farklı yönde taret ve serbest bakış](previews/turret-free-look.png). Görsel kalite kontrolüdür; FPS veya performans ölçümü yapılmadı.
+- Alt basılı tutma için dinleyici uygulandı; tarayıcı otomasyonunda serbest bakış C üzerinden kontrol edildi. Her iki mod odak/görünürlük kaybında temizlenir; yeni taret davranışı için uzun insan sürüşü yapılmadı.
+- Açık: nişancı görüşü, tam namlu/gövde/çevre kesişme kontrolü, balistik düşüş, geri tepme, atış ve hasar. Yakın engel işareti namlu ağzından 800 m boyunca gerçek fizik sorgusudur; 12 m içinde turuncu olur. M1/M2/M3 kabulü tamamlandı sayılmaz.

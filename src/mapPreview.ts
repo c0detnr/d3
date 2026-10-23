@@ -11,6 +11,8 @@ import { bindDriveKeys, DriveInput } from './game/input/DriveInput.ts';
 import { extractTankRig } from './game/vehicle/tankRig.ts';
 import { TankVehicle } from './game/vehicle/TankVehicle.ts';
 import { TankVisual } from './game/vehicle/TankVisual.ts';
+import { AimSystem } from './game/aim/AimSystem.ts';
+import { TurretController } from './game/vehicle/TurretController.ts';
 import { FollowCamera } from './game/camera/FollowCamera.ts';
 import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
 
@@ -48,12 +50,15 @@ const input = new DriveInput();
 let vehicle: TankVehicle | undefined;
 let visual: TankVisual | undefined;
 let observation: DrivingObservation | undefined;
+let turret: TurretController | undefined;
+const aim = new AimSystem(scene, followCamera, document.querySelector<HTMLElement>('#aim-bore')!, document.querySelector<HTMLElement>('#aim-status')!);
+followCamera.aiming = true;
 let lastTime = performance.now();
 let paused = document.hidden;
 const keys = bindDriveKeys(window, () => reset());
 const telemetry = document.querySelector<HTMLElement>('#telemetry')!;
 function reset() {
-  keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); followCamera.follow();
+  keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); turret?.reset(); aim.reset(); followCamera.follow();
   lastTime = performance.now();
 }
 const visibility = () => {
@@ -103,6 +108,7 @@ async function start() {
   const rig = extractTankRig(tank);
   vehicle = new TankVehicle(scene, rig, ground.spawn);
   visual = new TankVisual(tank, rig);
+  turret = new TurretController(tank, vehicle.definition);
   followCamera.follow();
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('driveTest')) observation = new DrivingObservation(engine, reset);
   status.textContent = '42 ton · Palet kuvvetleriyle sürüş · R ile kurtar';
@@ -112,6 +118,7 @@ async function start() {
     const now = performance.now();
     const dt = Math.max(0, (now - lastTime) / 1000); lastTime = now;
     if (paused || !vehicle || !visual || !tank) return;
+    aim.acquire(vehicle);
     const alpha = clock.advance(dt, step => {
       const command = input.resolve(observation?.keys() ?? keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
       vehicle!.beforeStep(step, command);
@@ -119,8 +126,12 @@ async function start() {
       vehicle!.afterStep();
       observation?.step();
       visual!.fixedUpdate(vehicle!, step);
+      // Joint calculations use the current physics pose; render interpolation follows below.
+      visual!.syncHull(vehicle!, 1);
+      turret!.fixedUpdate(aim.target, step);
     });
     visual.render(vehicle, alpha);
+    turret!.render(alpha);
     followCamera.update(vehicle, tank.anchor.position, Math.min(dt, 0.1));
     hudElapsed += dt;
     if (hudElapsed >= 0.1) {
@@ -128,6 +139,7 @@ async function start() {
       hudElapsed = 0;
     }
     scene.render();
+    aim.render(vehicle, turret!);
     observation?.frame(dt, vehicle);
   });
 }
@@ -149,7 +161,7 @@ function dispose() {
   document.removeEventListener('visibilitychange', visibility);
   window.removeEventListener('blur', blur);
   observation?.dispose();
-  visual?.dispose(); vehicle?.dispose(); followCamera.dispose();
+  aim.dispose(); turret?.dispose(); visual?.dispose(); vehicle?.dispose(); followCamera.dispose();
   tank?.dispose();
   ground?.dispose();
   scene.dispose();

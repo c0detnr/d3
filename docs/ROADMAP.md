@@ -1,6 +1,6 @@
 # Geliştirme yol haritası
 
-Durum: **M1 devam ediyor: doğal arazi, orman çevresi ve gerçek tankın bağımsız önizlemesi mevcut. M2 ilk sürüş prototipi uygulandı; son kabul açık. M3 başlamadı.**
+Durum: **M1 devam ediyor: doğal arazi, orman çevresi ve gerçek tankın bağımsız önizlemesi mevcut. M2 ilk sürüş prototipi uygulandı; son kabul açık. M3 için taret prototipi mevcut; savaş teslimi açık.**
 
 ## Uygulamaya geçiş hazırlığı
 
@@ -46,7 +46,7 @@ Bu teslimde savaş mekanikleri zorunlu değildir. Kullanıcı tek başına harit
 
 ## M3 — Savaş sistemi / vertical slice
 
-**Durum:** Başlanmadı. **Bağımlılık:** M2 sürüş değerlendirmesi.
+**Durum:** Kullanıcının isteğiyle taret kontrol prototipi uygulandı; nişancı görüşü, atış ve hasar bekliyor. **Bağımlılık:** Tam savaş teslimi için M2 sürüş değerlendirmesi.
 
 Hareketli kule ve namlu, nişancı görüşü, top ateşi, mermi fiziği, isabet, temel zırh ve modül hasarı. İlk test için sabit hedefler önerilir.
 
@@ -82,3 +82,12 @@ Düz test pisti doğal yükseltiler, toprak patika, kayalar ve ileride sıklaşa
 ### 2026-10-23 — İlk sürüş prototipi Git teslimi
 
 `npm test`, `npm run drive:test`, `npm run map:test`, `npm run tank:test` ve `npm run map:build` ile kontrol edilir. Ayrıntılı otomatik sonuç [driving-results.json](driving-results.json) içinde. Tarayıcıda takip ve serbest bakış gözlendi; 600 saniyelik gözlemin nihai kaydı alınmadı. Kamera engel kesişmesi, odak/gizli sekme, tekerlek yönleri ve sürüş hissinin son tarayıcı kabulü yeni sohbette devam edecek. M1/M2 tamamlandı olarak işaretlenmedi.
+
+### 2026-10-23 — Taret kontrol prototipi
+
+Kullanıcının açık isteğiyle mevcut sürüş prototipine bağımsız taret/namlu takibi eklendi. M3'ün ilk taret alt adımı mevcut; savaş vertical slice başlamış/tamamlanmış teslim kabul edilmez. M1/M2 açık kabul maddeleri ve geliştirme önceliği korunur.
+
+- Sabit 60 Hz adımda dönüş/yükseliş sınırları; render interpolasyonu; dünya hedefinin gövde dönüşünden ayrılması.
+- Kamera hedefi ve gerçek namlu doğrultusu, serbest bakış, yakın engel ve açı sınırı göstergeleri.
+- `npm run turret:test`: gerçek GLB ile nişan yakınsaması, gövde bağımsızlığı, hız/sınırlar, açı geçişi, eğimli gövde, interpolasyon, 30/60/120 FPS ve üç kaynak temizleme çevrimi geçti.
+- Nişancı görüşü, tam namlu kesişme çözümü ve atış sonraki adımlar; sürüş teslimini bekletmez.

@@ -88,3 +88,13 @@
 - Node strip-only parameter properties desteklemedi; constructor alan atamaları açık yazıldı. Matrix.FromQuaternion bu sürümde yok; Matrix.Compose kullanıldı. Testler ardından geçti.
 - Tarayıcı 10 dakikalık otomatik gerçek zamanlı rota gözlemi 20:34:19 UTC'de başladı; bu insan sürüş hissi değerlendirmesi değildir. İlk 180 saniyede non-finite durum yok, tarayıcı error/warn kaydı boş.
 - Çalışma sırasında kullanıcı ayrı Git kurulumunu tamamladı; son kural commit ve origin/main push gerektiriyor. İlk çalışma dosyalarının bir kısmı ilk depo anlık görüntüsüne girmiş, kalan düzeltmeler ayrı commit edilecek.
+
+## Taret prototipi — kaynak incelemesi
+
+- Çalışma ağacı temiz. Sürüş prototipi, FixedStep, TankVisual ve FollowCamera mevcut; önceki konuşmanın eski README durumu artık geçerli değil.
+- GLB handedness dönüşümü korunmalı; taret/namlu eksenleri gerçek GLB üzerinde doğrulanmalı. Dünya hedefi yerel pivot uzayına çevrilecek.
+- Paket kurulumuna gerek yok; kilit ve Blender varlığı korunacak. Mevcut sürükleyerek kamera kontrolüne Alt ile serbest bakış eklenecek.
+
+- Gerçek GLB testi ilk denemede Hull düğümünü yalnızca transformNodes içinde aradığı için başarısız oldu; Hull mesh olduğundan metadata ile tüm düğümler üzerinde arama düzeltildi. Son taret testi geçti.
+- Başlangıç kamerasının eski 26° aşağı bakışı namlunun −8° sınırının dışındaydı. Nişan için hedef yüksekliği 3 m ve başlangıç beta 1,48 rad seçildi; gökyüzüne bakabilmek için üst beta sınırı genişletildi.
+- Yaw gecikmesinde arkadaki hedef namluyu gereksizce yukarı kaldırmasın diye yükseliş yatay uzaklıktan hesaplandı. Yakın engel göstergesi gerçek Havok sorgusu; balistik isabet tahmini değil.
