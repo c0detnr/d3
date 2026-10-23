@@ -112,3 +112,11 @@ Başlangıç hedefi, belirlenecek referans masaüstü cihazda 1920×1080 çözü
 - Değişiklik: kare dalga genlik modülasyonu sinüse çevrildi, sürekli alçak tokmak osilatörü kaldırıldı, palet kazancı yaklaşık yarıya indirildi, bant merkezi ve üst hız sınırı düşürüldü, sürünme hızının altında ses susturuldu.
 - `npm run audio:test`, `npm run map:check` ve `npm run map:build` geçti.
 - Yeni palet sesi dinlenmedi; kullanıcı dinlemesi ve gerekirse ikinci tur ayar açık.
+
+## 2026-10-24 — M3.1 ateş ve balistik çekirdeği
+
+- `npm run combat:test` geçti: gerçek GLB namlu pozu, ateş/dolum kapısı, sınırlı görsel geri tepme, sıfırlama ve üç kaynak temizleme çevrimi; yerçekimi düşüşü, ince plaka üzerinden tünellemenin önlenmesi, ilk engelde durma, zırh açısı ve mesafe eğrisi, 70° sekme eşiği, gövde/kule ön-yan kalınlık eşlemesi ve üç hedef yerleşimi.
+- Regresyonlar geçti: `npm test`, `npm run map:test`, `npm run tank:test`, `npm run turret:test`, `npm run effects:test`, `npm run drive:test`, `npm run audio:test`, `npm run map:check`, `npm run map:build`. Mevcut büyük paket uyarısı sürüyor.
+- `npm run typecheck` çalıştırılamadı: depoda kök `tsconfig.json` yok ve script TypeScript 7.0.2'nin kullanım metnini döndürüyor. Bu, bu değişiklikten önce de mevcut bir kurulum eksikliğidir; harita kodu `map:check` ile kontrol edildi.
+- Tarayıcıda atış, sağ tık nişancı görüşü, HUD, namlu alevi/tracer/isabet efektleri, R sıfırlaması ve performans ölçülmedi. Otomatik testler oyun hissi veya görsel kabul yerine geçmez.
+- Hasar, hedef yıkılması, modül hasarı, HE, düşman AI, oyuncu hasarı ve savaş sesi bu adımda yok; M1/M2/M3 kabulü tamamlanmadı.

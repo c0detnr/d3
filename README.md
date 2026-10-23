@@ -10,7 +10,7 @@ Temel ilke: **Grafikler sade olacak; tank onlarca tonluk zırhlı bir araç gibi
 
 Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağımsız harita önizlemesi mevcut. İlk sürüş prototipi mevcut; son tarayıcı kabulü ve sürüş hissi değerlendirmesi açık. Blender tank dosyaları `assets/tanks/iron_dust_01/` altında; önizleme gerçek GLB modelini metre ölçeğinde, zemine hizalı yükler.
 
-İlk teslim tek tankla küçük bir haritada serbest sürüş olacak. Sonraki teslim sabit hedeflerle atış ve temel hasarı ekleyerek savaş mekaniklerini içeren vertical slice oluşturacak.
+İlk teslim tek tankla küçük bir haritada serbest sürüş olacak. Sonraki teslim sabit hedeflerle atış ve temel hasarı ekleyerek savaş mekaniklerini içeren vertical slice oluşturacak. M3.1 çekirdeği uygulandı: gerçek namlu ağzından AP atışı, süpürülmüş isabet, mesafe/açıya bağlı delme, sekme, üç sabit zırhlı hedef, nişancı görüşü ve görsel geri bildirim. Hasar, modül hasarı, HE, düşman AI ve savaş sesleri henüz yok; tarayıcı kabulü açık.
 
 İlk özgün tank Blender MCP ile üretildi: [Blender kaynağı](assets/tanks/iron_dust_01/iron_dust_01.blend) · [GLB](assets/tanks/iron_dust_01/iron_dust_01.glb) · [önizlemeler ve doğrulama](assets/tanks/iron_dust_01/README.md). Görünür geometri 14.512 üçgen; Babylon entegrasyonu ve ilk dinamik sürüş prototipi mevcut.
 
@@ -45,13 +45,15 @@ Kurulu paket sürümleri `package.json` ve kilit dosyasında sabittir. Genel oyu
 
 320 × 320 m ayrıntılı arazi çevresinde ufka devam eden seyrek geometrili tepeler bulunur. Düz ve açık başlangıç alanından kıvrılan toprak patika ormana ilerler; çamlar, geniş yapraklı ağaçlar, kayalar ve kuru ot kümeleri çevreyi oluşturur. Akşam ışığı, gölgeler ve uzaklık sisi kullanılır. Arazi, kayalar ve yakın ağaç gövdeleri statik Havok çarpışmasına sahiptir; uzaktaki orman görsel arka plandır. Metre esaslıdır; farklı zemin tutuşları ve oynanabilir alan sınırları henüz uygulanmadı.
 
-W ileri, S fren ve durduktan 0,25 saniye sonra geri; A/D palet farkıyla dönüş, Space güçlü fren, R tankı başlangıca döndürür. Fareyi sürükleyerek bakışı değiştir, tekerlekle mesafeyi ayarla. Hareketliyken kamera son fare hareketinden 1,5 saniye sonra arkaya toparlanır. **Alanı göster** genel görünüşe geçer; **Başlangıca dön** tankı ve hızları sıfırlar.
+W ileri, S fren ve durduktan 0,25 saniye sonra geri; A/D palet farkıyla dönüş, Space güçlü fren, R tankı başlangıca döndürür. Fareyi sürükleyerek bakışı değiştir, tekerlekle mesafeyi ayarla. Sol tık ateşler; sağ tık basılı tutunca nişancı görüşü açılır ve sağ tık sürüklemesi nişanı yönlendirir. Hareketliyken kamera son fare hareketinden 1,5 saniye sonra arkaya toparlanır. **Alanı göster** genel görünüşe geçer; **Başlangıca dön** tankı ve hızları sıfırlar.
 
 - `npm test`: sabit zaman adımı, birikim sınırı, fren önceliği ve geri geçişi kontrolleri.
 - `npm run effects:test`: toz temas/yük/hava kapıları, hız/geri/dönüş, 30/60/120 FPS eşitliği, 10 dakika simülasyon havuz sınırı ve gerçek Havok ile kaynak temizliği.
 - `npm run audio:test`: motor/palet/rüzgâr eşleme sınırları, palet hızı/yön/dönüş, hava, model sıfırlama, ses grafiği kur/kapat ve kaynak temizliği.
 - `npm run drive:test`: gerçek Havok ile süspansiyon, ileri/fren/geri, dönüş, 30/60/120 FPS eşitliği, rampa, tümsek, engel ve sıfırlama; sonuç `docs/driving-results.json`.
 - `npm run tank:test`: gerçek GLB ile ölçek, zemin hizası, hiyerarşi, gizli çarpışma geometrisi ve kaynak temizliği.
+- `npm run turret:test`: gerçek GLB üzerinde taret/namlu takibi, hız ve açı sınırları, eğimli gövde, interpolasyon ve kaynak temizliği.
+- `npm run combat:test`: gerçek GLB namlu ağzı, dolum/geri tepme, mermi düşüşü ve süpürülmüş isabet, zırh açısı/mesafe delmesi, sekme ve sabit hedefler.
 - `npm run map:check`: harita TypeScript kontrolü.
 - `npm run map:test`: gerçek Havok ile arazi/görsel yüzey eşleşmesi, başlangıç açıklığı, orman/patika yerleşimi, ağaç çarpışması ve kaynak temizleme kontrolü.
 - `npm run map:build`: `dist-map/` altında dağıtılabilir harita önizlemesi.
@@ -62,10 +64,12 @@ Son görünüm: [Orman eşiği](docs/previews/forest-clearing.png). Çevre geome
 
 Sürüş ayarları `src/game/vehicle/VehicleDefinition.ts` içinde SI birimleriyle tutulur. Palet geometrisi korunur; yürüyen bant deseni geçici prosedürel görseldir. Palet temas, hızlı sürüş ve dönüş tozu mevcut; paneldeki **Toz efektleri** kutusuyla kapatılabilir. Motor, iki palet ve rüzgâr sesleri prosedürel Web Audio ile çalışıyor; paneldeki **Ses** kutusu ve düzey kaydırıcısıyla denetlenir. Ses yalnızca ilk kullanıcı etkileşiminde açılır; sekme gizlenince askıya alınır. S2 süspansiyon/fren/taret ve S3 savaş sesleri henüz yok; insan dinlemesi ve M2 kabulü açık. Geliştirme sunucusunda `/map-preview.html?driveTest`, isteğe bağlı 10 dakika otomatik gözlem aracını açar; bu insan sürüş hissi değerlendirmesinin yerini tutmaz.
 
-## Taret prototipi
+## Taret ve ateş prototipi (M3.1)
 
-Harita önizlemesinde fareyi sürükleyerek taret hedefini değiştir. Taret 35°/s hızla yetişir; namlu −8°…+20° arasında 15°/s hareket eder. Bunlar ilk oyun ayarlarıdır. Alt basılıyken sürükle veya C ile serbest bakışı aç/kapat: kamera dönerken son nişan hedefi korunur. R tankla birlikte tareti sıfırlar.
+Harita önizlemesinde fareyi sürükleyerek taret hedefini değiştir. Taret 35°/s hızla yetişir; namlu −8°…+20° arasında 15°/s hareket eder. Bunlar ilk oyun ayarlarıdır. Alt basılıyken sürükle veya C ile serbest bakışı aç/kapat: kamera dönerken son nişan hedefi korunur. R tankla birlikte tareti, silahı ve hedefleri sıfırlar.
 
-Merkez artısı hedef yönünü, halka namlunun gerçek doğrultusunu gösterir. Turuncu halka 12 m içindeki fizik engelini belirtir; mermi düşüşü tahmini değildir. Nişan sırasında kamera kendiliğinden gövdenin arkasına dönmez. Genel görünüş yeni hedef vermez.
+Merkez artısı hedef yönünü, halka namlunun gerçek doğrultusunu gösterir. Turuncu halka 12 m içindeki fizik engelini belirtir. Nişan sırasında kamera kendiliğinden gövdenin arkasına dönmez. Genel görünüş yeni hedef vermez.
 
-`npm run turret:test` gerçek GLB üzerinde dönüş/yükseliş, hedef takibi, eğimli gövde, interpolasyon, kare hızından bağımsızlık ve kaynak temizliğini kontrol eder. Nişancı görüşü, atış, geri tepme ve tam namlu kesişme çözümü henüz yok. M1/M2 son kabulü açık.
+Sol tık tek 120 mm AP mermisi ateşler; 6,5 saniyelik dolum süresi HUD'da görünür. Mermi gerçek namlu ağzından çıkar, yerçekimiyle düşer ve her sabit adımda önceki→yeni konum arasında ışın sorgusu yaptığı için ince hedefleri atlamaz. Patikadaki üç sabit zırhlı hedefte gövde/kule ve ön/yan/üst yüzey kalınlıkları ayrıdır; sonuç mesafe ve geliş açısına göre `DELDİ`, `SEKTİ`, `DELMEDİ` veya `ENGEL` olarak raporlanır. 70° üzeri geliş açısı sekmedir. Mermi başına fizik gövdesi yoktur; hasar, modül hasarı ve hedef yıkılması bu adımda yoktur. Namlu alevi, tracer, isabet kıvılcımı ve duman görsel-only'dir; savaş sesi eklenmedi.
+
+`npm run turret:test` gerçek GLB üzerinde dönüş/yükseliş, hedef takibi, eğimli gövde, interpolasyon, kare hızından bağımsızlık ve kaynak temizliğini kontrol eder. `npm run combat:test` dolum/geri tepme, balistik düşüş, tünelleme yokluğu, açı/mesafe delmesi, sekme ve hedef bölgelerini doğrular. Nişancı görüşü ve görsel efektlerin tarayıcı kabulü ile performans ölçümü açık; M1/M2 son kabulü sürüyor.

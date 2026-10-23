@@ -105,3 +105,12 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Kesin kapsam:** Kullanıcı palet temas, hızlı sürüş ve dönüş tozunu istedi; uygulandı.
 - **Uygulama tercihi:** Mevcut süspansiyon rayları, sabit adımlı dünya uzayı havuzu ve Babylon sprite renderer; özgün prosedürel kaplama. Fren/iniş/egzoz eklenmedi.
 - **Açık:** Referans cihazda efekt açık/kapalı performans karşılaştırması ve son görsel kabul. Sayısal ayarlar prototip değerleridir.
+
+## 2026-10-24 — M3.1 ateş ve balistik çekirdeği
+
+- **Kullanıcı kararları:** Tek 120 mm AP; mesafeyle azalan basit delme; ilk aşamada hasar yok; sağ tık basılı tutunca nişancı görüşü; görsel-only efektler.
+- **Uygulanan ayarlar:** 900 m/s namlu hızı, 6,5 s dolum, 220→140 mm delme (0→1000 m), 70° sekme eşiği. Değerler prototip ayarlarıdır; gerçek araç özellikleri değildir.
+- **Teknik karar:** Mermi başına Havok gövdesi yok; sabit adımda önceki→yeni konum arasında süpürülmüş ışın sorgusu kullanılır. Geri tepme yalnızca `Barrel`/`MuzzlePoint` görsel kaydırmasıdır; gövde tek rigid body kalır.
+- **Zırh kuralı:** Etkin zırh = kalınlık / cos(geliş açısı); gövde/kule ve ön/arka/yan/üst/alt yüzeyler ayrı kalınlıklara sahiptir. Sonuç hasar uygulamaz, yalnız raporlanır.
+- **Doğrulanan:** `npm run combat:test` ve mevcut regresyonlar geçti. Tarayıcı kabulü, nişancı görüşü/efekt performansı ve insan değerlendirmesi yapılmadı.
+- **Açık:** Hedef HP/yıkılma, modül hasarı, HE, düşman AI, oyuncu hasarı, savaş sesi ve tam namlu kesişme çözümü. M1/M2/M3 kabulü açık.

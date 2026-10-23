@@ -9,6 +9,7 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 export class TurretController {
   readonly yawPivot: TransformNode;
   readonly pitchPivot: TransformNode;
+  readonly barrel: TransformNode;
   readonly muzzle: TransformNode;
   readonly definition: Readonly<VehicleDefinition>;
   private readonly yawRest: Quaternion;
@@ -24,7 +25,8 @@ export class TurretController {
       if (!node) throw new Error(`Tank joint missing: ${id}`);
       return node;
     };
-    this.yawPivot = find('TurretPivot'); this.pitchPivot = find('GunPitchPivot'); this.muzzle = find('MuzzlePoint');
+    this.yawPivot = find('TurretPivot'); this.pitchPivot = find('GunPitchPivot');
+    this.barrel = find('Barrel'); this.muzzle = find('MuzzlePoint');
     this.yawRest = this.yawPivot.rotationQuaternion?.clone() ?? Quaternion.FromEulerVector(this.yawPivot.rotation);
     this.pitchRest = this.pitchPivot.rotationQuaternion?.clone() ?? Quaternion.FromEulerVector(this.pitchPivot.rotation);
   }

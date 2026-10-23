@@ -11,27 +11,35 @@ export class AimSystem {
   readonly camera: FollowCamera;
   readonly marker: HTMLElement;
   readonly label: HTMLElement;
-  constructor(scene: Scene, camera: FollowCamera, marker: HTMLElement, label: HTMLElement) {
+  readonly isSniper?: () => boolean;
+  rangeMeters = 0;
+  constructor(scene: Scene, camera: FollowCamera, marker: HTMLElement, label: HTMLElement,
+    isSniper?: () => boolean) {
     this.scene = scene; this.camera = camera; this.marker = marker; this.label = label;
+    this.isSniper = isSniper;
   }
   reset() { this.initialized = false; this.marker.hidden = true; }
   acquire(vehicle: TankVehicle) {
-    if (this.camera.isOverview || (this.camera.freeLook && this.initialized)) return;
-    this.camera.camera.getViewMatrix(true);
-    const ray = this.camera.camera.getForwardRay(800);
+    if (this.isSniper?.() || this.camera.isOverview || (this.camera.freeLook && this.initialized)) return;
+    const camera = this.scene.activeCamera!;
+    camera.getViewMatrix(true);
+    const ray = camera.getForwardRay(800);
     const hit = this.scene.getPhysicsEngine()!.raycast(ray.origin, ray.origin.add(ray.direction.scale(800)), { ignoreBody: vehicle.body });
     this.target.copyFrom(hit.hasHit ? hit.hitPointWorld : ray.origin.add(ray.direction.scale(800)));
+    this.rangeMeters = hit.hasHit ? hit.hitDistance : 800;
     this.initialized = true;
   }
   render(vehicle: TankVehicle, turret: TurretController) {
+    const sniper = this.isSniper?.() ?? false;
     const hidden = this.camera.isOverview;
-    document.querySelector<HTMLElement>('#aim-intent')!.hidden = hidden || this.camera.freeLook;
-    this.label.hidden = hidden;
+    document.querySelector<HTMLElement>('#aim-intent')!.hidden = hidden || this.camera.freeLook || sniper;
+    this.label.hidden = hidden || sniper;
     if (hidden) { this.marker.hidden = true; return; }
     const ray = turret.getMuzzleRay();
     const hit = this.scene.getPhysicsEngine()!.raycast(ray.origin, ray.origin.add(ray.direction.scale(800)), { ignoreBody: vehicle.body });
     const point = hit.hasHit ? hit.hitPointWorld : ray.origin.add(ray.direction.scale(800));
-    const camera = this.camera.camera;
+    this.rangeMeters = hit.hasHit ? hit.hitDistance : 800;
+    const camera = this.scene.activeCamera!;
     const inFront = Vector3.Dot(point.subtract(camera.globalPosition), camera.getForwardRay().direction) > 0;
     const engine = this.scene.getEngine();
     const width = engine.getRenderWidth(), height = engine.getRenderHeight();

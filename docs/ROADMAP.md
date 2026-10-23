@@ -1,6 +1,6 @@
 # Geliştirme yol haritası
 
-Durum: **M1 devam ediyor: doğal arazi, orman çevresi ve gerçek tankın bağımsız önizlemesi mevcut. M2 ilk sürüş prototipi uygulandı; son kabul açık. M3 için taret prototipi mevcut; savaş teslimi açık.**
+Durum: **M1 devam ediyor: doğal arazi, orman çevresi ve gerçek tankın bağımsız önizlemesi mevcut. M2 ilk sürüş prototipi uygulandı; son kabul açık. M3.1 ateş ve balistik çekirdeği uygulandı; hasar, modül hasarı ve tarayıcı kabulü açık.**
 
 ## Uygulamaya geçiş hazırlığı
 
@@ -46,7 +46,7 @@ Bu teslimde savaş mekanikleri zorunlu değildir. Kullanıcı tek başına harit
 
 ## M3 — Savaş sistemi / vertical slice
 
-**Durum:** Kullanıcının isteğiyle taret kontrol prototipi uygulandı; nişancı görüşü, atış ve hasar bekliyor. **Bağımlılık:** Tam savaş teslimi için M2 sürüş değerlendirmesi.
+**Durum:** M3.1 ateş ve balistik çekirdeği uygulandı: tek 120 mm AP, gerçek namlu ağzı, dolum/geri tepme, yerçekimli süpürülmüş mermi, açı/mesafe delmesi, sekme, üç sabit zırhlı hedef, sağ tık nişancı görüşü ve görsel-only efektler. Otomatik kontroller geçti; tarayıcı kabulü, hasar, modül hasarı, HE ve düşman AI açık. **Bağımlılık:** Tam savaş teslimi için M2 sürüş değerlendirmesi.
 
 Hareketli kule ve namlu, nişancı görüşü, top ateşi, mermi fiziği, isabet, temel zırh ve modül hasarı. İlk test için sabit hedefler önerilir.
 
@@ -100,3 +100,9 @@ Sabit adımlı sınırlı dünya uzayı toz havuzu ve panelde aç/kapat kontrol�
 ### 2026-10-24 — Ses S1: motor, palet ve rüzgâr
 
 Prosedürel Web Audio çekirdeği, limiter, motor/palet/rüzgâr sentezi ve panelde Ses aç/kapat ile düzey kaydırıcısı eklendi. `npm run audio:test` eşleme sınırlarını, palet hız/yön/dönüşünü, hava durumunu, model sıfırlamayı, ses grafiği kur/kapat ve kaynak temizliğini geçti. Chromium'da ilk tuş etkileşimi sesi açtı; DOM durumu `Ses: motor, palet, rüzgâr` oldu, sayfa hatası görülmedi (yalnızca favicon 404). Ses dinlenmedi, düzey dengesi ve ses açık/kapalı performans ölçülmedi. M2 tamamlanmadı.
+
+### 2026-10-24 — M3.1 ateş ve balistik çekirdeği
+
+Tek 120 mm AP mermisi, gerçek namlu ağzı, 6,5 s dolum, görsel geri tepme, yerçekimli süpürülmüş mermi, mesafeyle azalan delme, geliş açısına göre etkin zırh ve 70° sekme eşiği eklendi. Patikaya üç sabit zırhlı hedef yerleştirildi; sonuç `DELDİ` / `SEKTİ` / `DELMEDİ` / `ENGEL` olarak HUD'a yazılır. Sağ tık basılı tutunca nişancı görüşü açılır; namlu alevi, tracer, isabet kıvılcımı ve duman görsel-only'dir. Hasar, hedef yıkılması, modül hasarı, HE, düşman AI, oyuncu hasarı ve savaş sesi kapsam dışıdır.
+
+`npm run combat:test` gerçek GLB namlu pozu, dolum kapısı, sınırlı geri tepme, sıfırlama ve üç kaynak temizleme çevrimini; yerçekimi düşüşünü, ince plaka tünellemesinin önlenmesini, ilk engelde durmayı, zırh açısı/mesafe eğrisini, sekme eşiğini ve hedef yüzey eşlemesini geçti. `npm test`, `map:test`, `tank:test`, `turret:test`, `effects:test`, `drive:test`, `audio:test`, `map:check` ve `map:build` geçti; mevcut büyük paket uyarısı sürüyor. Tarayıcıda atış, nişancı görüşü, HUD ve efektler ile performans ölçümü yapılmadı. M2/M3 kabulü tamamlanmadı.
