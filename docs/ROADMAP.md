@@ -30,6 +30,8 @@ Kabul koşulları:
 
 WASD, palet bazlı dönüş, hızlanma/frenleme, geri sürüş, eğim, süspansiyon, temel ses ve toz. Üçüncü şahıs kamera sürüşle birlikte ayarlanır.
 
+Toz için [hareket efektleri planı](MOVEMENT_EFFECTS.md) hazırlandı; uygulama bekliyor. P1 temel temas/dönüş/fren tozu → P2 yüzey parçaları ve iniş pufu → isteğe bağlı P3 egzoz sırası önerilir. Bu belge teslimi M2'yi tamamlamaz.
+
 Kabul koşulları:
 
 - Düz zeminde ileri, fren, geri ve iki yöne dönüş çalışır.

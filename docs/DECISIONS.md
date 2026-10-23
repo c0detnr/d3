@@ -46,6 +46,13 @@
 
 Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler belirtilir. Kullanıcı tercihleriyle teknik deneme sonuçları birbirine karıştırılmaz.
 
+## 2026-10-23 — Hareket efektleri planı
+
+- **Kullanıcı isteği:** Tank hareket ettikçe çıkacak parçacık efektlerini planla.
+- **Öneri:** Önce palet teması/hızıyla toz ve dönüş/fren tepkileri; sonra yüzey parçaları ve iniş pufu. Egzoz isteğe bağlı cila. [Ayrıntılı plan](MOVEMENT_EFFECTS.md).
+- **Açık:** Görsel kabul, sayısal eşikler, CPU/GPU parçacık tercihi ve referans cihaz bütçesi prototiple doğrulanacak. Bunlar kesin kullanıcı kararları değildir.
+- **Durum:** Yalnızca belge; oyun kodu, model ve paketler bu görevde değiştirilmedi. M1/M2 kabulü açık.
+
 ## 2026-10-23 — Basit test haritası
 
 - **Kullanıcı kararı:** Şimdilik tankı test edebileceği çok basit bir harita; sanayi dekoru ve büyük harita ertelendi.
