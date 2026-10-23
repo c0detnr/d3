@@ -128,3 +128,10 @@ Başlangıç hedefi, belirlenecek referans masaüstü cihazda 1920×1080 çözü
 - Chromium 152.0.7977.82, Linux, headless, 1280 × 720 görünüm, WebGL2: sahne yüklendi, tank/arazi/HUD göründü; sayfa hatası kaydedilmedi. Yalnızca favicon 404'ü ve otomatik ekran görüntüsü kaynaklı WebGL ReadPixels performans uyarıları görüldü. [Görsel kanıt](previews/chaotic-sky.png).
 - Bu görsel kontrol statik bir kare üzerinden yapıldı. Bulut hareketi ve şimşek çakmasının zamanlaması ayrı ayrı doğrulanmadı; şimşek anı ekran görüntüsüne alınmadı. FPS, GPU süresi ve ses açık/kapalı karşılaştırması ölçülmedi.
 - Açık: kullanıcı görsel kabulü, şimşek sıklığı/parlaklığı, bulut örtüsü, sis yoğunluğu ve tank/arazi okunabilirliğinin farklı kamera açılarında değerlendirilmesi. Bu prototip M1 görsel kabulünü tamamlamaz.
+
+## 2026-10-24 — Gerçekçi arazi yüzeyi
+
+- `npm run map:check` ve `npm run map:build` geçti; mevcut büyük paket uyarısı sürüyor.
+- `npm run map:test` geçti: gerçek Havok ile görsel/fizik yüzey eşleşmesi, başlangıç düzlüğü, orman/patika yerleşimi ve deterministik kurulum korundu. Üç kur/temizle çevriminden sonra harita mesh, materyal, kaplama ve fizik gövdesi kalmadı; yeni albedo, normal ve detay kaplamaları da temizleniyor.
+- Chromium headless (SwiftShader), 1280 × 720, yerel Vite: varsayılan takip görünümü ve orman zemini yakın görünümünde toprak taneleri, taşlar, ince çatlaklar, kuru bitki artıkları ve mikro rölyef görüldü. Düz üçgen gölgeleri yerine düzgün zemin normalleri okundu. Konsolda uygulama hatası görülmedi.
+- [Görsel kanıt](previews/terrain-surface.png). Bu, yazılım renderer ile alınmış görsel kalite kontrolüdür; FPS veya performans ölçümü değildir. İnsan görsel kabulü, doku ölçek/yoğunluk ayarı, farklı zemin türleri ve gerçek GPU performansı açık.

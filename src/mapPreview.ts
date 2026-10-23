@@ -212,6 +212,11 @@ async function start() {
   };
   ensureVehicleAudio();
   followCamera.follow();
+  if (import.meta.env.DEV && new URLSearchParams(location.search).has('rimView')) {
+    followCamera.overview();
+    followCamera.camera.setPosition(new Vector3(-25, 6, -235));
+    followCamera.camera.setTarget(new Vector3(0, -12, -152));
+  }
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('driveTest')) observation = new DrivingObservation(engine, reset);
   status.textContent = '42 ton · Palet kuvvetleriyle sürüş · R ile kurtar';
   lastTime = performance.now();

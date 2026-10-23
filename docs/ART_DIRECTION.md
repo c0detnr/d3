@@ -57,6 +57,16 @@ Hareket efektlerinin davranışı, yüzey tepkileri ve başlangıç bütçe öne
 
 Kullanıcı isteği: ıssız doğal arazi, ileride orman. Başlangıç çevresi açık; toprak patika düzensiz orman sınırına bağlanır. İşlenmiş test rampası ve sınır blokları yerine dalgalı arazi, seyrek kaya ve ot kullanılır. Çam/geniş yapraklı ağaç çeşitleri özgün low-poly taslaklardır. Çevre geometri ve zemin tanesi kodla bu proje için üretildi; dış varlık veya lisanslı kaplama eklenmedi. Son görsel bütçe performans ölçümünde değerlendirilecek.
 
+## 2026-10-24 — Gerçekçi arazi yüzeyi
+
+Kullanıcı isteği: arazi dokularını daha gerçekçi yap.
+
+Zemin artık tek düze gri tanecik yerine üç kodla üretilen katman kullanır: toprak/ot renk kümelerini taşıyan albedo, aynı yükseklik alanından türetilen normal haritası ve yakın planda gözenek/grit veren ince detay haritası. Albedo; açık-koyu toprak lekeleri, gömülü taş taneleri, seyrek ince çatlaklar ve kuru yaprak/dal artıkları içerir. Normal haritası taş ve gözeneklerin düşük açılı fırtına ışığında okunmasını sağlar. Malzeme kekik (specular) parlaklığı düşük tutulur; ıslak veya cilalı görünüm hedeflenmez.
+
+Doku 22 m'de bir dikişsiz tekrarlanır; tekrarı gizlemek için ince detay katmanı farklı ölçekte örneklenir. Arazi yüzeyi düzgün normallerle gölgelenir; böylece 2 m'lik geometri ızgarası keskin üçgen lekeleri olarak okunmaz. Patika kenarı dünya gürültüsüyle düzensizleştirilir. Tüm veri çalışma anında üretilir; dış doku, fotoğraf veya lisanslı kaplama kullanılmaz.
+
+Açık: doku ölçeği, taş/çatlak yoğunluğu, parlaklık ve farklı zemin türlerinde (çamur, çakıl, kaya yüzeyi) okunabilirlik tarayıcıda insan değerlendirmesiyle ayarlanacak. Bu prototip onaylanmış son görsel yön değildir.
+
 ## 2026-10-24 — Kaotik fırtına gökyüzü
 
 Kullanıcı isteği: gökyüzünü değiştir; kaotik bir atmosfer hedeflenir.

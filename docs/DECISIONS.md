@@ -121,3 +121,10 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Uygulanan prototip tercihi:** Düz gradyan gökyüzü yerine prosedürel fırtına shader'ı; iki hızda sürüklenen bulut katmanları, basamaklandırılmış yoğunluk, sıcak toprak ufku, düşük açılı sıcak güneş, yoğunlaştırılmış sis ve ara ara kısa şimşek çakması. Gökyüzü, sis ve şimşek ışığı tek modülden (`src/game/world/SkyAtmosphere.ts`) yönetilir; dış doku kullanılmadı.
 - **Gerekçe:** Mevcut akşam ışığı sakin ve tek düze okunuyordu. Fırtına paleti altı renkli zırh/toprak paletiyle uyumlu kalırken sahneye hareket ve gerilim ekler.
 - **Açık:** Bulut örtüsü, şimşek sıklığı, ufuk sıcaklığı, sis yoğunluğu ve oyun okunabilirliği kullanıcı değerlendirmesiyle değişebilir. Şimşek sesi eklenmedi; performans ölçülmedi. Bu bir prototiptir, onaylanmış son görsel yön değildir.
+
+## 2026-10-24 — Arazi yüzey dokuları
+
+- **Kullanıcı isteği:** Arazi dokularını gerçekçi yap.
+- **Uygulanan teknik tercih (prototip):** Dış doku kullanmadan, çalışma anında üretilen albedo + normal + ince detay üçlüsü. Albedo büyük toprak kümeleri, taş taneleri, seyrek çatlaklar ve kuru bitki artıkları taşır; normal haritası aynı yükseklik alanından türetilir. 22 m'lik dikişsiz ana tekrar, farklı ölçekli detay katmanıyla kırılır. Arazi düzgün normallerle gölgelenir.
+- **Gerekçe:** Önceki tek düze gri tanecik düz bir yüzey gibi okunuyordu; dış kaplama lisansı ve paket maliyeti olmadan malzeme çeşitliliği, mikro rölyef ve tekrar kırma hedeflendi.
+- **Açık:** Doku ölçeği, taş/çatlak yoğunluğu, parlaklık, farklı zemin türleri ve performans etkisi insan değerlendirmesi ve ölçümle netleşecek. Bu, onaylanmış son görsel karar değildir.

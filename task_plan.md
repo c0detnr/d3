@@ -206,3 +206,17 @@ Kullanıcı taret planının uygulanmasını istedi. Önce mevcut sürüşü kor
 ## Next Step
 
 Taret prototipi ve kontroller tamamlandı. Git tesliminden sonra sıradaki özellik nişancı görüşü; M1/M2 son kabulü ve tam namlu kesişme çözümü açık.
+
+## Arazi yüzeyi — 2026-10-24
+
+Kullanıcı arazi dokularının gerçekçi olmasını istedi. Dış varlık kullanmadan albedo, normal ve ince detay katmanları; düzgün zemin normalleri ve düzensiz patika kenarı uygulandı.
+
+### Phase 17: Prosedürel arazi yüzeyi
+**Status:** complete
+
+### Phase 18: Harita kontrolleri ve görsel doğrulama
+**Status:** complete
+
+## Next Step
+
+M1/M2 tarayıcı kabulü, gerçek GPU performans ölçümü ve insan görsel değerlendirmesi sürüyor. Farklı zemin türleri (çamur, çakıl, kaya) için malzeme ayrımı açık.

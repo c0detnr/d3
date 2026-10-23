@@ -94,3 +94,9 @@
 - İlk test Hull'u transformNodes içinde aradığı için başarısızdı; mesh/transform metadata aramasıyla düzeltildi. Eski kamera bakışı namlu sınırını aştığından başlangıç nişan açısı ayarlandı.
 - README, DECISIONS, ROADMAP, VALIDATION güncellendi. Nişancı görüşü/atış ve tam namlu kesişme çözümü açık; M1/M2 kabulü tamamlanmadı.
 - Paralel hareket efektleri belge çalışması d522ee0 commit'iyle ayrı kaydedildi; bu göreve katılmadı.
+
+## 2026-10-24 — Gerçekçi arazi yüzeyi
+
+- Kullanıcı isteğiyle arazi dokuları gerçekçileştirildi. `src/game/world/terrainSurfaceTextures.ts` içinde çalışma anında üretilen 1024² albedo, 1024² normal ve 256² ince detay dokusu eklendi; tümü sabit tohumlu ve dikişsiz.
+- Albedo toprak kümeleri, taş taneleri, seyrek çatlaklar ve kuru yaprak/dal artıkları taşır. Normal haritası aynı yükseklik alanından türetilir; detay katmanı farklı ölçekte örneklenerek 22 m'lik ana tekrar kırılır. Arazi düzgün normallerle gölgelenir; patika kenarı dünya gürültüsüyle düzensizleştirildi.
+- `npm run map:check`, `npm run map:test` ve `npm run map:build` geçti. Üç kur/temizle çevriminde yeni kaplamalar dahil tüm kaynaklar temizleniyor. Görsel kontrol Chromium headless/SwiftShader 1280 × 720'de yapıldı; [kanıt](docs/previews/terrain-surface.png). FPS ölçülmedi; insan görsel kabulü ve doku ayarı açık. M1/M2/M3 kabulü tamamlanmadı.
