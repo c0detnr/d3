@@ -170,3 +170,22 @@ Doğal arazi ve orman görevi tamamlandı. M1 için takip/kesişme kamerası ve 
 ### Git kurulumu hata kaydı
 
 - CLI eski `Emirix` hesabını gösterdiği için ilk uzak depo oluşturma isteği 404 döndü. API güncel hesabı `c0detnr` olarak doğruladı; hedef ve belge bağlantısı düzeltildi.
+
+## İlk sürüş — güncel durum
+
+- Aşama 10 (fizik/girdi/döngü): tamamlandı; gerçek Havok testleri geçti.
+- Aşama 11 (görsel/kamera/HUD): uygulandı; uzun gözlem ve son tarayıcı kontrolleri sürüyor.
+- Aşama 12 (doğrulama): devam ediyor; 600 saniyelik gerçek zamanlı gözlem bitişi bekleniyor.
+- Aşama 13 (belgeler/commit/push): bekliyor.
+
+## Next Step
+
+Uzun tarayıcı gözlemini kaydet; son derleme ve diff kontrolünden sonra sürüş değişikliklerini commit et ve origin/main'e push et.
+
+## Git teslimi — son durum
+
+Kullanıcı sürüş geliştirmesini yeni sohbete taşıdı; bu sohbette kapsam mevcut değişiklikleri doğrulayıp commit/push ile kaydetmek. Sürüş ve M1/M2 kabulü tamamlandı sayılmayacak. 600 saniyelik gözlemin nihai kaydı henüz alınmadı.
+
+## Next Step
+
+İlgili diff'i kontrol edip commit oluştur; origin/main'e push et ve uzak HEAD eşleşmesini doğrula. Son sürüş/tarayıcı kabulüne yeni sohbette devam et.

@@ -1,4 +1,4 @@
-import { Matrix, PhysicsBody, PhysicsMotionType, PhysicsPrestepType, PhysicsShapeBox,
+import { HavokPlugin, Matrix, PhysicsBody, PhysicsMotionType, PhysicsPrestepType, PhysicsShapeBox,
   Quaternion, TransformNode, Vector3, type Scene } from '@babylonjs/core';
 import { IRON_DUST_01, type VehicleDefinition } from './VehicleDefinition.ts';
 import type { DriveCommand } from '../input/DriveInput.ts';
@@ -18,8 +18,13 @@ export class TankVehicle {
   speed = 0;
   driveForce = 0;
   private readonly physics;
-  constructor(readonly scene: Scene, readonly rig: TankRig, readonly spawn: Vector3,
-    readonly definition: Readonly<VehicleDefinition> = IRON_DUST_01) {
+  readonly scene: Scene;
+  readonly rig: TankRig;
+  readonly spawn: Vector3;
+  readonly definition: Readonly<VehicleDefinition>;
+  constructor(scene: Scene, rig: TankRig, spawn: Vector3,
+    definition: Readonly<VehicleDefinition> = IRON_DUST_01) {
+    this.scene = scene; this.rig = rig; this.spawn = spawn.clone(); this.definition = definition;
     this.physics = scene.getPhysicsEngine()!;
     this.node = new TransformNode('tank-physics', scene);
     this.node.position.copyFrom(spawn.add(rig.center));
@@ -80,7 +85,7 @@ export class TankVehicle {
       const available = Math.min(d.traction, d.power / Math.max(1, Math.abs(speed)));
       drive *= available / this.contacts.length * taper;
       const rolling = d.rollingResistance * load * Math.tanh(speed / 0.2);
-      const braking = command.brake * clamp(speed * pointMass / dt, -d.brakeForce / 12, d.brakeForce / 12);
+      const braking = command.brake * clamp(speed * pointMass * 10, -d.brakeForce / this.contacts.length, d.brakeForce / this.contacts.length);
       let longitudinalForce = drive - rolling - braking;
       let lateralForce = -sideSpeed * pointMass * d.lateralResponse;
       const magnitude = Math.hypot(longitudinalForce, lateralForce);
@@ -94,14 +99,14 @@ export class TankVehicle {
   afterStep() {
     this.current = pose(this.node);
     this.speed = Vector3.Dot(this.body.getLinearVelocity(),
-      Vector3.TransformNormal(Vector3.Forward(), Matrix.FromQuaternion(this.current.rotation)));
+      Vector3.TransformNormal(Vector3.Forward(), Matrix.Compose(Vector3.One(), this.current.rotation, Vector3.Zero())));
   }
   reset(position = this.spawn, yaw = 0) {
     this.node.position.copyFrom(position.add(this.rig.center));
     this.node.rotationQuaternion = Quaternion.RotationYawPitchRoll(yaw, 0, 0);
     this.body.setPrestepType(PhysicsPrestepType.TELEPORT);
     this.body.disablePreStep = false;
-    this.physics.getPhysicsPlugin()!.setPhysicsBodyTransformation(this.body, this.node);
+    (this.physics.getPhysicsPlugin() as HavokPlugin).setPhysicsBodyTransformation(this.body, this.node);
     this.body.disablePreStep = true;
     this.body.setLinearVelocity(Vector3.Zero()); this.body.setAngularVelocity(Vector3.Zero());
     this.previous = pose(this.node); this.current = pose(this.node);

@@ -35,6 +35,7 @@ export async function loadTankModel(scene: Scene, source: string | Uint8Array, p
     for (const mesh of visible) mesh.computeWorldMatrix(true);
     return {
       anchor,
+      groundPosition: position.clone(),
       assets,
       dispose() { assets.dispose(); anchor.dispose(); },
     };

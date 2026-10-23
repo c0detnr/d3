@@ -67,3 +67,20 @@
 - AGENTS.md tamamlanan işler için kontrol, commit ve push kuralını içeriyor.
 - CLI eski hesap adını gösterdiğinden ilk oluşturma 404 verdi; API'den güncel c0detnr hesabı doğrulanıp işlem tamamlandı.
 - Kurulum sırasında devam eden sürüş çalışmasına ait kamera/araç dosyaları yeniden değişti; ilk anlık görüntüden sonraki bu değişiklikler Git kurulum commit'ine katılmadı.
+
+## 2026-10-23 — İlk sürüş fiziği (devam ediyor)
+
+- Modelden COL_Hull kutusu ve 12 tekerlek merkezi çıkarıldı; Blender/GLB değişmedi. Merkezi SI araç tanımı, sabit 60 Hz döngü, input resolver, ray süspansiyon ve temas yüküyle sınırlanan çekiş/fren/yana kayma uygulandı.
+- GLB'nin gerçek dünya tarafları kullanıldı; gövde yönü doğrudan değiştirilmedi. Fizik pose'u görsel ankordan ayrıldı, interpolasyon ve tekerlek/palet görsel hareketi eklendi.
+- Kamera hedef güncellemesinde açı kayması giderildi; gecikmeli arkaya toparlanma, tekerlekle mesafe ve beş ışınlı engel sorgusu eklendi. HUD 10 Hz DOM güncellemesi; React/Zustand yüksek frekanslı durum taşımıyor.
+- map:check, map:test, tank:test, drive:test ve 4 sabit döngü/girdi testi geçti. Hareketli dönüş, yuvarlanma, motor hız sınırı, gövde engeli ve tümsek senaryoları genişletildi; son drive:test geçti.
+- Testteki ilk hareketli dönüş beklentisi 2 saniyede >2 m yana sapmaydı; ölçülen 1,19 m, 0,155 rad. Hızlı dönüşün azaltıldığı tasarıma uygun 4 saniyelik manevra ve simetri kontrolüne düzeltildi.
+- Tarayıcıda takip ve serbest fare bakışı görüldü; geliştirme modundaki otomatik 600 saniyelik gözlem sürüyor. İlk 180 saniyede sayısal hata yok. Performans sonucu nihai kayıt gelince yazılacak.
+- Sunucu yeniden başladığında mevcut sekme yeniden bağlandı; ilk policy yükleme hatası ikinci denemede giderildi.
+
+## 2026-10-23 — Sürüş çalışmasını Git ile kaydetme
+
+- Kullanıcı geliştirmeye yeni sohbette devam edilmesini, bu sohbette Git işinin bitirilmesini istedi.
+- Mevcut sürüş düzeltmeleri, otomatik Havok kabul senaryoları, test çıktısı ve geliştirme gözlem aracı commit kapsamına alındı. Paket sürümleri, kilit dosyası ve Blender/GLB korunuyor.
+- README, ROADMAP ve VALIDATION mevcut prototipi ve açık kabul maddelerini ayıracak şekilde güncellendi. 600 saniye sonucu kaydedilmedi; M1/M2 tamamlandı iddiası yok.
+- Git teslimi öncesi yeniden çalıştırıldı: `npm test`, `npm run drive:test`, `npm run map:test`, `npm run tank:test`, `npm run map:build`; tümü geçti. Derlemenin büyük paket uyarısı sürüyor.

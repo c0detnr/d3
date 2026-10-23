@@ -72,3 +72,13 @@ Başlangıç hedefi, belirlenecek referans masaüstü cihazda 1920×1080 çözü
 - Chrome, 1255 × 549 CSS piksel mevcut görünüm: tank, arazi renkleri, orman silüeti, ot/kayalar, patika ve sis görüldü. Alanı göster / Başlangıca dön düğmeleri çalıştı. [Başlangıç ekranı](previews/forest-clearing.png).
 - İlk arazi üçgen yönü ters bulundu; düzeltildi ve yukarı bakan normal otomatik kontrole eklendi. İlk testte üçgen örnekleme indeksi yanlış hizalıydı; üçgen başlangıcına hizalandı, son kontrol geçti.
 - FPS ölçülmedi. Kamera kesişmesi, hareketli takip, yeniden boyutlandırma, sürüş ve süspansiyon bu görevde doğrulanmadı. Uzak orman yalnızca görsel; son oynanabilir alan sınırı açık.
+
+## 2026-10-23 — İlk sürüş prototipi
+
+- **Geçti:** `npm test` (4 test), `npm run drive:test` (gerçek Havok + GLB), `npm run map:test`, `npm run tank:test`, `npm run map:build`. Üretim derlemesinde büyük paket uyarısı sürüyor.
+- Otomatik senaryolar: zeminde kararlı poz ve 12 temas, havada sıfır çekiş, ileri/fren/geri, güçlü frenle duruş, simetrik yerinde/hareketli dönüş, yuvarlanma direnci, motor hız sınırında hızın kesilmemesi, iki yönlü rampa, yan eğim, gövde engeli, alçak tümsekler ve sıfırlama/kaynak temizliği.
+- 30/60/120 render FPS altında aynı 720 fizik adımı sonunda konum ve hız birebir eşleşti. Makinece okunabilir kayıt: [driving-results.json](driving-results.json).
+- **Tarayıcıda gözlendi:** model yükleme, takip ve fareyle serbest bakış. Başlangıçtaki hedef güncellemesinin kamera açısını bozması düzeltildi.
+- **Tamamlanmadı:** 600 saniyelik otomatik gözlem başlatıldı, ancak nihai kayıt alınmadı. İlk 180 saniyede sayısal hata görülmedi; bu süre 10 dakika kabulü değildir. Nihai FPS sonucu verilmedi.
+- **Son tarayıcı kabulü bekliyor:** engel yakınında kamera, tekerlek/palet yönleri, odak kaybı, gizli sekmeden dönüş, R ile sıfırlama, sürüş hissi ve insan tarafından 10 dakika serbest sürüş. Ses ve toz uygulanmadı.
+- Geçici palet çözümü: mevcut birleşik geometri üzerinde taraf hareketine göre kaydırılan prosedürel bant deseni. Kaynak model ve Blender dosyaları değişmedi; dış varlık eklenmedi.

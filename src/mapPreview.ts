@@ -5,6 +5,7 @@ import HavokPhysics from '@babylonjs/havok';
 import wasmUrl from '@babylonjs/havok/lib/esm/HavokPhysics.wasm?url';
 import { createTestGround } from './game/world/createTestGround';
 import { loadTankModel } from './game/vehicle/loadTankModel';
+import { DrivingObservation } from './game/core/DrivingObservation.ts';
 import { FixedStep } from './game/core/fixedStep.ts';
 import { bindDriveKeys, DriveInput } from './game/input/DriveInput.ts';
 import { extractTankRig } from './game/vehicle/tankRig.ts';
@@ -46,6 +47,7 @@ const clock = new FixedStep();
 const input = new DriveInput();
 let vehicle: TankVehicle | undefined;
 let visual: TankVisual | undefined;
+let observation: DrivingObservation | undefined;
 let lastTime = performance.now();
 let paused = document.hidden;
 const keys = bindDriveKeys(window, () => reset());
@@ -102,6 +104,7 @@ async function start() {
   vehicle = new TankVehicle(scene, rig, ground.spawn);
   visual = new TankVisual(tank, rig);
   followCamera.follow();
+  if (import.meta.env.DEV && new URLSearchParams(location.search).has('driveTest')) observation = new DrivingObservation(engine, reset);
   status.textContent = '42 ton · Palet kuvvetleriyle sürüş · R ile kurtar';
   lastTime = performance.now();
   let hudElapsed = 0;
@@ -110,10 +113,11 @@ async function start() {
     const dt = Math.max(0, (now - lastTime) / 1000); lastTime = now;
     if (paused || !vehicle || !visual || !tank) return;
     const alpha = clock.advance(dt, step => {
-      const command = input.resolve(keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
+      const command = input.resolve(observation?.keys() ?? keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
       vehicle!.beforeStep(step, command);
       scene.getPhysicsEngine()!._step(step);
       vehicle!.afterStep();
+      observation?.step();
       visual!.fixedUpdate(vehicle!, step);
     });
     visual.render(vehicle, alpha);
@@ -124,6 +128,7 @@ async function start() {
       hudElapsed = 0;
     }
     scene.render();
+    observation?.frame(dt, vehicle);
   });
 }
 start().catch((error: unknown) => {
@@ -143,6 +148,7 @@ function dispose() {
   keys.dispose();
   document.removeEventListener('visibilitychange', visibility);
   window.removeEventListener('blur', blur);
+  observation?.dispose();
   visual?.dispose(); vehicle?.dispose(); followCamera.dispose();
   tank?.dispose();
   ground?.dispose();

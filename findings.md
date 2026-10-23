@@ -77,3 +77,14 @@
 - Havok doğrulaması görsel üçgenlerin ara noktalarını, düz başlangıcı, doğal eğimleri, patika açıklığını ve kaynak temizliğini kontrol ediyor.
 
 - GitHub CLI yerel auth kaydı eski `Emirix` adını gösterdi; ilk oluşturma isteği HTTP 404 döndü. `gh api user` ile güncel hesap `c0detnr` olarak doğrulandı; depo bu hesapta oluşturulacak.
+
+## İlk sürüş — uygulama ve test bulguları
+
+- Tek Havok dinamik kutu, 12 ray, `ignoreBody` ile kendi gövdesi hariç. Kuvvetler N × sabit dt ile impuls olarak uygulanıyor; Havok applyForce'ın gizli zaman adımına bağlı kalınmadı.
+- Düz zeminde son poz kararlı; Havok adım sonu düşey hız yaklaşık -0,060 m/s olduğundan kabul hem iki saniyelik poz farkını (<2 mm) hem hızı (<0,1 m/s) ölçüyor. Statik sıkışma 0,207 m (hedef 0,22 m).
+- Fren iki saniyede yaklaşık 0,16 m/s artık hız bırakıyor; beş saniye basılı frenle <0,02 m/s. Anlık hız sıfırlaması yok.
+- 30/60/120 FPS aynı 720 adım, aynı son konum ve hız. Hızlı hareketli dönüş yavaşlatılıyor; dört saniyelik dönüşte simetri ve yön ölçülüyor.
+- İlk kamera hedef güncellemesi açıyı da yeniden hesaplıyordu. ArcRotateCamera.setTarget dördüncü parametre cloneAlphaBetaRadius=true ile takip açısı korunuyor.
+- Node strip-only parameter properties desteklemedi; constructor alan atamaları açık yazıldı. Matrix.FromQuaternion bu sürümde yok; Matrix.Compose kullanıldı. Testler ardından geçti.
+- Tarayıcı 10 dakikalık otomatik gerçek zamanlı rota gözlemi 20:34:19 UTC'de başladı; bu insan sürüş hissi değerlendirmesi değildir. İlk 180 saniyede non-finite durum yok, tarayıcı error/warn kaydı boş.
+- Çalışma sırasında kullanıcı ayrı Git kurulumunu tamamladı; son kural commit ve origin/main push gerektiriyor. İlk çalışma dosyalarının bir kısmı ilk depo anlık görüntüsüne girmiş, kalan düzeltmeler ayrı commit edilecek.

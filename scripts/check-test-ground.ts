@@ -56,6 +56,8 @@ for (let cycle = 0; cycle < 3; cycle++) {
   const trunkHit = physics.raycast(new Vector3(nearTree.x - 2, terrainHeight(nearTree.x, nearTree.z) + 2, nearTree.z),
     new Vector3(nearTree.x + 2, terrainHeight(nearTree.x, nearTree.z) + 2, nearTree.z));
   assert.ok(trunkHit.hasHit, 'Yakın orman gövdeleri fiziksel engel olmalı');
+  const slopeHit = physics.raycast(new Vector3(-50, 20, -42), new Vector3(-50, -5, -42));
+  assert.ok(slopeHit.hasHit && slopeHit.body?.transformNode.name === 'side-slope-test', 'Yan eğim yüzeyi');
   const layout = JSON.stringify(ground.treePositions);
   if (cycle) assert.equal(layout, previousTrees, 'Dünya tekrar kurulumda aynı yerleşimi üretmeli');
   previousTrees = layout;

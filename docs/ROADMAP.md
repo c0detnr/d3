@@ -1,6 +1,6 @@
 # Geliştirme yol haritası
 
-Durum: **M1 devam ediyor: doğal arazi, orman çevresi ve gerçek tankın bağımsız önizlemesi mevcut. M2 ve M3 başlamadı.**
+Durum: **M1 devam ediyor: doğal arazi, orman çevresi ve gerçek tankın bağımsız önizlemesi mevcut. M2 ilk sürüş prototipi uygulandı; son kabul açık. M3 başlamadı.**
 
 ## Uygulamaya geçiş hazırlığı
 
@@ -26,7 +26,7 @@ Kabul koşulları:
 
 ## M2 — Sürüş fiziği / ilk sürüş teslimi
 
-**Durum:** Başlanmadı. **Bağımlılık:** M1.
+**Durum:** Devam ediyor. Tek dinamik gövde, 12 ışın süspansiyonu, palet kuvvetleri, girdi, görsel interpolasyon ve takip kamerası uygulandı. Gerçek Havok otomatik kontrolleri geçti. Son tarayıcı kabulü, on dakika gözlem sonucu, sürüş hissi, ses ve toz açık. **Bağımlılık:** M1.
 
 WASD, palet bazlı dönüş, hızlanma/frenleme, geri sürüş, eğim, süspansiyon, temel ses ve toz. Üçüncü şahıs kamera sürüşle birlikte ayarlanır.
 
@@ -76,3 +76,7 @@ Geçici maket yerine IRON DUST 01 GLB yüklendi; palet tabanı zeminle hizaland�
 ### 2026-10-23 — Doğal arazi ve orman
 
 Düz test pisti doğal yükseltiler, toprak patika, kayalar ve ileride sıklaşan ormanla değiştirildi. Tankın başlangıç çevresi açık/düz tutuldu; gökyüzü, sıcak ışık, gölge ve uzaklık sisi eklendi. `map:test`, `tank:test` ve `map:build` geçti. Chrome içinde başlangıç ve genel görünüm düğmeleri incelendi; [görsel kanıt](previews/forest-clearing.png). M1 takip/kesişme ve referans performans maddeleri açık; M2 başlamadı.
+
+### 2026-10-23 — İlk sürüş prototipi Git teslimi
+
+`npm test`, `npm run drive:test`, `npm run map:test`, `npm run tank:test` ve `npm run map:build` ile kontrol edilir. Ayrıntılı otomatik sonuç [driving-results.json](driving-results.json) içinde. Tarayıcıda takip ve serbest bakış gözlendi; 600 saniyelik gözlemin nihai kaydı alınmadı. Kamera engel kesişmesi, odak/gizli sekme, tekerlek yönleri ve sürüş hissinin son tarayıcı kabulü yeni sohbette devam edecek. M1/M2 tamamlandı olarak işaretlenmedi.

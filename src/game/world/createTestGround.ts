@@ -84,6 +84,21 @@ export function createTestGround(scene: Scene) {
   data.applyToMesh(terrain);
   collide(terrain);
 
+  // A small original test berm beside the clearing: 7° cross-slope, feathered entries.
+  const slope = add(new Mesh('side-slope-test', scene), material('test-berm-soil', '#9F9276'));
+  const slopePositions: number[] = [], slopeIndices: number[] = [];
+  const slopeZ = [-12, -9, 9, 12];
+  for (const z of slopeZ) for (const x of [-6, 6]) {
+    const wx = -55 + x, wz = -42 + z;
+    const blend = Math.abs(z) === 12 ? 0 : 1;
+    slopePositions.push(wx, terrainHeight(wx, wz) + 0.04 + (x + 6) * 0.125 * blend, wz);
+  }
+  for (let z = 0; z < 3; z++) { const a = z * 2; slopeIndices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  const slopeData = new VertexData();
+  slopeData.positions = slopePositions; slopeData.indices = slopeIndices;
+  const slopeNormals: number[] = []; VertexData.ComputeNormals(slopePositions, slopeIndices, slopeNormals);
+  slopeData.normals = slopeNormals; slopeData.applyToMesh(slope); collide(slope);
+
   // Reused geometry and matrix buffers keep the forest draw count small.
   const trunk = add(MeshBuilder.CreateCylinder('forest-trunks',
     { height: 1, diameterTop: 0.4, diameterBottom: 0.75, tessellation: 7 }, scene), bark);

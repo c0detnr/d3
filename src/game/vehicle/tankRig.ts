@@ -4,7 +4,7 @@ export type TankModel = Awaited<ReturnType<typeof loadTankModel>>;
 
 /** Capture unanimated asset transforms before attaching visuals to a physics pose. */
 export function extractTankRig(tank: TankModel) {
-  const inverse = Matrix.Invert(tank.anchor.computeWorldMatrix(true));
+  const inverse = Matrix.Translation(-tank.groundPosition.x, -tank.groundPosition.y, -tank.groundPosition.z);
   const nodes = [...tank.assets.transformNodes, ...tank.assets.meshes];
   const proxy = tank.assets.meshes.find(mesh => mesh.metadata?.gltf?.extras?.asset_node_id === 'COL_Hull');
   if (!proxy) throw new Error('Tank collision proxy COL_Hull missing.');
@@ -21,6 +21,6 @@ export function extractTankRig(tank: TankModel) {
       radius: origin.y, side: origin.x < 0 ? -1 : 1 };
   });
   if (wheels.length !== 12) throw new Error('Tank requires twelve suspension points.');
-  return { center, size: max.subtract(min), wheels };
+  return { visualOffset: tank.anchor.position.subtract(tank.groundPosition), center, size: max.subtract(min), wheels };
 }
 export type TankRig = ReturnType<typeof extractTankRig>;

@@ -6,10 +6,17 @@ import type { TankVehicle } from './TankVehicle.ts';
 export class TankVisual {
   private distances: number[];
   private previousCompression: number[];
+  private currentCompression: number[];
+  private previousDistances: number[];
   private materials: ShaderMaterial[] = [];
-  constructor(readonly tank: TankModel, readonly rig: TankRig) {
+  readonly tank: TankModel;
+  readonly rig: TankRig;
+  constructor(tank: TankModel, rig: TankRig) {
+    this.tank = tank; this.rig = rig;
     this.distances = rig.wheels.map(() => 0);
     this.previousCompression = rig.wheels.map(() => 0);
+    this.currentCompression = rig.wheels.map(() => 0);
+    this.previousDistances = rig.wheels.map(() => 0);
     for (const prefix of ['LeftTrack', 'RightTrack']) {
       const mat = new ShaderMaterial(`${prefix}-temporary-tread`, tank.anchor.getScene(), {
         vertexSource: `precision highp float;
@@ -32,29 +39,31 @@ export class TankVisual {
   }
   fixedUpdate(vehicle: TankVehicle, dt: number) {
     vehicle.contacts.forEach((contact, i) => {
+      this.previousDistances[i] = this.distances[i];
       this.distances[i] += contact.speed * dt;
-      this.previousCompression[i] = contact.compression;
+      this.previousCompression[i] = this.currentCompression[i];
+      this.currentCompression[i] = contact.compression;
     });
   }
   render(vehicle: TankVehicle, alpha: number) {
     const rotation = Quaternion.Slerp(vehicle.previous.rotation, vehicle.current.rotation, alpha);
     const position = Vector3.Lerp(vehicle.previous.position, vehicle.current.position, alpha);
-    const offset = Vector3.TransformNormal(this.rig.center, Matrix.FromQuaternion(rotation));
+    const offset = Vector3.TransformNormal(this.rig.center.subtract(this.rig.visualOffset), Matrix.Compose(Vector3.One(), rotation, Vector3.Zero()));
     this.tank.anchor.position.copyFrom(position.subtract(offset));
     this.tank.anchor.rotationQuaternion = rotation;
     this.rig.wheels.forEach((wheel, i) => {
-      const compression = this.previousCompression[i] * (1 - alpha) + vehicle.contacts[i].compression * alpha;
+      const compression = this.previousCompression[i] * (1 - alpha) + this.currentCompression[i] * alpha;
       wheel.node.position.copyFrom(wheel.basePosition);
       wheel.node.position.y += compression - vehicle.definition.staticCompression;
       // GLB wheel pivot's X axis maps to -world X in the unrotated tank.
-      wheel.node.rotationQuaternion = Quaternion.RotationAxis(Vector3.Right(), -this.distances[i] / wheel.radius).multiply(wheel.baseRotation);
+      wheel.node.rotationQuaternion = Quaternion.RotationAxis(Vector3.Right(), -(this.previousDistances[i] * (1 - alpha) + this.distances[i] * alpha) / wheel.radius).multiply(wheel.baseRotation);
     });
     ['Left', 'Right'].forEach((name, side) => {
       const indices = this.rig.wheels.map((wheel, i) => wheel.node.name.startsWith(name) ? i : -1).filter(i => i >= 0);
-      const distance = indices.reduce((sum, i) => sum + this.distances[i], 0) / indices.length;
+      const distance = indices.reduce((sum, i) => sum + this.previousDistances[i] * (1 - alpha) + this.distances[i] * alpha, 0) / indices.length;
       this.materials[side].setFloat('travel', distance);
     });
   }
-  reset() { this.distances.fill(0); this.previousCompression.fill(0); }
+  reset() { this.distances.fill(0); this.previousCompression.fill(0); this.currentCompression.fill(0); this.previousDistances.fill(0); }
   dispose() { this.materials.forEach(material => material.dispose()); }
 }

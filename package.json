@@ -17,7 +17,8 @@
     "map:check": "tsc -p tsconfig.map.json",
     "map:test": "node --experimental-strip-types scripts/check-test-ground.ts",
     "map:build": "npm run map:check && vite build --config vite.map.config.ts",
-    "tank:test": "node --experimental-strip-types scripts/check-tank-model.ts"
+    "tank:test": "node --experimental-strip-types scripts/check-tank-model.ts",
+    "drive:test": "node --experimental-strip-types scripts/check-driving.ts"
   },
   "dependencies": {
     "@babylonjs/core": "9.32.0",
