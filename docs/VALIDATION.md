@@ -120,3 +120,11 @@ Başlangıç hedefi, belirlenecek referans masaüstü cihazda 1920×1080 çözü
 - `npm run typecheck` çalıştırılamadı: depoda kök `tsconfig.json` yok ve script TypeScript 7.0.2'nin kullanım metnini döndürüyor. Bu, bu değişiklikten önce de mevcut bir kurulum eksikliğidir; harita kodu `map:check` ile kontrol edildi.
 - Tarayıcıda atış, sağ tık nişancı görüşü, HUD, namlu alevi/tracer/isabet efektleri, R sıfırlaması ve performans ölçülmedi. Otomatik testler oyun hissi veya görsel kabul yerine geçmez.
 - Hasar, hedef yıkılması, modül hasarı, HE, düşman AI, oyuncu hasarı ve savaş sesi bu adımda yok; M1/M2/M3 kabulü tamamlanmadı.
+
+## 2026-10-24 — Kaotik gökyüzü prototipi
+
+- Kullanıcı isteği: gökyüzünü kaotik bir atmosferle değiştir. Düz gradyan ve akşam ışığı yerine prosedürel fırtına shader'ı, sürüklenen bulut katmanları, sıcak toprak ufku, yoğunlaştırılmış sis ve ara ara şimşek çakması eklendi.
+- `npm run map:check` ve `npm run map:build` geçti. Mevcut büyük paket uyarısı sürüyor. Gökyüzü shader'ı derleme sırasında değil, tarayıcı çiziminde derlendi; aşağıdaki tarayıcı kontrolünde shader/derleme hatası görülmedi.
+- Chromium 152.0.7977.82, Linux, headless, 1280 × 720 görünüm, WebGL2: sahne yüklendi, tank/arazi/HUD göründü; sayfa hatası kaydedilmedi. Yalnızca favicon 404'ü ve otomatik ekran görüntüsü kaynaklı WebGL ReadPixels performans uyarıları görüldü. [Görsel kanıt](previews/chaotic-sky.png).
+- Bu görsel kontrol statik bir kare üzerinden yapıldı. Bulut hareketi ve şimşek çakmasının zamanlaması ayrı ayrı doğrulanmadı; şimşek anı ekran görüntüsüne alınmadı. FPS, GPU süresi ve ses açık/kapalı karşılaştırması ölçülmedi.
+- Açık: kullanıcı görsel kabulü, şimşek sıklığı/parlaklığı, bulut örtüsü, sis yoğunluğu ve tank/arazi okunabilirliğinin farklı kamera açılarında değerlendirilmesi. Bu prototip M1 görsel kabulünü tamamlamaz.

@@ -114,3 +114,10 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Zırh kuralı:** Etkin zırh = kalınlık / cos(geliş açısı); gövde/kule ve ön/arka/yan/üst/alt yüzeyler ayrı kalınlıklara sahiptir. Sonuç hasar uygulamaz, yalnız raporlanır.
 - **Doğrulanan:** `npm run combat:test` ve mevcut regresyonlar geçti. Tarayıcı kabulü, nişancı görüşü/efekt performansı ve insan değerlendirmesi yapılmadı.
 - **Açık:** Hedef HP/yıkılma, modül hasarı, HE, düşman AI, oyuncu hasarı, savaş sesi ve tam namlu kesişme çözümü. M1/M2/M3 kabulü açık.
+
+## 2026-10-24 — Kaotik gökyüzü prototipi
+
+- **Kullanıcı isteği:** Gökyüzü değişsin; kaotik bir atmosfer istendi.
+- **Uygulanan prototip tercihi:** Düz gradyan gökyüzü yerine prosedürel fırtına shader'ı; iki hızda sürüklenen bulut katmanları, basamaklandırılmış yoğunluk, sıcak toprak ufku, düşük açılı sıcak güneş, yoğunlaştırılmış sis ve ara ara kısa şimşek çakması. Gökyüzü, sis ve şimşek ışığı tek modülden (`src/game/world/SkyAtmosphere.ts`) yönetilir; dış doku kullanılmadı.
+- **Gerekçe:** Mevcut akşam ışığı sakin ve tek düze okunuyordu. Fırtına paleti altı renkli zırh/toprak paletiyle uyumlu kalırken sahneye hareket ve gerilim ekler.
+- **Açık:** Bulut örtüsü, şimşek sıklığı, ufuk sıcaklığı, sis yoğunluğu ve oyun okunabilirliği kullanıcı değerlendirmesiyle değişebilir. Şimşek sesi eklenmedi; performans ölçülmedi. Bu bir prototiptir, onaylanmış son görsel yön değildir.

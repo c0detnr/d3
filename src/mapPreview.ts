@@ -1,7 +1,7 @@
 import './mapPreview.css';
 import { MovementEffects } from './game/effects/MovementEffects.ts';
-import { Color3, Color4, DirectionalLight, Engine, HemisphericLight,
-  HavokPlugin, MeshBuilder, Scene, ShadowGenerator, StandardMaterial, Vector3 } from '@babylonjs/core';
+import { Color3, DirectionalLight, Engine, HemisphericLight,
+  HavokPlugin, Scene, ShadowGenerator, Vector3 } from '@babylonjs/core';
 import HavokPhysics from '@babylonjs/havok';
 import wasmUrl from '@babylonjs/havok/lib/esm/HavokPhysics.wasm?url';
 import { createTestGround } from './game/world/createTestGround';
@@ -25,35 +25,16 @@ import { ArmorRange, type ArmorResolution } from './game/combat/ArmorTarget.ts';
 import { CombatEffects } from './game/combat/CombatEffects.ts';
 import { GunnerSight } from './game/combat/GunnerSight.ts';
 import { IRON_DUST_01_WEAPON } from './game/combat/WeaponDefinition.ts';
+import { createChaoticSky } from './game/world/SkyAtmosphere.ts';
 import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#map')!;
 const status = document.querySelector<HTMLElement>('#status')!;
 const engine = new Engine(canvas, true);
 const scene = new Scene(engine);
-scene.clearColor = new Color4(0.65, 0.71, 0.72, 1);
-scene.fogMode = Scene.FOGMODE_EXP2;
-scene.fogDensity = 0.0032;
-scene.fogColor = new Color3(0.65, 0.71, 0.70);
 scene.imageProcessingConfiguration.exposure = 1;
 scene.imageProcessingConfiguration.contrast = 1.15;
-const skyDome = MeshBuilder.CreateSphere('atmosphere', { diameter: 1800, segments: 24 }, scene);
-const skyMaterial = new StandardMaterial('sky-gradient', scene);
-skyMaterial.backFaceCulling = false;
-skyMaterial.disableLighting = true;
-skyMaterial.emissiveColor = Color3.White();
-skyMaterial.fogEnabled = false;
-const skyVertices = skyDome.getVerticesData('position')!;
-const skyColors: number[] = [];
-for (let i = 0; i < skyVertices.length; i += 3) {
-  const t = Math.max(0, skyVertices[i + 1] / 900);
-  const color = Color3.Lerp(new Color3(0.73, 0.76, 0.73), new Color3(0.35, 0.49, 0.60), Math.sqrt(t));
-  skyColors.push(color.r, color.g, color.b, 1);
-}
-skyDome.setVerticesData('color', skyColors);
-skyDome.material = skyMaterial;
-skyDome.infiniteDistance = true;
-skyDome.isPickable = false;
+const sky = createChaoticSky(scene);
 const followCamera = new FollowCamera(scene, canvas);
 followCamera.camera.maxZ = 1600;
 const clock = new FixedStep();
@@ -119,13 +100,13 @@ const blur = () => { keys.clear(); input.reset(); };
 document.addEventListener('visibilitychange', visibility);
 window.addEventListener('blur', blur);
 const ambient = new HemisphericLight('sky', new Vector3(0, 1, 0), scene);
-ambient.intensity = 0.7;
-ambient.diffuse = new Color3(0.81, 0.87, 0.96);
-ambient.groundColor = new Color3(0.32, 0.29, 0.22);
-const sun = new DirectionalLight('sun', new Vector3(-0.65, -0.8, 0.55), scene);
-sun.intensity = 1.25;
-sun.diffuse = new Color3(1, 0.88, 0.71);
-sun.position.set(70, 100, -80);
+ambient.intensity = 0.6;
+ambient.diffuse = new Color3(0.7, 0.74, 0.74);
+ambient.groundColor = new Color3(0.27, 0.24, 0.19);
+const sun = new DirectionalLight('sun', new Vector3(-0.58, -0.62, 0.53), scene);
+sun.intensity = 1.05;
+sun.diffuse = new Color3(1, 0.79, 0.56);
+sun.position.set(70, 82, -80);
 sun.autoCalcShadowZBounds = true;
 const shadows = new ShadowGenerator(2048, sun);
 shadows.usePercentageCloserFiltering = true;
@@ -239,6 +220,11 @@ async function start() {
     const now = performance.now();
     const dt = Math.max(0, (now - lastTime) / 1000); lastTime = now;
     if (paused || !vehicle || !visual || !tank) return;
+    sky.update(dt);
+    const stormFlash = sky.flash;
+    scene.imageProcessingConfiguration.exposure = 1 + stormFlash * 0.32;
+    ambient.intensity = 0.6 + stormFlash * 0.4;
+    sun.intensity = 1.05 + stormFlash * 0.25;
     aim.acquire(vehicle);
     const alpha = clock.advance(dt, step => {
       const command = input.resolve(observation?.keys() ?? keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
@@ -327,6 +313,7 @@ function dispose() {
   aim.dispose(); turret?.dispose(); visual?.dispose(); vehicle?.dispose(); followCamera.dispose();
   tank?.dispose();
   ground?.dispose();
+  sky.dispose();
   scene.dispose();
   engine.dispose();
 }
