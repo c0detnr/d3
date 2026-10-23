@@ -13,10 +13,10 @@ export interface TrackTuning {
   linkPitch: number;
   maxRate: number;
   bedGain: number;
-  thumpGain: number;
   filterHz: number;
   filterQ: number;
   pan: number;
+  smoothing: number;
 }
 
 export interface WindTuning {
@@ -45,9 +45,9 @@ export const IRON_DUST_AUDIO: Readonly<AudioDefinition> = Object.freeze({
     idleGain: 0.1, loadGain: 0.16, harmonicGain: 0.035, noiseGain: 0.05,
   },
   tracks: {
-    linkPitch: 0.24, maxRate: 22,
-    bedGain: 0.16, thumpGain: 0.11,
-    filterHz: 640, filterQ: 0.9, pan: 0.42,
+    linkPitch: 0.24, maxRate: 16,
+    bedGain: 0.075,
+    filterHz: 420, filterQ: 0.55, pan: 0.32, smoothing: 0.16,
   },
   wind: { baseGain: 0.035, speedGain: 0.07, cutoffHz: 420, gustHz: 0.09 },
 });

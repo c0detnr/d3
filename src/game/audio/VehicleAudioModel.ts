@@ -56,9 +56,10 @@ export function resolveVehicleAudio(
     side.max = Math.max(side.max, Math.hypot(contact.speed, contact.sideSpeed * 0.5));
   }
   const trackSide = (side: typeof stats.left): TrackSideState => {
-    if (side.total === 0 || side.grounded === 0 || side.max < 1e-4) return { rate: 0, level: 0 };
+    if (side.total === 0 || side.grounded === 0) return { rate: 0, level: 0 };
     const groundedFraction = side.grounded / side.total;
-    const motion = clamp01(side.max / 0.5);
+    const motion = clamp01((side.max - 0.25) / 1.5);
+    if (motion <= 0) return { rate: 0, level: 0 };
     return {
       rate: clamp(side.max / Math.max(0.05, definition.tracks.linkPitch), 0, definition.tracks.maxRate),
       level: motion * groundedFraction,

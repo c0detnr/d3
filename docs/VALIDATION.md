@@ -105,3 +105,10 @@ Başlangıç hedefi, belirlenecek referans masaüstü cihazda 1920×1080 çözü
 - `npm run map:check` ve `npm run map:build` geçti; mevcut büyük paket uyarısı sürüyor.
 - Chromium 720p, yerel Vite: `w` tuşundan sonra `#audio-status` metni `Ses: motor, palet, rüzgâr` oldu; sayfa hatası yok, yalnızca favicon 404'ü ve WebGL sürücü uyarıları görüldü. Bu, AudioContext kurulum yolunu doğrular; sesin duyulduğunu veya dengesini doğrulamaz.
 - Dinleme, hoparlör/kulaklık karşılaştırması, ses açık/kapalı performans ölçümü ve uzun sürüş kabulü yapılmadı. M2 tamamlandı sayılmadı.
+
+## 2026-10-24 — Palet sesi yumuşatma
+
+- Kullanıcı geri bildirimi: palet sesi çok rahatsız edici.
+- Değişiklik: kare dalga genlik modülasyonu sinüse çevrildi, sürekli alçak tokmak osilatörü kaldırıldı, palet kazancı yaklaşık yarıya indirildi, bant merkezi ve üst hız sınırı düşürüldü, sürünme hızının altında ses susturuldu.
+- `npm run audio:test`, `npm run map:check` ve `npm run map:build` geçti.
+- Yeni palet sesi dinlenmedi; kullanıcı dinlemesi ve gerekirse ikinci tur ayar açık.

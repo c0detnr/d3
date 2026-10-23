@@ -27,7 +27,7 @@ Alternatif (varsayılan değil): gerçek kayıt katmanları. Bu yol seçilirse s
 | Öncelik | Ses | Kaynak davranışı | Aşama |
 |---|---|---|---|
 | P1 | Motor | Rölanti + yük/devir katmanları; gaz ve hızla perde/parlaklık | M2 |
-| P1 | Palet takırtısı | Temas sayısı, palet hızı ve yönüyle darbe dizisi; iki palet ayrı | M2 |
+| P1 | Palet takırtısı | Temas sayısı, palet hızı ve yönüyle yumuşak modülasyonlu gürültü; iki palet ayrı | M2 |
 | P1 | Rüzgâr/ortam | Hız ve kameraya bağlı yumuşak gürültü yatağı | M2 |
 | P1 | Ana ses denetimi | Sesi etkinleştir, kapat, ana ses düzeyi | M2 |
 | P2 | Süspansiyon darbe | Temas yükü/compression değişiminden kısa tok darbe | M2 |

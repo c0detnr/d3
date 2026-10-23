@@ -7,12 +7,8 @@ class TrackSide {
   private readonly bed: AudioBufferSourceNode;
   private readonly bedFilter: BiquadFilterNode;
   private readonly bedGain: GainNode;
-  private readonly thump: OscillatorNode;
-  private readonly thumpFilter: BiquadFilterNode;
-  private readonly thumpGain: GainNode;
   private readonly modulation: OscillatorNode;
-  private readonly bedDepth: GainNode;
-  private readonly thumpDepth: GainNode;
+  private readonly modulationDepth: GainNode;
   private readonly panner: StereoPannerNode;
   private disposed = false;
 
@@ -30,40 +26,20 @@ class TrackSide {
     this.bedFilter.Q.value = tuning.filterQ;
     this.bedGain = context.createGain();
     this.bedGain.gain.value = 0;
+    this.modulation = context.createOscillator();
+    this.modulation.type = 'sine';
+    this.modulation.frequency.value = 0.8;
+    this.modulationDepth = context.createGain();
+    this.modulationDepth.gain.value = 0;
+    this.modulation.connect(this.modulationDepth);
+    this.modulationDepth.connect(this.bedGain.gain);
     this.bed.connect(this.bedFilter);
     this.bedFilter.connect(this.bedGain);
-
-    this.thump = context.createOscillator();
-    this.thump.type = 'triangle';
-    this.thump.frequency.value = 34;
-    this.thumpFilter = context.createBiquadFilter();
-    this.thumpFilter.type = 'lowpass';
-    this.thumpFilter.frequency.value = 150;
-    this.thumpGain = context.createGain();
-    this.thumpGain.gain.value = 0;
-    this.thump.connect(this.thumpFilter);
-    this.thumpFilter.connect(this.thumpGain);
-
-    this.modulation = context.createOscillator();
-    this.modulation.type = 'square';
-    this.modulation.frequency.value = 0.7;
-    this.bedDepth = context.createGain();
-    this.bedDepth.gain.value = 0;
-    this.thumpDepth = context.createGain();
-    this.thumpDepth.gain.value = 0;
-    this.modulation.connect(this.bedDepth);
-    this.modulation.connect(this.thumpDepth);
-    this.bedDepth.connect(this.bedGain.gain);
-    this.thumpDepth.connect(this.thumpGain.gain);
-
     this.panner = context.createStereoPanner();
     this.panner.pan.value = pan;
     this.bedGain.connect(this.panner);
-    this.thumpGain.connect(this.panner);
     this.panner.connect(output);
-
     this.bed.start();
-    this.thump.start();
     this.modulation.start();
     this.reset();
   }
@@ -71,17 +47,13 @@ class TrackSide {
   update(state: TrackSideState) {
     if (this.disposed) return;
     const now = this.context.currentTime;
-    const smoothing = this.definition.smoothing;
     const tuning = this.definition.tracks;
-    const rate = Math.max(0.7, Math.min(tuning.maxRate, state.rate));
+    const rate = Math.max(0.8, Math.min(tuning.maxRate, state.rate));
     const level = Math.max(0, Math.min(1, state.level));
-    this.modulation.frequency.setTargetAtTime(rate, now, smoothing);
-    this.bedFilter.frequency.setTargetAtTime(tuning.filterHz + rate * 22, now, smoothing);
-    this.thump.frequency.setTargetAtTime(32 + rate * 2.4, now, smoothing);
-    this.bedGain.gain.setTargetAtTime(level * tuning.bedGain * 0.55, now, smoothing);
-    this.bedDepth.gain.setTargetAtTime(level * tuning.bedGain * 0.45, now, smoothing);
-    this.thumpGain.gain.setTargetAtTime(level * tuning.thumpGain * 0.5, now, smoothing);
-    this.thumpDepth.gain.setTargetAtTime(level * tuning.thumpGain * 0.5, now, smoothing);
+    this.modulation.frequency.setTargetAtTime(rate, now, tuning.smoothing);
+    this.bedFilter.frequency.setTargetAtTime(tuning.filterHz + rate * 12, now, tuning.smoothing);
+    this.bedGain.gain.setTargetAtTime(level * tuning.bedGain * 0.72, now, tuning.smoothing);
+    this.modulationDepth.gain.setTargetAtTime(level * tuning.bedGain * 0.28, now, tuning.smoothing);
   }
 
   reset() { this.update({ rate: 0, level: 0 }); }
@@ -90,17 +62,12 @@ class TrackSide {
     if (this.disposed) return;
     this.disposed = true;
     this.bed.stop();
-    this.thump.stop();
     this.modulation.stop();
     this.bed.disconnect();
     this.bedFilter.disconnect();
     this.bedGain.disconnect();
-    this.thump.disconnect();
-    this.thumpFilter.disconnect();
-    this.thumpGain.disconnect();
     this.modulation.disconnect();
-    this.bedDepth.disconnect();
-    this.thumpDepth.disconnect();
+    this.modulationDepth.disconnect();
     this.panner.disconnect();
   }
 }

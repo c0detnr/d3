@@ -37,7 +37,9 @@ assert.ok(pivot.trackLeft.rate > 1 && pivot.trackRight.rate > 1, 'Yerinde dönü
 assert.equal(pivot.trackLeft.level, 1);
 assert.equal(pivot.trackRight.level, 1);
 
-const slow = resolveVehicleAudio(snapshot(0.2, 0.2, 0.2), IRON_DUST_AUDIO);
+const crawl = resolveVehicleAudio(snapshot(0.1, 0.1, 0.1), IRON_DUST_AUDIO);
+assert.equal(crawl.trackLeft.level, 0, 'Sürünme hızında palet sesi başlamamalı');
+const slow = resolveVehicleAudio(snapshot(0.8, 0.8, 0.8), IRON_DUST_AUDIO);
 assert.ok(slow.trackLeft.level > 0 && slow.trackLeft.level < moving.trackLeft.level, 'Düşük hızda palet daha hafif olmalı');
 
 const airborne = resolveVehicleAudio(snapshot(15, 15, 15, 0, false), IRON_DUST_AUDIO);
