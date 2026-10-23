@@ -20,6 +20,7 @@
     "tank:test": "node --experimental-strip-types scripts/check-tank-model.ts",
     "turret:test": "node --experimental-strip-types scripts/check-turret.ts",
     "effects:test": "node --experimental-strip-types scripts/check-movement-effects.ts",
+    "audio:test": "node --experimental-strip-types scripts/check-audio.ts",
     "drive:test": "node --experimental-strip-types scripts/check-driving.ts"
   },
   "dependencies": {

@@ -92,6 +92,14 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Açık:** Prosedürel mi gerçek kayıt katmanı mı; düzey kalıcılığı; ayrı silah/efekt kaydırıcısı; dinleme referansı; reverb miktarı. Bunlar kullanıcı kararı veya prototip ayarı olarak S1–S3'te netleşecek.
 - **Durum:** Yalnızca belge; ses kodu, model ve paketler bu görevde değişmedi. M1/M2/M3 kabulü açık.
 
+## 2026-10-24 — Ses S1 uygulaması
+
+- **Kullanıcı kararı:** Ses sistemini planla ve başla. Önerilen prosedürel Web Audio yolu uygulandı.
+- **Uygulanan:** `src/game/audio/` altında AudioSystem (AudioContext/limiter), motor, iki palet, rüzgâr, araç ses modeli ve orkestrasyon. İlk kullanıcı girdisinde açma, sekme gizlenince askıya alma, panelde Ses ve düzey denetimi, sahne kapanışında temizlik.
+- **Doğrulanan:** `npm run audio:test` geçti; eşleme sınırları, palet hız/yön/dönüş, hava, model sıfırlama, sahte ses arka ucuyla kur/kapat ve kaynak temizliği. `npm run map:check` ve `npm run map:build` geçti. Chromium'da ilk tuşla ses açıldı, sayfa hatası yok.
+- **Açık:** İnsan dinlemesi, ses dengesi, ses açık/kapalı performans karşılaştırması, gerçek cihaz çıkışı; S2 süspansiyon/fren/taret ve S3 savaş sesleri. Bunlar kabul edilmiş değildir.
+- **Durum:** M2 sürüş teslimi ses katkısıyla sürüyor; M1/M2/M3 kabulü açık. Eşzamanlı savaş çalışması bu commit'e dahil edilmedi.
+
 ## 2026-10-23 — İlk üç hareket efekti
 
 - **Kesin kapsam:** Kullanıcı palet temas, hızlı sürüş ve dönüş tozunu istedi; uygulandı.

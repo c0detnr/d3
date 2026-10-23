@@ -49,6 +49,7 @@ W ileri, S fren ve durduktan 0,25 saniye sonra geri; A/D palet farkıyla dönü�
 
 - `npm test`: sabit zaman adımı, birikim sınırı, fren önceliği ve geri geçişi kontrolleri.
 - `npm run effects:test`: toz temas/yük/hava kapıları, hız/geri/dönüş, 30/60/120 FPS eşitliği, 10 dakika simülasyon havuz sınırı ve gerçek Havok ile kaynak temizliği.
+- `npm run audio:test`: motor/palet/rüzgâr eşleme sınırları, palet hızı/yön/dönüş, hava, model sıfırlama, ses grafiği kur/kapat ve kaynak temizliği.
 - `npm run drive:test`: gerçek Havok ile süspansiyon, ileri/fren/geri, dönüş, 30/60/120 FPS eşitliği, rampa, tümsek, engel ve sıfırlama; sonuç `docs/driving-results.json`.
 - `npm run tank:test`: gerçek GLB ile ölçek, zemin hizası, hiyerarşi, gizli çarpışma geometrisi ve kaynak temizliği.
 - `npm run map:check`: harita TypeScript kontrolü.
@@ -59,7 +60,7 @@ Harita kodla, tank Blender MCP ile bu projede üretildi; dış görsel varlık k
 
 Son görünüm: [Orman eşiği](docs/previews/forest-clearing.png). Çevre geometrisi ve zemin tanesi bu proje için kodla üretildi; dış model veya kaplama eklenmedi.
 
-Sürüş ayarları `src/game/vehicle/VehicleDefinition.ts` içinde SI birimleriyle tutulur. Palet geometrisi korunur; yürüyen bant deseni geçici prosedürel görseldir. Palet temas, hızlı sürüş ve dönüş tozu mevcut; paneldeki **Toz efektleri** kutusuyla kapatılabilir. Ses planı hazır ancak ses kodu henüz yok; M2 tamamlanmadı. Geliştirme sunucusunda `/map-preview.html?driveTest`, isteğe bağlı 10 dakika otomatik gözlem aracını açar; bu insan sürüş hissi değerlendirmesinin yerini tutmaz.
+Sürüş ayarları `src/game/vehicle/VehicleDefinition.ts` içinde SI birimleriyle tutulur. Palet geometrisi korunur; yürüyen bant deseni geçici prosedürel görseldir. Palet temas, hızlı sürüş ve dönüş tozu mevcut; paneldeki **Toz efektleri** kutusuyla kapatılabilir. Motor, iki palet ve rüzgâr sesleri prosedürel Web Audio ile çalışıyor; paneldeki **Ses** kutusu ve düzey kaydırıcısıyla denetlenir. Ses yalnızca ilk kullanıcı etkileşiminde açılır; sekme gizlenince askıya alınır. S2 süspansiyon/fren/taret ve S3 savaş sesleri henüz yok; insan dinlemesi ve M2 kabulü açık. Geliştirme sunucusunda `/map-preview.html?driveTest`, isteğe bağlı 10 dakika otomatik gözlem aracını açar; bu insan sürüş hissi değerlendirmesinin yerini tutmaz.
 
 ## Taret prototipi
 

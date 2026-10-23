@@ -15,6 +15,10 @@ import { TankVisual } from './game/vehicle/TankVisual.ts';
 import { AimSystem } from './game/aim/AimSystem.ts';
 import { TurretController } from './game/vehicle/TurretController.ts';
 import { FollowCamera } from './game/camera/FollowCamera.ts';
+import { AudioSystem } from './game/audio/AudioSystem.ts';
+import { IRON_DUST_AUDIO } from './game/audio/AudioDefinition.ts';
+import { VehicleAudio } from './game/audio/VehicleAudio.ts';
+import type { VehicleAudioSnapshot } from './game/audio/VehicleAudioModel.ts';
 import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#map')!;
@@ -60,11 +64,13 @@ let paused = document.hidden;
 const keys = bindDriveKeys(window, () => reset());
 const telemetry = document.querySelector<HTMLElement>('#telemetry')!;
 function reset() {
-  keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); movementEffects?.reset(); turret?.reset(); aim.reset(); followCamera.follow();
+  keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); movementEffects?.reset(); vehicleAudio?.reset(); turret?.reset(); aim.reset(); followCamera.follow();
   lastTime = performance.now();
 }
 const visibility = () => {
   paused = document.hidden; movementEffects?.reset(); keys.clear(); input.reset(); clock.reset(); lastTime = performance.now();
+  if (document.hidden) void audio.suspend();
+  else if (soundToggle.checked) void audio.resume();
 };
 const blur = () => { keys.clear(); input.reset(); };
 document.addEventListener('visibilitychange', visibility);
@@ -89,8 +95,56 @@ const spawn = () => reset();
 document.querySelector('#overview')!.addEventListener('click', overview);
 document.querySelector('#spawn')!.addEventListener('click', spawn);
 const dustToggle = document.querySelector<HTMLInputElement>('#dust-enabled')!;
+const soundToggle = document.querySelector<HTMLInputElement>('#sound-enabled')!;
+const soundVolume = document.querySelector<HTMLInputElement>('#sound-volume')!;
+const audioStatus = document.querySelector<HTMLElement>('#audio-status')!;
+const audio = new AudioSystem({
+  volume: Number(soundVolume.value) / 100,
+  muted: !soundToggle.checked,
+});
+let vehicleAudio: VehicleAudio | undefined;
+let audioSnapshot: VehicleAudioSnapshot | undefined;
+let audioUnlockStarted = false;
 const toggleDust = () => { if (movementEffects) { movementEffects.enabled = dustToggle.checked; movementEffects.reset(); } };
 dustToggle.addEventListener('change', toggleDust);
+function ensureVehicleAudio() {
+  if (vehicleAudio || !vehicle || !audio.graph || !audioSnapshot) return;
+  const graph = audio.graph;
+  vehicleAudio = new VehicleAudio(graph.context, graph.output, IRON_DUST_AUDIO);
+  vehicleAudio.reset();
+}
+async function unlockAudio() {
+  if (audioUnlockStarted || !soundToggle.checked) return;
+  audioUnlockStarted = true;
+  const unlocked = await audio.unlock();
+  if (!unlocked) {
+    audioUnlockStarted = false;
+    audioStatus.textContent = 'Ses başlatılamadı';
+    return;
+  }
+  audio.setMuted(!soundToggle.checked);
+  ensureVehicleAudio();
+  audioStatus.textContent = audio.muted ? 'Ses: kapalı' : 'Ses: motor, palet, rüzgâr';
+}
+const unlockOnGesture = () => { void unlockAudio(); };
+const toggleSound = async () => {
+  if (soundToggle.checked) {
+    if (!audio.ready) audioUnlockStarted = false;
+    await unlockAudio();
+    if (audio.ready) {
+      audio.setMuted(false);
+      audioStatus.textContent = 'Ses: motor, palet, rüzgâr';
+    }
+  } else {
+    audio.setMuted(true);
+    audioStatus.textContent = 'Ses: kapalı';
+  }
+};
+const changeVolume = () => audio.setVolume(Number(soundVolume.value) / 100);
+window.addEventListener('pointerdown', unlockOnGesture);
+window.addEventListener('keydown', unlockOnGesture);
+soundToggle.addEventListener('change', toggleSound);
+soundVolume.addEventListener('input', changeVolume);
 const resize = () => engine.resize();
 window.addEventListener('resize', resize);
 let disposed = false;
@@ -116,6 +170,12 @@ async function start() {
   movementEffects = new MovementEffects(scene, vehicle);
   movementEffects.enabled = dustToggle.checked;
   turret = new TurretController(tank, vehicle.definition);
+  audioSnapshot = {
+    speed: 0, forwardSpeed: vehicle.definition.forwardSpeed, driveForce: 0,
+    traction: vehicle.definition.traction, contacts: vehicle.contacts,
+    sides: rig.wheels.map(wheel => wheel.side),
+  };
+  ensureVehicleAudio();
   followCamera.follow();
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('driveTest')) observation = new DrivingObservation(engine, reset);
   status.textContent = '42 ton · Palet kuvvetleriyle sürüş · R ile kurtar';
@@ -147,6 +207,11 @@ async function start() {
       telemetry.textContent = `${(vehicle.speed * 3.6).toFixed(0)} km/sa · ${vehicle.contacts.filter(c => c.grounded).length}/12 temas`;
       hudElapsed = 0;
     }
+    if (vehicleAudio && audioSnapshot) {
+      audioSnapshot.speed = vehicle.speed;
+      audioSnapshot.driveForce = vehicle.driveForce;
+      vehicleAudio.update(audioSnapshot, dt);
+    }
     scene.render();
     aim.render(vehicle, turret!);
     observation?.frame(dt, vehicle);
@@ -166,12 +231,18 @@ function dispose() {
   document.querySelector('#overview')?.removeEventListener('click', overview);
   document.querySelector('#spawn')?.removeEventListener('click', spawn);
   dustToggle.removeEventListener('change', toggleDust);
+  soundToggle.removeEventListener('change', toggleSound);
+  soundVolume.removeEventListener('input', changeVolume);
+  window.removeEventListener('pointerdown', unlockOnGesture);
+  window.removeEventListener('keydown', unlockOnGesture);
   shadows.dispose();
   keys.dispose();
   document.removeEventListener('visibilitychange', visibility);
   window.removeEventListener('blur', blur);
   observation?.dispose();
   movementEffects?.dispose();
+  vehicleAudio?.dispose();
+  audio.dispose();
   aim.dispose(); turret?.dispose(); visual?.dispose(); vehicle?.dispose(); followCamera.dispose();
   tank?.dispose();
   ground?.dispose();

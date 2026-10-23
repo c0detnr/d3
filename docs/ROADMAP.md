@@ -30,7 +30,7 @@ Kabul koşulları:
 
 WASD, palet bazlı dönüş, hızlanma/frenleme, geri sürüş, eğim, süspansiyon, temel ses ve toz. Üçüncü şahıs kamera sürüşle birlikte ayarlanır.
 
-[Hareket efektleri](MOVEMENT_EFFECTS.md) içindeki palet temas, hızlı sürüş ve dönüş tozu uygulandı; fren pufu bekliyor. P1 temel temas/dönüş/fren tozu → P2 yüzey parçaları ve iniş pufu → isteğe bağlı P3 egzoz sırası önerilir. Bu belge teslimi M2'yi tamamlamaz. [Ses sistemi planı](SOUND_DESIGN.md) hazır; S1 motor/palet/rüzgâr, S2 süspansiyon/fren/taret sesleri önerilir, ses kodu henüz yok.
+[Hareket efektleri](MOVEMENT_EFFECTS.md) içindeki palet temas, hızlı sürüş ve dönüş tozu uygulandı; fren pufu bekliyor. P1 temel temas/dönüş/fren tozu → P2 yüzey parçaları ve iniş pufu → isteğe bağlı P3 egzoz sırası önerilir. Bu belge teslimi M2'yi tamamlamaz. S1 ses çekirdeği, motor, iki palet ve rüzgâr uygulandı; S2 süspansiyon/fren/taret sesleri bekliyor. İnsan dinlemesi ve ses açık/kapalı performans kaydı açık. [Ses sistemi planı](SOUND_DESIGN.md).
 
 Kabul koşulları:
 
@@ -96,3 +96,7 @@ Kullanıcının açık isteğiyle mevcut sürüş prototipine bağımsız taret/
 ### 2026-10-23 — Palet, hız ve dönüş tozu
 
 Sabit adımlı sınırlı dünya uzayı toz havuzu ve panelde aç/kapat kontrolü eklendi. Mevcut süspansiyon temasları kullanılır; Blender/GLB ve sürüş kuvvetleri korunur. `effects:test`, `npm test`, `turret:test`, `tank:test`, `drive:test`, `map:test`, `map:build` geçti. Tarayıcıda kısa görsel kontrol yapıldı; uzun kabul ve karşılaştırmalı performans kaydı açık. M1/M2 tamamlandı sayılmadı.
+
+### 2026-10-24 — Ses S1: motor, palet ve rüzgâr
+
+Prosedürel Web Audio çekirdeği, limiter, motor/palet/rüzgâr sentezi ve panelde Ses aç/kapat ile düzey kaydırıcısı eklendi. `npm run audio:test` eşleme sınırlarını, palet hız/yön/dönüşünü, hava durumunu, model sıfırlamayı, ses grafiği kur/kapat ve kaynak temizliğini geçti. Chromium'da ilk tuş etkileşimi sesi açtı; DOM durumu `Ses: motor, palet, rüzgâr` oldu, sayfa hatası görülmedi (yalnızca favicon 404). Ses dinlenmedi, düzey dengesi ve ses açık/kapalı performans ölçülmedi. M2 tamamlanmadı.

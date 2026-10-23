@@ -98,3 +98,10 @@ Başlangıç hedefi, belirlenecek referans masaüstü cihazda 1920×1080 çözü
 - Regresyonlar geçti: `npm test`, `npm run turret:test`, `npm run tank:test`, `npm run drive:test`, `npm run map:test`, `npm run map:build`. Mevcut büyük paket uyarısı devam ediyor.
 - Chrome 154/Linux, Intel RPL-P / ANGLE WebGL 2, 1256×493 render, DPR 1,5, 2048 PCF gölgeler: kısa otomatik sürüşte temas/dönüş tozu ve hızlanınca uzayan iz görüldü. Toz kutusu kapatılınca mevcut toz temizlendi. Konsolda warn/error kaydı boş. [Görsel kanıt](previews/track-dust.png).
 - Gözlem penceresinde yaklaşık 1 saniyelik kare aralıkları da görüldü; bu kısa ve değişken koşullu kayıt performans karşılaştırması olarak kullanılmadı. Efekt açık/kapalı aynı rota ölçümü, uzun tarayıcı kabulü ve insan sürüş hissi değerlendirmesi açık. M1/M2 tamamlandı sayılmadı.
+
+## 2026-10-24 — Ses S1
+
+- `npm run audio:test` geçti: rölanti/duruş, ileri/geri palet hızı, yerinde dönüş, hava durumu, düşük hız seviyesi, aşırı ve geçersiz girdi sınırları, model sıfırlama; sahte audio arka ucuyla AudioContext'in ilk kullanıcı girdisine kadar oluşturulmaması, ses düzeyi sınırları, sessizde askıya alma/devam, düğüm bırakma ve bağlam kapatma.
+- `npm run map:check` ve `npm run map:build` geçti; mevcut büyük paket uyarısı sürüyor.
+- Chromium 720p, yerel Vite: `w` tuşundan sonra `#audio-status` metni `Ses: motor, palet, rüzgâr` oldu; sayfa hatası yok, yalnızca favicon 404'ü ve WebGL sürücü uyarıları görüldü. Bu, AudioContext kurulum yolunu doğrular; sesin duyulduğunu veya dengesini doğrulamaz.
+- Dinleme, hoparlör/kulaklık karşılaştırması, ses açık/kapalı performans ölçümü ve uzun sürüş kabulü yapılmadı. M2 tamamlandı sayılmadı.

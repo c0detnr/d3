@@ -1,6 +1,6 @@
 # Ses sistemi planı
 
-Durum: **Plan.** Ses kodu henüz yazılmadı; bu belge uygulama sırasını, ses paletini, teknik sınırları ve doğrulamayı tanımlar. M1/M2/M3 kabul durumlarını değiştirmez.
+Durum: **S1 uygulandı.** Ses çekirdeği, motor, iki palet ve rüzgâr sesleri prosedürel Web Audio ile mevcut. S2 süspansiyon/fren/taret ve S3 savaş sesleri planlı. Bu belge kabul sırasını, ses paletini, teknik sınırları ve doğrulamayı tanımlar; M1/M2/M3 kabul durumlarını değiştirmez.
 
 ## Amaç ve ilkeler
 
@@ -111,7 +111,7 @@ Tarayıcıda insan kontrolü:
 
 ## Uygulama sırası
 
-1. **S1 — Ses çekirdeği + motor/palet/rüzgâr:** AudioSystem, limiter, ilk kullanıcı girdisiyle açma, ayar paneli, parametre eşlemeleri ve otomatik kontroller. M2 sürüş teslimine ses katkısı.
+1. **S1 — Ses çekirdeği + motor/palet/rüzgâr — uygulandı:** AudioSystem, limiter, ilk kullanıcı girdisiyle açma, ayar paneli, parametre eşlemeleri ve otomatik kontroller. `audio:test` ve tarayıcıda açılma yolu doğrulandı; dinleme ve performans kaydı açık.
 2. **S2 — Süspansiyon, fren/hava, taret servo:** Olay havuzu ve ek katmanlar; uzun dinleme ayarı.
 3. **S3 — Savaş sesleri:** Top, geri tepme, mermi uçuşu, isabet ve hasar; mekânsallaştırma ve M3 ölçümü.
 
