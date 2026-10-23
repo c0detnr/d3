@@ -7,3 +7,10 @@
 - TankVisual sabit adım verisini görsel interpolasyonla işliyor; efektler aynı oyun katmanında kalmalı.
 - Görev başında taret çalışmasına ait findings.md, task_plan.md, FollowCamera.ts, VehicleDefinition.ts değişmiş; TurretController.ts izlenmiyor. Bu değişiklikler commit kapsamı dışında.
 - Sayısal efekt değerleri ve bütçeler prototip önerisi olacak; performans ölçülmedi.
+
+## Uygulama bulguları
+- İlk üç efekt kullanıcı tarafından seçildi. 12 mevcut ray isabeti ContactState üzerinden kopyalanıyor; fizik kuvveti değişmedi.
+- Sabit adımlı simülasyon ve render interpolasyonu ayrı; 320 sprite, toplam 120/sn üst sınır. Kaplama kodla özgün üretildi.
+- İlk görsel ayar fazla silikti; yoğunluk/alpha artırıldı. Üretim tavanı nedeniyle hızlı/yavaş test beklentisi en az %50 artış olarak düzenlendi.
+- NullEngine scene.spriteManagers ilk SpriteManager'dan önce undefined; temizleme testi sıfır kabul edecek şekilde düzeltildi.
+- Tarayıcıda toz ve kapatma doğrulandı. Kısa gözlemde uzun kare aralıkları var; karşılaştırmalı performans sonucu çıkarılmadı.

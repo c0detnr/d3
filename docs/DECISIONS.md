@@ -81,3 +81,10 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Uygulanan kontrol:** Fareyi sürükleyerek kamera/nişan hedefi; Alt basılıyken veya C aç/kapat ile serbest bakış. Serbest bakış son dünya hedefini korur. Nişan sırasında otomatik arkaya kamera toparlanması kapalıdır.
 - **Uygulanan gösterim:** Merkez artısı hedef yönü, hareketli halka gerçek namlu doğrultusundaki ilk fizik engeli; engel yoksa 800 m referansı. 12 m içindeki engel turuncu uyarı verir. Bu halka mermi düşüşü hesabı değildir.
 - **Açık:** Nişancı görüşü, ayarlanabilir stabilizasyon karakteri, namlu/gövde/çevre kesişmelerinin tam çözümü, atış ve geri tepme. Mevcut taret kinematik; ayrı Havok gövdesi eklenmedi. M1/M2 kabul maddeleri sürüyor.
+
+
+## 2026-10-23 — İlk üç hareket efekti
+
+- **Kesin kapsam:** Kullanıcı palet temas, hızlı sürüş ve dönüş tozunu istedi; uygulandı.
+- **Uygulama tercihi:** Mevcut süspansiyon rayları, sabit adımlı dünya uzayı havuzu ve Babylon sprite renderer; özgün prosedürel kaplama. Fren/iniş/egzoz eklenmedi.
+- **Açık:** Referans cihazda efekt açık/kapalı performans karşılaştırması ve son görsel kabul. Sayısal ayarlar prototip değerleridir.

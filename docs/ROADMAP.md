@@ -26,11 +26,11 @@ Kabul koşulları:
 
 ## M2 — Sürüş fiziği / ilk sürüş teslimi
 
-**Durum:** Devam ediyor. Tek dinamik gövde, 12 ışın süspansiyonu, palet kuvvetleri, girdi, görsel interpolasyon ve takip kamerası uygulandı. Gerçek Havok otomatik kontrolleri geçti. Son tarayıcı kabulü, on dakika gözlem sonucu, sürüş hissi, ses ve toz açık. **Bağımlılık:** M1.
+**Durum:** Devam ediyor. Tek dinamik gövde, 12 ışın süspansiyonu, palet kuvvetleri, girdi, görsel interpolasyon ve takip kamerası uygulandı. Gerçek Havok otomatik kontrolleri geçti. Son tarayıcı kabulü, on dakika gözlem sonucu, sürüş hissi ve ses açık; palet/hız/dönüş tozu uygulandı. **Bağımlılık:** M1.
 
 WASD, palet bazlı dönüş, hızlanma/frenleme, geri sürüş, eğim, süspansiyon, temel ses ve toz. Üçüncü şahıs kamera sürüşle birlikte ayarlanır.
 
-Toz için [hareket efektleri planı](MOVEMENT_EFFECTS.md) hazırlandı; uygulama bekliyor. P1 temel temas/dönüş/fren tozu → P2 yüzey parçaları ve iniş pufu → isteğe bağlı P3 egzoz sırası önerilir. Bu belge teslimi M2'yi tamamlamaz.
+[Hareket efektleri](MOVEMENT_EFFECTS.md) içindeki palet temas, hızlı sürüş ve dönüş tozu uygulandı; fren pufu bekliyor. P1 temel temas/dönüş/fren tozu → P2 yüzey parçaları ve iniş pufu → isteğe bağlı P3 egzoz sırası önerilir. Bu belge teslimi M2'yi tamamlamaz.
 
 Kabul koşulları:
 
@@ -91,3 +91,8 @@ Kullanıcının açık isteğiyle mevcut sürüş prototipine bağımsız taret/
 - Kamera hedefi ve gerçek namlu doğrultusu, serbest bakış, yakın engel ve açı sınırı göstergeleri.
 - `npm run turret:test`: gerçek GLB ile nişan yakınsaması, gövde bağımsızlığı, hız/sınırlar, açı geçişi, eğimli gövde, interpolasyon, 30/60/120 FPS ve üç kaynak temizleme çevrimi geçti.
 - Nişancı görüşü, tam namlu kesişme çözümü ve atış sonraki adımlar; sürüş teslimini bekletmez.
+
+
+### 2026-10-23 — Palet, hız ve dönüş tozu
+
+Sabit adımlı sınırlı dünya uzayı toz havuzu ve panelde aç/kapat kontrolü eklendi. Mevcut süspansiyon temasları kullanılır; Blender/GLB ve sürüş kuvvetleri korunur. `effects:test`, `npm test`, `turret:test`, `tank:test`, `drive:test`, `map:test`, `map:build` geçti. Tarayıcıda kısa görsel kontrol yapıldı; uzun kabul ve karşılaştırmalı performans kaydı açık. M1/M2 tamamlandı sayılmadı.

@@ -23,7 +23,7 @@ Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağ�
 | [AGENTS.md](AGENTS.md) | Projede çalışan ajanların kuralları |
 | [Oyun tasarımı](docs/GAME_DESIGN.md) | Kimlik, oyuncu deneyimi ve kapsam |
 | [Görsel yön](docs/ART_DIRECTION.md) | Palet, ışık, tank, çevre ve varlık standardı |
-| [Hareket efektleri planı](docs/MOVEMENT_EFFECTS.md) | Palet tozu, dönüş/fren/iniş tepkileri, yüzeyler ve kabul planı; henüz uygulanmadı |
+| [Hareket efektleri planı](docs/MOVEMENT_EFFECTS.md) | Palet/hız/dönüş tozu uygulaması; fren/iniş ve sonraki efektlerin planı |
 | [Tank modelleme standardı](docs/TANK_ASSET.md) | Blender parça hiyerarşisi, hareket hazırlığı, üçgen hedefi ve teslim önerisi |
 | [Teknik mimari](docs/ARCHITECTURE.md) | Seçilen yığın, sistem sınırları ve fizik yaklaşımı |
 | [Yol haritası](docs/ROADMAP.md) | M1 dünya → M2 sürüş → M3 savaş |
@@ -47,6 +47,7 @@ Kurulu paket sürümleri `package.json` ve kilit dosyasında sabittir. Genel oyu
 W ileri, S fren ve durduktan 0,25 saniye sonra geri; A/D palet farkıyla dönüş, Space güçlü fren, R tankı başlangıca döndürür. Fareyi sürükleyerek bakışı değiştir, tekerlekle mesafeyi ayarla. Hareketliyken kamera son fare hareketinden 1,5 saniye sonra arkaya toparlanır. **Alanı göster** genel görünüşe geçer; **Başlangıca dön** tankı ve hızları sıfırlar.
 
 - `npm test`: sabit zaman adımı, birikim sınırı, fren önceliği ve geri geçişi kontrolleri.
+- `npm run effects:test`: toz temas/yük/hava kapıları, hız/geri/dönüş, 30/60/120 FPS eşitliği, 10 dakika simülasyon havuz sınırı ve gerçek Havok ile kaynak temizliği.
 - `npm run drive:test`: gerçek Havok ile süspansiyon, ileri/fren/geri, dönüş, 30/60/120 FPS eşitliği, rampa, tümsek, engel ve sıfırlama; sonuç `docs/driving-results.json`.
 - `npm run tank:test`: gerçek GLB ile ölçek, zemin hizası, hiyerarşi, gizli çarpışma geometrisi ve kaynak temizliği.
 - `npm run map:check`: harita TypeScript kontrolü.
@@ -57,7 +58,7 @@ Harita kodla, tank Blender MCP ile bu projede üretildi; dış görsel varlık k
 
 Son görünüm: [Orman eşiği](docs/previews/forest-clearing.png). Çevre geometrisi ve zemin tanesi bu proje için kodla üretildi; dış model veya kaplama eklenmedi.
 
-Sürüş ayarları `src/game/vehicle/VehicleDefinition.ts` içinde SI birimleriyle tutulur. Palet geometrisi korunur; yürüyen bant deseni geçici prosedürel görseldir. Ses ve toz henüz yok; M2 tamamlanmadı. Geliştirme sunucusunda `/map-preview.html?driveTest`, isteğe bağlı 10 dakika otomatik gözlem aracını açar; bu insan sürüş hissi değerlendirmesinin yerini tutmaz.
+Sürüş ayarları `src/game/vehicle/VehicleDefinition.ts` içinde SI birimleriyle tutulur. Palet geometrisi korunur; yürüyen bant deseni geçici prosedürel görseldir. Palet temas, hızlı sürüş ve dönüş tozu mevcut; paneldeki **Toz efektleri** kutusuyla kapatılabilir. Ses henüz yok; M2 tamamlanmadı. Geliştirme sunucusunda `/map-preview.html?driveTest`, isteğe bağlı 10 dakika otomatik gözlem aracını açar; bu insan sürüş hissi değerlendirmesinin yerini tutmaz.
 
 ## Taret prototipi
 

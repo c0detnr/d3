@@ -1,6 +1,6 @@
 # Tank hareket efektleri — uygulama planı
 
-Tarih: 2026-10-23. **Durum: tasarım önerisi; uygulanmadı.** Kullanıcının isteği hareket sırasında çıkan parçacık efektlerini planlamak. Aşağıdaki eşikler, sayılar ve teknik tercihler prototip başlangıç değerleridir; onaylanmış kullanıcı kararı veya ölçülmüş performans sonucu değildir.
+Tarih: 2026-10-23. **Durum: palet temas tozu, hızlı sürüş izi ve dönüş tozu uygulandı. Fren, parçalar, iniş ve egzoz uygulanmadı.** Kullanıcının isteği hareket sırasında çıkan parçacık efektlerini planlamak. Aşağıdaki eşikler, sayılar ve teknik tercihler prototip başlangıç değerleridir; onaylanmış kullanıcı kararı veya ölçülmüş performans sonucu değildir.
 
 ## Hedef görünüm
 
@@ -110,3 +110,15 @@ Atlas ve küçük parçalar bu projede prosedürel/özgün üretilecek geçici v
 Efekt açık/kapalı ölçümünde ortanca ve p95 kare süresi, takılma, canlı parçacık sayısı ve mümkünse CPU/GPU süreleri tutulur. İlk değerlendirme eşiği, aynı koşullarda p95 kare süresi artışını %10 altında tutmayı denemektir; sonuç alınmadan 60 FPS veya minimum cihaz desteği sözü verilmez. Yetmezse önce boyut/örtüşme, üretim ve parça sayısı azaltılır.
 
 Uygulama sırasında mevcut `npm test`, `npm run drive:test`, `npm run tank:test`, `npm run map:test` ve `npm run map:build` regresyon olarak çalıştırılır. Yeni efekt testleri anlamlı davranışlar için o aşamada eklenir; şu anda efekt test komutu tanımlı değildir. Bu planlama görevinde tarayıcı görünümü, efekt performansı veya yeni efekt davranışı test edilmedi.
+
+
+## 2026-10-23 — İlk üç efektin uygulaması
+
+Kullanıcı palet temas tozu, hızlı sürüş tozu ve dönüş tozunu seçti. `TankVehicle` mevcut raylardan dünya temas noktası/normalini, düzlemsel hızı, yanal hızı ve isabet nesnesi adını dışarı verir; yeni fizik sorgusu yok. `DustSimulation` sabit 60 Hz'de üretir/yaşlandırır; `MovementEffects` dünya konumlarını render interpolasyonuyla sprite olarak gösterir. Her temas bağımsızdır; ileri/geri, yerinde dönüş ve yanal kayma gerçek temas hareketinden çıkarılır. Patinaj simülasyonu eklenmedi.
+
+- Toplam 120 doğum/sn ve 320 parçacık tavanı; kapasite büyümez. Hız artınca üretim, boyut ve ömür artar. Dönüşte yerel harekete ters ve paletin dışına yayılım vardır.
+- Toprak patikası/otlu alan harmanı, kaya azaltması ve ağaç gövdesi hariç tutma görsel sınıflamadır; tutuş değişmedi.
+- 64×64 RGBA düzensiz yumuşak toz kaplaması bu projede kodla özgün üretildi; dış varlık yok. İlk görsel prototip ayarları `MovementEffectsDefinition.ts` içindedir; sprite biçim/renk ayarları `MovementEffects.ts` içindedir.
+- R sıfırlaması, görünürlük değişimi ve kapatma havuzu temizler. Gizli sekmede adım yok; sahne kapanışında sprite/kaplama temizlenir. Panelde aç/kapat kutusu vardır; 80 m ötesinde üretim azaltılır, 350 m ötesinde kesilir.
+- `npm run effects:test` anlamlı davranış, deterministik kare hızı ve gerçek Havok kontrollerini çalıştırır. 10 dakika testi hızlandırılmış sabit adımlı havuz testidir; 10 dakika tarayıcı performans kaydı değildir.
+- Fren ve iniş pufu, çakıl/toprak parçaları, egzoz ve kalıcı palet izi bu teslimde yok. M1/M2 son kabulü ve efekt açık/kapalı performans karşılaştırması hâlâ açık.

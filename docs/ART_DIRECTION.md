@@ -39,7 +39,7 @@ Akşam güneşi, uzun gölgeler ve atmosferik sis hedeflenir. Sis, gölge ve toz
 
 M2: Zemine ve palet hareketine bağlı toz. M3: Hacimli görünen toz/duman, namlu alevi, kıvılcımlar ve yüzeye göre isabet efekti. Hacimli görünümün hangi teknikle üretileceği performans denemesinde seçilecek; pahalı gerçek hacimsel simülasyon şart değil.
 
-Hareket efektlerinin davranışı, yüzey tepkileri ve başlangıç bütçe önerileri [hareket efektleri planında](MOVEMENT_EFFECTS.md) bulunur. Bu plan henüz uygulanmadı; değerler tarayıcı prototipi ve ölçümle ayarlanacak.
+Hareket efektlerinin davranışı, yüzey tepkileri ve başlangıç bütçe önerileri [hareket efektleri planında](MOVEMENT_EFFECTS.md) bulunur. Palet/hız/dönüş tozu ilk prototipi uygulandı; diğer efektler bekliyor. Değerler tarayıcı prototipi ve ölçümle ayarlanacak.
 
 ## Önerilen varlık teslim standardı
 

@@ -91,3 +91,10 @@ Başlangıç hedefi, belirlenecek referans masaüstü cihazda 1920×1080 çözü
 - [Görsel kanıt: gövdeden farklı yönde taret ve serbest bakış](previews/turret-free-look.png). Görsel kalite kontrolüdür; FPS veya performans ölçümü yapılmadı.
 - Alt basılı tutma için dinleyici uygulandı; tarayıcı otomasyonunda serbest bakış C üzerinden kontrol edildi. Her iki mod odak/görünürlük kaybında temizlenir; yeni taret davranışı için uzun insan sürüşü yapılmadı.
 - Açık: nişancı görüşü, tam namlu/gövde/çevre kesişme kontrolü, balistik düşüş, geri tepme, atış ve hasar. Yakın engel işareti namlu ağzından 800 m boyunca gerçek fizik sorgusudur; 12 m içinde turuncu olur. M1/M2/M3 kabulü tamamlandı sayılmaz.
+
+## 2026-10-23 — Palet temas / hızlı sürüş / dönüş tozu
+
+- `npm run effects:test` geçti: duruş, yüksüz temas, hava, hızla artan üretim, geri sürüş yayılımı, yanal dönüş, dünya uzayı, 30/60/120 render FPS eşitliği, 36.000 sabit adımda (10 dakika simülasyon) 320 parçacık havuz sınırı. Gerçek GLB/Havok ile yerinde dönüş ve havada gaz; üç sprite/kaplama temizleme çevrimi.
+- Regresyonlar geçti: `npm test`, `npm run turret:test`, `npm run tank:test`, `npm run drive:test`, `npm run map:test`, `npm run map:build`. Mevcut büyük paket uyarısı devam ediyor.
+- Chrome 154/Linux, Intel RPL-P / ANGLE WebGL 2, 1256×493 render, DPR 1,5, 2048 PCF gölgeler: kısa otomatik sürüşte temas/dönüş tozu ve hızlanınca uzayan iz görüldü. Toz kutusu kapatılınca mevcut toz temizlendi. Konsolda warn/error kaydı boş. [Görsel kanıt](previews/track-dust.png).
+- Gözlem penceresinde yaklaşık 1 saniyelik kare aralıkları da görüldü; bu kısa ve değişken koşullu kayıt performans karşılaştırması olarak kullanılmadı. Efekt açık/kapalı aynı rota ölçümü, uzun tarayıcı kabulü ve insan sürüş hissi değerlendirmesi açık. M1/M2 tamamlandı sayılmadı.

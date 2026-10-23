@@ -22,7 +22,7 @@ export class DrivingObservation {
     this.resetVehicle = privateReset;
     this.context = { userAgent: navigator.userAgent, platform: navigator.platform,
       renderer: engine.getGlInfo(), resolution: [engine.getRenderWidth(), engine.getRenderHeight()],
-      pixelRatio: window.devicePixelRatio, quality: 'WebGL, 2048 PCF shadows, native canvas size, no particles' };
+      pixelRatio: window.devicePixelRatio, quality: 'WebGL, 2048 PCF shadows, native canvas size, track dust checkbox setting' };
     this.panel.id = 'drive-observation';
     this.panel.style.cssText = 'position:absolute;right:12px;top:12px;width:340px;max-height:50vh;overflow:auto;background:#202823ed;padding:12px;font-size:11px;color:#eee';
     this.button.textContent = '10 dakika gözlemi başlat';

@@ -1,4 +1,5 @@
 import './mapPreview.css';
+import { MovementEffects } from './game/effects/MovementEffects.ts';
 import { Color3, Color4, DirectionalLight, Engine, HemisphericLight,
   HavokPlugin, MeshBuilder, Scene, ShadowGenerator, StandardMaterial, Vector3 } from '@babylonjs/core';
 import HavokPhysics from '@babylonjs/havok';
@@ -49,6 +50,7 @@ const clock = new FixedStep();
 const input = new DriveInput();
 let vehicle: TankVehicle | undefined;
 let visual: TankVisual | undefined;
+let movementEffects: MovementEffects | undefined;
 let observation: DrivingObservation | undefined;
 let turret: TurretController | undefined;
 const aim = new AimSystem(scene, followCamera, document.querySelector<HTMLElement>('#aim-bore')!, document.querySelector<HTMLElement>('#aim-status')!);
@@ -58,11 +60,11 @@ let paused = document.hidden;
 const keys = bindDriveKeys(window, () => reset());
 const telemetry = document.querySelector<HTMLElement>('#telemetry')!;
 function reset() {
-  keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); turret?.reset(); aim.reset(); followCamera.follow();
+  keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); movementEffects?.reset(); turret?.reset(); aim.reset(); followCamera.follow();
   lastTime = performance.now();
 }
 const visibility = () => {
-  paused = document.hidden; keys.clear(); input.reset(); clock.reset(); lastTime = performance.now();
+  paused = document.hidden; movementEffects?.reset(); keys.clear(); input.reset(); clock.reset(); lastTime = performance.now();
 };
 const blur = () => { keys.clear(); input.reset(); };
 document.addEventListener('visibilitychange', visibility);
@@ -86,6 +88,9 @@ const overview = () => followCamera.overview();
 const spawn = () => reset();
 document.querySelector('#overview')!.addEventListener('click', overview);
 document.querySelector('#spawn')!.addEventListener('click', spawn);
+const dustToggle = document.querySelector<HTMLInputElement>('#dust-enabled')!;
+const toggleDust = () => { if (movementEffects) { movementEffects.enabled = dustToggle.checked; movementEffects.reset(); } };
+dustToggle.addEventListener('change', toggleDust);
 const resize = () => engine.resize();
 window.addEventListener('resize', resize);
 let disposed = false;
@@ -108,6 +113,8 @@ async function start() {
   const rig = extractTankRig(tank);
   vehicle = new TankVehicle(scene, rig, ground.spawn);
   visual = new TankVisual(tank, rig);
+  movementEffects = new MovementEffects(scene, vehicle);
+  movementEffects.enabled = dustToggle.checked;
   turret = new TurretController(tank, vehicle.definition);
   followCamera.follow();
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('driveTest')) observation = new DrivingObservation(engine, reset);
@@ -122,6 +129,7 @@ async function start() {
     const alpha = clock.advance(dt, step => {
       const command = input.resolve(observation?.keys() ?? keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
       vehicle!.beforeStep(step, command);
+      movementEffects!.fixedUpdate(vehicle!, step);
       scene.getPhysicsEngine()!._step(step);
       vehicle!.afterStep();
       observation?.step();
@@ -131,6 +139,7 @@ async function start() {
       turret!.fixedUpdate(aim.target, step);
     });
     visual.render(vehicle, alpha);
+    movementEffects!.render(alpha);
     turret!.render(alpha);
     followCamera.update(vehicle, tank.anchor.position, Math.min(dt, 0.1));
     hudElapsed += dt;
@@ -156,11 +165,13 @@ function dispose() {
   window.removeEventListener('resize', resize);
   document.querySelector('#overview')?.removeEventListener('click', overview);
   document.querySelector('#spawn')?.removeEventListener('click', spawn);
+  dustToggle.removeEventListener('change', toggleDust);
   shadows.dispose();
   keys.dispose();
   document.removeEventListener('visibilitychange', visibility);
   window.removeEventListener('blur', blur);
   observation?.dispose();
+  movementEffects?.dispose();
   aim.dispose(); turret?.dispose(); visual?.dispose(); vehicle?.dispose(); followCamera.dispose();
   tank?.dispose();
   ground?.dispose();
