@@ -136,3 +136,9 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Önceki kayıtla ilişki:** M3.1'in dürbün görünümü, varsayılan kamera-taret takibi, 900 m/s / 6,5 s ayarları ve AP/delme/sekme seçimi tarihsel prototipi anlatır. Yeni tasarımda mühimmat/hasar kararı olarak kullanılmaz; kod henüz değiştirilmedi.
 - **Uygulama yorumları / açık ayarlar:** Bırakınca yerel taret ve namlu açılarını tutma; kamera ofseti, hassasiyet, mermi hızı/düşüşü ve görsel/ses dengesi prototipte doğrulanacak.
 - **Plan:** [Kamera, nişan ve atış yenileme](AIM_AND_FIRE_REWORK.md). Bu görev yalnız belgedir; M1/M2/M3 kabul durumu değişmedi.
+
+## 2026-10-24 — MG02 oyun kontrolleri
+
+- **Kullanıcı kararı:** 2 makineli tüfek POV; sol tık ateş; 1 normal tank moduna dönüş. Önceki tercih: POV sırasında sürüş ve öne sınırlı yönlendirme.
+- **Uygulama tercihi:** Basılı sol tuşla seri ateş; MG02 mevcut kuleye bağlı, ±60° yatay ve −10°…+45° yükseliş. 600 atım/dakika, 320 m/s, 600 m menzil, her mermide kısa tracer ilk deneme ayarlarıdır.
+- **Açık:** Son ateş hızı, kalibre, hasar, ısınma, mühimmat sınırı ve iz sıklığı; bu teslimde stok/hasar uygulanmadı.

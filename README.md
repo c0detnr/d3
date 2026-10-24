@@ -75,3 +75,9 @@ Merkez artısı hedef yönünü, halka namlunun gerçek doğrultusunu gösterir.
 Sol tık tek 120 mm AP mermisi ateşler; 6,5 saniyelik dolum süresi HUD'da görünür. Mermi gerçek namlu ağzından çıkar, yerçekimiyle düşer ve her sabit adımda önceki→yeni konum arasında ışın sorgusu yaptığı için ince hedefleri atlamaz. Patikadaki üç sabit zırhlı hedefte gövde/kule ve ön/yan/üst yüzey kalınlıkları ayrıdır; sonuç mesafe ve geliş açısına göre `DELDİ`, `SEKTİ`, `DELMEDİ` veya `ENGEL` olarak raporlanır. 70° üzeri geliş açısı sekmedir. Mermi başına fizik gövdesi yoktur; hasar, modül hasarı ve hedef yıkılması bu adımda yoktur. Namlu alevi, tracer, isabet kıvılcımı ve duman görsel-only'dir; savaş sesi eklenmedi.
 
 `npm run turret:test` gerçek GLB üzerinde dönüş/yükseliş, hedef takibi, eğimli gövde, interpolasyon, kare hızından bağımsızlık ve kaynak temizliğini kontrol eder. `npm run combat:test` dolum/geri tepme, balistik düşüş, tünelleme yokluğu, açı/mesafe delmesi, sekme ve hedef bölgelerini doğrular. Nişancı görüşü ve görsel efektlerin tarayıcı kabulü ile performans ölçümü açık; M1/M2 son kabulü sürüyor.
+
+## Makineli tüfek (MG 02)
+
+**2**: tüfek POV kamerası, **fare**: nişan, **sol tuş basılı**: seri ateş, **1**: normal tank moduna dönüş. WASD ile sürüş POV sırasında devam eder. MG 02 kuleye bağlıdır; kuleye göre yatay ±60°, yükseliş −10°…+45° ile sınırlıdır. Namlu halkası gerçek namlu doğrultusunu ve yakın engeli gösterir. Mod değişimi, Esc, odak kaybı ve sıfırlama ateşi keser.
+
+`npm run mg:test`: gerçek GLB montajı/eksenleri, kamera/geri tepme ayrımı, açı sınırları, 30/60/120 FPS seri ateş eşitliği, yakın engel ve kaynak temizliği. Deneme ayarları 600 atım/dakika, 320 m/s; kısa tracer, küçük namlu alevi ve prosedürel ateş sesi vardır. Hasar, mühimmat sınırı ve ısınma uygulanmadı. [Oyun içi POV](docs/previews/machine-gun-pov.png).

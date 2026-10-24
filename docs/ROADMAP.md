@@ -140,3 +140,7 @@ Sağ tuşla yakın kamera gerçek namlu yönüne en kısa açıdan yumuşak dön
 ### 2026-10-24 — Gövde ve namlu geri tepmesi düzeltmesi
 
 Namlu, termal kılıf, siyah namlu ucu ve namlu ağzı referansı birlikte geri çekilir. Atış darbesi 16000 N·s ile namlu yükseliş pivotundan uygulanır; mevcut fiziksel süspansiyon öne/arkaya veya yana salınımı sönümler. `node --experimental-strip-types scripts/check-cannon-recoil.ts` gerçek GLB/Havok ile üç namlu yönü, parça bağlılığı, sıfırlama, darbe yönü, süspansiyon salınımı, üç saniyede durulma ve 30/60/120 FPS eşitliğini kontrol eder. M1/M2/M3 son kabulü açık kalır.
+
+### 2026-10-24 — MG02 oyun entegrasyonu kanıtı
+
+MG02 gerçek GLB ile kuleye monte edildi. 2/1 POV/tank seçimi, sınırlı fare nişanı, sürerken sol tuşla otomatik atış, tracer/namlu alevi/ses ve kaynak temizliği uygulandı. `npm run mg:test`, taret/giriş kontrolleri ve `npm run map:build` geçti. Derlenmiş Chromium'da POV, seri ateş sayacı, sürüş ve tank moduna dönüş görüldü; sayfa hatası yok. Hasar/ısınma/mühimmat stokları açık, genel M1/M2/M3 kabulü tamamlanmış sayılmaz.

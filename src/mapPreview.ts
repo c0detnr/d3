@@ -1,4 +1,6 @@
 import './mapPreview.css';
+import { MachineGun, MG } from './game/combat/MachineGun.ts';
+import mgUrl from '../assets/weapons/iron_dust_mg_02/iron_dust_mg_02.glb?url';
 import { MovementEffects } from './game/effects/MovementEffects.ts';
 import { Color3, DirectionalLight, Engine, HemisphericLight,
   HavokPlugin, Scene, ShadowGenerator, Vector3 } from '@babylonjs/core';
@@ -47,6 +49,9 @@ let movementEffects: MovementEffects | undefined;
 let observation: DrivingObservation | undefined;
 let turret: TurretController | undefined;
 let weapon: WeaponSystem | undefined;
+let machineGun: MachineGun | undefined;
+let mgProjectiles: ProjectileSystem | undefined;
+let mgMode = false;
 let projectiles: ProjectileSystem | undefined;
 let combatRange: ArmorRange | undefined;
 let combatEffects: CombatEffects | undefined;
@@ -54,9 +59,25 @@ let lastCombatResult = '';
 let combatResultTime = 0;
 const aim = new AimSystem(scene, followCamera, document.querySelector<HTMLElement>('#aim-bore')!,
   document.querySelector<HTMLElement>('#aim-status')!);
-const combatInput = new CombatInput(canvas, () => !!weapon?.ready && !followCamera.isOverview && !paused,
+const combatInput = new CombatInput(canvas, () => (mgMode || !!weapon?.ready) && !followCamera.isOverview && !paused,
   () => !!vehicle && !followCamera.isOverview && !paused,
-  (x, y) => followCamera.look(x, y), () => { followCamera.aiming = false; });
+  (x, y) => { if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); }, () => { followCamera.aiming = false; });
+function selectWeapon(useMG: boolean) {
+  if (!machineGun || !vehicle) return;
+  combatInput.clear();
+  if (followCamera.isOverview || !useMG) followCamera.follow();
+  mgMode = useMG;
+  scene.activeCamera = useMG ? machineGun.camera : followCamera.camera;
+  if (useMG) machineGun.updateCamera();
+  updateCombatHud();
+}
+const weaponKey = (event: KeyboardEvent) => {
+  if (event.repeat || (event.target as HTMLElement)?.closest?.('input, textarea, select, button, [contenteditable="true"]')) return;
+  if (event.code === 'Digit1' || event.code === 'Digit2' || event.code === 'Numpad1' || event.code === 'Numpad2') {
+    event.preventDefault(); selectWeapon(event.code.endsWith('2'));
+  }
+};
+window.addEventListener('keydown', weaponKey);
 let lastTime = performance.now();
 let paused = document.hidden;
 const keys = bindDriveKeys(window, () => reset());
@@ -66,17 +87,18 @@ const rangeReadout = document.querySelector<HTMLElement>('#range-readout')!;
 const hitResult = document.querySelector<HTMLElement>('#hit-result')!;
 function updateCombatHud() {
   if (!weapon) return;
-  ammoState.textContent = weapon.ready
+  ammoState.textContent = mgMode ? `MAKİNELİ TÜFEK · ${machineGun?.shotsFired ?? 0} ATIM` : weapon.ready
     ? `SİLAH HAZIR · ${IRON_DUST_01_WEAPON.ammo.label}`
     : `DOLUM · ${weapon.reloadRemaining.toFixed(1)} s`;
   rangeReadout.textContent = `${aim.rangeMeters.toFixed(0)} m`;
   hitResult.textContent = lastCombatResult;
   hitResult.className = '';
-  document.querySelector<HTMLProgressElement>('#reload-progress')!.value = weapon.reloadFraction;
+  document.querySelector<HTMLProgressElement>('#reload-progress')!.value = mgMode ? 1 : weapon.reloadFraction;
 }
 function reset() {
   keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); movementEffects?.reset();
   vehicleAudio?.reset(); combatAudio?.reset(); turret?.reset(); weapon?.reset(); projectiles?.reset(); combatEffects?.reset();
+  machineGun?.reset(); mgProjectiles?.reset(); selectWeapon(false);
   combatInput.clear(); lastCombatResult = ''; combatResultTime = 0;
   aim.reset(); followCamera.follow();
   lastTime = performance.now();
@@ -105,7 +127,7 @@ shadows.bias = 0.001;
 shadows.normalBias = 0.04;
 shadows.setDarkness(0.25);
 
-const overview = () => { combatInput.clear(); followCamera.overview(); };
+const overview = () => { selectWeapon(false); combatInput.clear(); followCamera.overview(); };
 const spawn = () => reset();
 document.querySelector('#overview')!.addEventListener('click', overview);
 document.querySelector('#spawn')!.addEventListener('click', spawn);
@@ -188,6 +210,14 @@ async function start() {
   movementEffects.enabled = dustToggle.checked;
   turret = new TurretController(tank, vehicle.definition);
   weapon = new WeaponSystem(turret, IRON_DUST_01_WEAPON);
+  machineGun = await MachineGun.load(scene, mgUrl, turret.yawPivot);
+  if (disposed) { machineGun.dispose(); return; }
+  machineGun.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
+  mgProjectiles = new ProjectileSystem(scene, (from, to) => {
+    const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body });
+    return hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
+  }, 40, { gravity: -9.81, maxRange: 600, maxAge: 3, trailSeconds: 0.015, trailLength: 2.2, diameter: 0.035 });
+  scene.activeCamera = followCamera.camera;
   combatRange = new ArmorRange(scene, ground.spawn);
   combatRange.targets.forEach(target => target.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh)));
   combatEffects = new CombatEffects(scene);
@@ -222,8 +252,8 @@ async function start() {
     scene.imageProcessingConfiguration.exposure = 1 + stormFlash * 0.32;
     ambient.intensity = 0.6 + stormFlash * 0.4;
     sun.intensity = 1.05 + stormFlash * 0.25;
-    followCamera.aiming = combatInput.aiming;
-    aim.acquire(vehicle);
+    followCamera.aiming = !mgMode && combatInput.aiming;
+    if (!mgMode) aim.acquire(vehicle);
     const alpha = clock.advance(dt, step => {
       const command = input.resolve(observation?.keys() ?? keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
       vehicle!.beforeStep(step, command);
@@ -234,11 +264,11 @@ async function start() {
       visual!.fixedUpdate(vehicle!, step);
       // Joint calculations use the current physics pose; render interpolation follows below.
       visual!.syncHull(vehicle!, 1);
-      turret!.fixedUpdate(combatInput.aiming ? aim.target : null, step);
+      turret!.fixedUpdate(!mgMode && combatInput.aiming ? aim.target : null, step);
       const wasReady = weapon!.ready;
       weapon!.fixedUpdate(step);
       if (!wasReady && weapon!.ready && !audio.muted) combatAudio?.reload();
-      if (combatInput.consumeFire()) {
+      if (combatInput.consumeFire() && !mgMode) {
         const shot = weapon!.fire();
         if (shot) {
           projectiles!.spawn(shot.origin, shot.direction, IRON_DUST_01_WEAPON.ammo.muzzleVelocity);
@@ -251,6 +281,16 @@ async function start() {
           lastCombatResult = 'DOLUM SÜRÜYOR'; combatResultTime = 1;
         }
       }
+      machineGun!.fixedUpdate(step, mgMode && !followCamera.isOverview && combatInput.fireHeld, (origin, direction) => {
+        mgProjectiles!.spawn(origin, direction, MG.speed);
+        combatEffects!.machineGunFlash(origin, direction);
+        if (!audio.muted) combatAudio?.machineGunShot();
+        lastCombatResult = 'MG · ATEŞ'; combatResultTime = 0.4;
+      });
+      mgProjectiles!.fixedUpdate(step, hit => {
+        combatEffects!.impact(hit.point, hit.normal, impactSurface(hit.body));
+        lastCombatResult = 'MG · İSABET'; combatResultTime = 0.4;
+      });
       projectiles!.fixedUpdate(step, (hit) => {
         const surface = impactSurface(hit.body);
         combatEffects!.impact(hit.point, hit.normal, surface);
@@ -266,8 +306,10 @@ async function start() {
     movementEffects!.render(alpha);
     turret!.render(alpha);
     projectiles!.render(alpha);
+    mgProjectiles!.render(alpha);
     combatEffects!.render(alpha);
     followCamera.update(vehicle, tank.anchor.position, Math.min(dt, 0.1), turret);
+    if (mgMode) machineGun!.updateCamera();
     hudElapsed += dt;
     combatResultTime = Math.max(0, combatResultTime - dt);
     if (combatResultTime === 0 && lastCombatResult) lastCombatResult = '';
@@ -282,7 +324,7 @@ async function start() {
       vehicleAudio.update(audioSnapshot, dt);
     }
     scene.render();
-    aim.render(vehicle, turret!);
+    aim.render(vehicle, mgMode ? machineGun! : turret!);
     observation?.frame(dt, vehicle);
   });
 }
@@ -297,6 +339,7 @@ function dispose() {
   window.removeEventListener('pagehide', dispose);
   engine.stopRenderLoop();
   window.removeEventListener('resize', resize);
+  window.removeEventListener('keydown', weaponKey);
   document.querySelector('#overview')?.removeEventListener('click', overview);
   document.querySelector('#spawn')?.removeEventListener('click', spawn);
   dustToggle.removeEventListener('change', toggleDust);
@@ -315,6 +358,7 @@ function dispose() {
   combatAudio?.dispose(); vehicleAudio?.dispose();
   audio.dispose();
   aim.dispose(); turret?.dispose(); visual?.dispose(); vehicle?.dispose(); followCamera.dispose();
+  mgProjectiles?.dispose(); machineGun?.dispose();
   tank?.dispose();
   ground?.dispose();
   sky.dispose();

@@ -37,6 +37,7 @@ export class CombatAudio {
     this.tone(95, 0.45, 0.5, false);
     this.tone(800, 0.12, 0.13, true);
   }
+  machineGunShot() { this.tone(2400, 0.065, 0.24, true); this.tone(160, 0.07, 0.12, false); }
   reload() { this.tone(1300, 0.14, 0.16, true); this.tone(430, 0.1, 0.08, false); }
   impact(surface: ImpactSurface, distance: number, pan: number) {
     const feedback = IMPACT_FEEDBACK[surface];

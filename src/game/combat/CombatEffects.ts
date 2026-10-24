@@ -58,6 +58,9 @@ export class CombatEffects {
     this.cursor = (this.cursor + 1) % CAPACITY;
     this.particles[index] = particle;
   }
+  machineGunFlash(origin: Vector3, direction: Vector3) {
+    this.spawn(origin, direction.scale(2), 0.035, 0.14, new Color4(1, 0.75, 0.3, 0.9));
+  }
   muzzleFlash(origin: Vector3, direction: Vector3) {
     const forward = direction.normalizeToNew();
     for (let i = 0; i < 4; i++) {

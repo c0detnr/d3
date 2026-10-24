@@ -2,7 +2,7 @@
 
 Tarih: 2026-10-24
 
-Durum: **Blender varlığı MG 02 olarak sıfırdan teslim edildi; oyun uygulaması ayrı görev.**
+Durum: **MG 02 Blender teslimi ve oyun entegrasyonu tamamlandı; hasar/ısınma/mühimmat sınırı kapsam dışı.**
 
 2026-10-24 kullanıcı talimatı önceki taslağı düzenleme/korunacak parçaları kullanma önerisinin yerine geçer: mevcut makineli dosyası değiştirilmedi. [Yeni Blender teslimi ve kanıtlar](../assets/weapons/iron_dust_mg_02/README.md).
 
@@ -135,3 +135,9 @@ Blender teslimi hazır. Sonraki ayrı görev oyun entegrasyonudur; ikinci silah 
 ## 2026-10-24 — Sıfırdan Blender teslimi
 
 `iron_dust_mg_02` ayrı kaynak/GLB olarak üretildi. 2.396 üçgen, 10 mesh, 6 materyal ve 17 düğüm. Temiz GLB yeniden aktarımı, kaynak/ithal hareket grupları ve geri tepmeden bağımsız kamera doğrulandı. 897 örnek duruşta tankla yüzey kesişmesi yok; dört montaj noktası tavana oturur. Ön/yan/üç çeyrek/detay, tank üzerinde ve POV sınır renderları hazır. Eski MG 01 ile tank klasörlerindeki 19 dosyanın SHA-256 değerleri değişmedi. Yukarıdaki kontrol listesi ilk planın tarihsel tarifidir; güncel tamamlanan kontroller ve açık kapak/oyun kontrolleri [teslim kaydında](../assets/weapons/iron_dust_mg_02/README.md).
+
+## 2026-10-24 — Oyun entegrasyonu
+
+Kullanıcı talimatıyla **2** MG POV, **1** normal tank modunu seçer; sol tuş basılıyken seri ateş, fareyle sınırlı yönlendirme, POV sırasında WASD sürüş uygulanır. MG02 GLB kuleye (glTF yerel 0.5, 0.94, 0.85 m) bağlanır. Kamera gerçek MGCameraPoint, atış gerçek MGMuzzlePoint kullanır. Kısa tracer, yerçekimli süpürülmüş mermi, yüzey isabeti, küçük namlu alevi ve prosedürel ateş sesi eklendi. Yakın paralaks gerçek namlu doğrultusu halkasıyla gösterilir; otomatik isabet tahmini yoktur.
+
+±60° / −10°…+45°, 10 atım/s ve 320 m/s uygulama prototip ayarlarıdır. Mod değişimi/odak kaybı/Esc ateşi temizler; ayrı mermi havuzu 40 ile sınırlıdır. `npm run mg:test` ve derlenmiş Chromium POV/sürüş/seri ateş/geri dönüş kontrolleri geçti. Hasar, ısınma ve mühimmat stok sistemi eklenmedi; M1/M2/M3 genel kabulü değişmedi.

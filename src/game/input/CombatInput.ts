@@ -1,6 +1,7 @@
 /** One pointer owner, including chorded mouse buttons (reported through pointermove). */
 export class CombatInput {
   aiming = false;
+  get fireHeld() { return this.left && this.canAim(); }
   private left = false;
   private pending = false;
   private pointerId: number | undefined;

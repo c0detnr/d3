@@ -22,7 +22,8 @@
     "effects:test": "node --experimental-strip-types scripts/check-movement-effects.ts",
     "audio:test": "node --experimental-strip-types scripts/check-audio.ts",
     "drive:test": "node --experimental-strip-types scripts/check-driving.ts",
-    "combat:test": "node --experimental-strip-types scripts/check-combat.ts && node --experimental-strip-types scripts/check-combat-input.ts"
+    "combat:test": "node --experimental-strip-types scripts/check-combat.ts && node --experimental-strip-types scripts/check-combat-input.ts",
+    "mg:test": "node --experimental-strip-types scripts/check-machine-gun.ts && node --experimental-strip-types scripts/check-machine-gun-input.ts"
   },
   "dependencies": {
     "@babylonjs/core": "9.32.0",

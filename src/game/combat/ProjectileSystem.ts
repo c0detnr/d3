@@ -2,6 +2,8 @@ import { Color3, MeshBuilder, Quaternion, StandardMaterial, Vector3, type Mesh, 
 
 import { TRAINING_BALLISTICS } from './WeaponDefinition.ts';
 
+type Ballistics = { readonly gravity: number; readonly maxRange: number; readonly maxAge: number; readonly trailLength: number; readonly trailSeconds: number; readonly diameter: number };
+
 export interface ProjectileHit {
   point: Vector3;
   normal: Vector3;
@@ -26,10 +28,12 @@ export class ProjectileSystem {
   readonly scene: Scene;
   readonly raycast: ProjectileRaycast;
   readonly capacity: number;
+  readonly ballistics: Ballistics;
   readonly projectiles: ProjectileState[] = [];
   private readonly tracers: Mesh[];
   private readonly material: StandardMaterial;
-  constructor(scene: Scene, raycast: ProjectileRaycast, capacity = 8) {
+  constructor(scene: Scene, raycast: ProjectileRaycast, capacity = 8, ballistics: Ballistics = TRAINING_BALLISTICS) {
+    this.ballistics = ballistics;
     this.scene = scene;
     this.raycast = raycast;
     this.capacity = capacity;
@@ -38,7 +42,7 @@ export class ProjectileSystem {
     this.material.emissiveColor = new Color3(1, 0.72, 0.28);
     this.tracers = Array.from({ length: capacity }, (_, index) => {
       const tracer = MeshBuilder.CreateCylinder(`projectile-tracer-${index}`,
-        { height: 1, diameter: TRAINING_BALLISTICS.diameter, tessellation: 6 }, scene);
+        { height: 1, diameter: this.ballistics.diameter, tessellation: 6 }, scene);
       tracer.material = this.material;
       tracer.rotationQuaternion = Quaternion.Identity();
       tracer.isPickable = false;
@@ -69,8 +73,8 @@ export class ProjectileSystem {
       if (!projectile.alive) continue;
       projectile.previous.copyFrom(projectile.position);
       projectile.age += dt;
-      projectile.velocity.y += TRAINING_BALLISTICS.gravity * dt;
-      const distance = Math.min(projectile.velocity.length() * dt, TRAINING_BALLISTICS.maxRange - projectile.traveled);
+      projectile.velocity.y += this.ballistics.gravity * dt;
+      const distance = Math.min(projectile.velocity.length() * dt, this.ballistics.maxRange - projectile.traveled);
       const to = projectile.position.add(projectile.velocity.normalizeToNew().scale(distance));
       const hit = this.raycast(projectile.position, to);
       if (hit) {
@@ -82,7 +86,7 @@ export class ProjectileSystem {
       }
       projectile.position.copyFrom(to);
       projectile.traveled += projectile.position.subtract(projectile.previous).length();
-      if (projectile.traveled >= TRAINING_BALLISTICS.maxRange || projectile.age >= TRAINING_BALLISTICS.maxAge || projectile.position.y < -60) projectile.alive = false;
+      if (projectile.traveled >= this.ballistics.maxRange || projectile.age >= this.ballistics.maxAge || projectile.position.y < -60) projectile.alive = false;
     }
   }
   render(alpha: number) {
@@ -92,7 +96,7 @@ export class ProjectileSystem {
       if (!projectile.alive) return;
       Vector3.LerpToRef(projectile.previous, projectile.position, alpha, tracer.position);
       const direction = projectile.velocity.normalizeToNew();
-      const length = Math.min(TRAINING_BALLISTICS.trailLength, projectile.velocity.length() * TRAINING_BALLISTICS.trailSeconds, projectile.traveled);
+      const length = Math.min(this.ballistics.trailLength, projectile.velocity.length() * this.ballistics.trailSeconds, projectile.traveled);
       tracer.scaling.y = length;
       tracer.position.subtractInPlace(direction.scale(length / 2));
       Quaternion.FromUnitVectorsToRef(Vector3.Up(), direction, tracer.rotationQuaternion!);

@@ -25,7 +25,7 @@ export class AimSystem {
     this.target.copyFrom(hit.hasHit ? hit.hitPointWorld : ray.origin.add(ray.direction.scale(800)));
     this.rangeMeters = hit.hasHit ? hit.hitDistance : 800;
   }
-  render(vehicle: TankVehicle, turret: TurretController) {
+  render(vehicle: TankVehicle, turret: Pick<TurretController, 'getMuzzleRay' | 'limited'>) {
     const hidden = this.camera.isOverview;
     document.querySelector<HTMLElement>('#aim-intent')!.hidden = hidden || !this.camera.aiming;
     this.label.hidden = hidden;
