@@ -1,3 +1,4 @@
+import { TouchControls } from './game/input/TouchControls.ts';
 import './mapPreview.css';
 import { MachineGun, MG } from './game/combat/MachineGun.ts';
 import mgUrl from '../assets/weapons/iron_dust_mg_02/iron_dust_mg_02.glb?url';
@@ -34,7 +35,10 @@ import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#map')!;
 const status = document.querySelector<HTMLElement>('#status')!;
-const engine = new Engine(canvas, true);
+const mobile = matchMedia('(pointer: coarse)').matches;
+const engine = new Engine(canvas, !mobile);
+const scaleMobile = () => { if (mobile) engine.setHardwareScalingLevel(Math.max(1, innerWidth / 1280, innerHeight / 720)); };
+scaleMobile();
 const scene = new Scene(engine);
 scene.imageProcessingConfiguration.exposure = 1;
 scene.imageProcessingConfiguration.contrast = 1.15;
@@ -81,12 +85,20 @@ window.addEventListener('keydown', weaponKey);
 let lastTime = performance.now();
 let paused = document.hidden;
 const keys = bindDriveKeys(window, () => reset());
-const telemetry = document.querySelector<HTMLElement>('#telemetry')!;
+const touch = new TouchControls(document.querySelector<HTMLElement>('#touch-controls')!, canvas, {
+  look: (x, y) => { if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); },
+  fireReady: () => !!vehicle && !paused && (mgMode || !!weapon?.ready),
+  weapon: () => selectWeapon(!mgMode), reset: () => reset(),
+  sound: () => { soundEnabled = !soundEnabled;
+    document.querySelector('[data-action="sound"]')!.setAttribute('aria-pressed', String(!soundEnabled));
+    void toggleSound(); },
+});
 const ammoState = document.querySelector<HTMLElement>('#ammo-state')!;
 const rangeReadout = document.querySelector<HTMLElement>('#range-readout')!;
 const hitResult = document.querySelector<HTMLElement>('#hit-result')!;
 function updateCombatHud() {
   if (!weapon) return;
+  touch.update(weapon.ready, mgMode);
   ammoState.textContent = mgMode ? `MAKİNELİ TÜFEK · ${machineGun?.shotsFired ?? 0} ATIM` : weapon.ready
     ? `SİLAH HAZIR · ${IRON_DUST_01_WEAPON.ammo.label}`
     : `DOLUM · ${weapon.reloadRemaining.toFixed(1)} s`;
@@ -96,7 +108,7 @@ function updateCombatHud() {
   document.querySelector<HTMLProgressElement>('#reload-progress')!.value = mgMode ? 1 : weapon.reloadFraction;
 }
 function reset() {
-  keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); movementEffects?.reset();
+  touch.clear(); keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); movementEffects?.reset();
   vehicleAudio?.reset(); combatAudio?.reset(); turret?.reset(); weapon?.reset(); projectiles?.reset(); combatEffects?.reset();
   machineGun?.reset(); mgProjectiles?.reset(); selectWeapon(false);
   combatInput.clear(); lastCombatResult = ''; combatResultTime = 0;
@@ -107,7 +119,7 @@ const visibility = () => {
   paused = document.hidden; movementEffects?.reset(); keys.clear(); input.reset(); clock.reset(); lastTime = performance.now();
   combatInput.clear();
   if (document.hidden) { combatAudio?.reset(); void audio.suspend(); }
-  else if (soundToggle.checked) void audio.resume();
+  else if (soundEnabled) void audio.resume();
 };
 const blur = () => { keys.clear(); input.reset(); combatInput.clear(); combatAudio?.reset(); };
 document.addEventListener('visibilitychange', visibility);
@@ -121,30 +133,19 @@ sun.intensity = 1.05;
 sun.diffuse = new Color3(1, 0.79, 0.56);
 sun.position.set(70, 82, -80);
 sun.autoCalcShadowZBounds = true;
-const shadows = new ShadowGenerator(2048, sun);
+const shadows = new ShadowGenerator(mobile ? 1024 : 2048, sun);
 shadows.usePercentageCloserFiltering = true;
 shadows.bias = 0.001;
 shadows.normalBias = 0.04;
 shadows.setDarkness(0.25);
 
-const overview = () => { selectWeapon(false); combatInput.clear(); followCamera.overview(); };
-const spawn = () => reset();
-document.querySelector('#overview')!.addEventListener('click', overview);
-document.querySelector('#spawn')!.addEventListener('click', spawn);
-const dustToggle = document.querySelector<HTMLInputElement>('#dust-enabled')!;
-const soundToggle = document.querySelector<HTMLInputElement>('#sound-enabled')!;
-const soundVolume = document.querySelector<HTMLInputElement>('#sound-volume')!;
-const audioStatus = document.querySelector<HTMLElement>('#audio-status')!;
-const audio = new AudioSystem({
-  volume: Number(soundVolume.value) / 100,
-  muted: !soundToggle.checked,
-});
+// Audio defaults no longer depend on the removed developer panel.
+let soundEnabled = true;
+const audio = new AudioSystem({ volume: 0.7 });
 let vehicleAudio: VehicleAudio | undefined;
 let combatAudio: CombatAudio | undefined;
 let audioSnapshot: VehicleAudioSnapshot | undefined;
 let audioUnlockStarted = false;
-const toggleDust = () => { if (movementEffects) { movementEffects.enabled = dustToggle.checked; movementEffects.reset(); } };
-dustToggle.addEventListener('change', toggleDust);
 function ensureVehicleAudio() {
   if (vehicleAudio || !vehicle || !audio.graph || !audioSnapshot) return;
   const graph = audio.graph;
@@ -153,38 +154,31 @@ function ensureVehicleAudio() {
   vehicleAudio.reset();
 }
 async function unlockAudio() {
-  if (audioUnlockStarted || !soundToggle.checked) return;
+  if (audioUnlockStarted || !soundEnabled) return;
   audioUnlockStarted = true;
   const unlocked = await audio.unlock();
   if (!unlocked) {
     audioUnlockStarted = false;
-    audioStatus.textContent = 'Ses başlatılamadı';
     return;
   }
-  audio.setMuted(!soundToggle.checked);
+  audio.setMuted(!soundEnabled);
   ensureVehicleAudio();
-  audioStatus.textContent = audio.muted ? 'Ses: kapalı' : 'Ses: motor, palet, rüzgâr, atış';
 }
 const unlockOnGesture = () => { void unlockAudio(); };
 const toggleSound = async () => {
-  if (soundToggle.checked) {
+  if (soundEnabled) {
     if (!audio.ready) audioUnlockStarted = false;
     await unlockAudio();
     if (audio.ready) {
       audio.setMuted(false);
-      audioStatus.textContent = 'Ses: motor, palet, rüzgâr, atış';
     }
   } else {
     combatAudio?.reset(); audio.setMuted(true);
-    audioStatus.textContent = 'Ses: kapalı';
   }
 };
-const changeVolume = () => audio.setVolume(Number(soundVolume.value) / 100);
 window.addEventListener('pointerdown', unlockOnGesture);
 window.addEventListener('keydown', unlockOnGesture);
-soundToggle.addEventListener('change', toggleSound);
-soundVolume.addEventListener('input', changeVolume);
-const resize = () => engine.resize();
+const resize = () => { scaleMobile(); engine.resize(); };
 window.addEventListener('resize', resize);
 let disposed = false;
 let ground: ReturnType<typeof createTestGround> | undefined;
@@ -207,7 +201,6 @@ async function start() {
   vehicle = new TankVehicle(scene, rig, ground.spawn);
   visual = new TankVisual(tank, rig);
   movementEffects = new MovementEffects(scene, vehicle);
-  movementEffects.enabled = dustToggle.checked;
   turret = new TurretController(tank, vehicle.definition);
   weapon = new WeaponSystem(turret, IRON_DUST_01_WEAPON);
   machineGun = await MachineGun.load(scene, mgUrl, turret.yawPivot);
@@ -240,7 +233,7 @@ async function start() {
     followCamera.camera.setTarget(new Vector3(0, -12, -152));
   }
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('driveTest')) observation = new DrivingObservation(engine, reset);
-  status.textContent = '42 ton · Palet kuvvetleriyle sürüş · R ile kurtar';
+  status.hidden = true;
   lastTime = performance.now();
   let hudElapsed = 0;
   engine.runRenderLoop(() => {
@@ -252,10 +245,10 @@ async function start() {
     scene.imageProcessingConfiguration.exposure = 1 + stormFlash * 0.32;
     ambient.intensity = 0.6 + stormFlash * 0.4;
     sun.intensity = 1.05 + stormFlash * 0.25;
-    followCamera.aiming = !mgMode && combatInput.aiming;
-    if (!mgMode) aim.acquire(vehicle);
+    followCamera.aiming = !mgMode && (combatInput.aiming || touch.aiming);
+    if (!mgMode && !mobile) aim.acquire(vehicle);
     const alpha = clock.advance(dt, step => {
-      const command = input.resolve(observation?.keys() ?? keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
+      const command = input.resolve(observation?.keys() ?? Object.fromEntries(Object.entries(keys.keys).map(([key, value]) => [key, value || touch.keys[key as keyof typeof touch.keys]])) as typeof keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
       vehicle!.beforeStep(step, command);
       movementEffects!.fixedUpdate(vehicle!, step);
       scene.getPhysicsEngine()!._step(step);
@@ -264,11 +257,14 @@ async function start() {
       visual!.fixedUpdate(vehicle!, step);
       // Joint calculations use the current physics pose; render interpolation follows below.
       visual!.syncHull(vehicle!, 1);
-      turret!.fixedUpdate(!mgMode && combatInput.aiming ? aim.target : null, step);
+      if (mobile) turret!.fixedUpdateSmoothManual(followCamera.isOverview || mgMode ? 0 : touch.turn,
+        mgMode ? 0 : touch.elevation * step * 15 * Math.PI / 180, step);
+      else turret!.fixedUpdate(!mgMode && combatInput.aiming ? aim.target : null, step);
+      if (mgMode) machineGun!.look(touch.turn * step * 220, -touch.elevation * step * 160);
       const wasReady = weapon!.ready;
       weapon!.fixedUpdate(step);
       if (!wasReady && weapon!.ready && !audio.muted) combatAudio?.reload();
-      if (combatInput.consumeFire() && !mgMode) {
+      if ((combatInput.consumeFire() || touch.consumeFire()) && !mgMode) {
         const shot = weapon!.fire();
         if (shot) {
           projectiles!.spawn(shot.origin, shot.direction, IRON_DUST_01_WEAPON.ammo.muzzleVelocity);
@@ -285,7 +281,7 @@ async function start() {
           lastCombatResult = 'DOLUM SÜRÜYOR'; combatResultTime = 1;
         }
       }
-      machineGun!.fixedUpdate(step, mgMode && !followCamera.isOverview && combatInput.fireHeld, (origin, direction) => {
+      machineGun!.fixedUpdate(step, mgMode && !followCamera.isOverview && (combatInput.fireHeld || touch.fireHeld), (origin, direction) => {
         mgProjectiles!.spawn(origin, direction, MG.speed);
         combatEffects!.machineGunFlash(origin, direction);
         if (!audio.muted) combatAudio?.machineGunShot();
@@ -319,7 +315,6 @@ async function start() {
     combatResultTime = Math.max(0, combatResultTime - dt);
     if (combatResultTime === 0 && lastCombatResult) lastCombatResult = '';
     if (hudElapsed >= 0.1) {
-      telemetry.textContent = `${(vehicle.speed * 3.6).toFixed(0)} km/sa · ${vehicle.contacts.filter(c => c.grounded).length}/12 temas`;
       updateCombatHud();
       hudElapsed = 0;
     }
@@ -345,12 +340,8 @@ function dispose() {
   engine.stopRenderLoop();
   window.removeEventListener('resize', resize);
   window.removeEventListener('keydown', weaponKey);
-  document.querySelector('#overview')?.removeEventListener('click', overview);
-  document.querySelector('#spawn')?.removeEventListener('click', spawn);
-  dustToggle.removeEventListener('change', toggleDust);
+  touch.dispose();
   combatInput.dispose();
-  soundToggle.removeEventListener('change', toggleSound);
-  soundVolume.removeEventListener('input', changeVolume);
   window.removeEventListener('pointerdown', unlockOnGesture);
   window.removeEventListener('keydown', unlockOnGesture);
   shadows.dispose();

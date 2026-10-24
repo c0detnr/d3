@@ -83,3 +83,7 @@ Sol tık tek 120 mm AP mermisi ateşler; 6,5 saniyelik dolum süresi HUD'da gör
 **2**: tüfek POV kamerası, **fare**: nişan, **sol tuş basılı**: seri ateş, **1**: normal tank moduna dönüş. WASD ile sürüş POV sırasında devam eder. MG 02 kuleye bağlıdır; kuleye göre yatay ±60°, yükseliş −10°…+45° ile sınırlıdır. Namlu halkası gerçek namlu doğrultusunu ve yakın engeli gösterir. Mod değişimi, Esc, odak kaybı ve sıfırlama ateşi keser.
 
 `npm run mg:test`: gerçek GLB montajı/eksenleri, kamera/geri tepme ayrımı, açı sınırları, 30/60/120 FPS seri ateş eşitliği, yakın engel ve kaynak temizliği. Deneme ayarları 600 atım/dakika, 320 m/s; kısa tracer, küçük namlu alevi ve prosedürel ateş sesi vardır. Hasar, mühimmat sınırı ve ısınma uygulanmadı. [Oyun içi POV](docs/previews/machine-gun-pov.png).
+
+## Android APK ve dokunmatik kontrol
+
+`npm run android:build` çevrimdışı kurulabilir `artifacts/iron-dust-android.apk` üretir. Android 8+ ve güncel WebView gerekir. Sol geliştirici paneli tüm platformlarda kaldırıldı; mobilde sürüş/nişan çubukları, ateş, fren, yakınlaştırma, MG/TOP, kurtar ve ses kontrolleri vardır. `npm run touch:test` çoklu dokunma ve girdi temizliğini kontrol eder. [Kurulum, kontroller ve derleme](docs/ANDROID.md).

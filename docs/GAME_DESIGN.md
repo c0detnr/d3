@@ -6,11 +6,11 @@ IRON DUST; War Thunder'ın mekanik derinliğini, World of Tanks'in erişilebilir
 
 | Alan | Karar |
 |---|---|
-| Platform | Masaüstü web tarayıcı |
+| Platform | Masaüstü web tarayıcı + Android APK / mobil tarayıcı |
 | Tema | Kurgusal modern tanklar |
 | Grafik | Stylized realistic low-poly / Industrial Low Poly |
 | Kamera | Önce üçüncü şahıs, savaş aşamasında nişancı görüşü |
-| Kontrol | Klavye + fare |
+| Kontrol | Masaüstü klavye + fare; mobil çoklu dokunmatik |
 | Oynanış | Erişilebilir, taktiksel ve fizik tabanlı |
 | İlk deneyim | Tek başına haritada serbest sürüş |
 

@@ -157,3 +157,11 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Açık:** Son ölçek, oyuncu sayısı, mod/yeniden doğma kuralları, varlık ölçüleri ve bütçeleri, görüş/erişim dengesi.
 - **Durum:** Gelecek çok oyunculu harita planı kaydedildi; kodlama, Blender üretimi ve ağ altyapısı başlatılmadı. Mevcut tek oyunculu MVP sırası ve açık kabul maddeleri korunur.
 - **Etkilenen belgeler:** [Harita ve Blender model planı](MAP_AND_MODEL_PLAN.md), README belge haritası; seçilen görsel `docs/previews/kul-vadisi-map-plan.png` olarak saklandı.
+
+## 2026-10-24 — Android ve dokunmatik kontrol
+
+**Kesin karar — kullanıcı isteği:** Android APK desteği eklenir; soldaki HTML geliştirici HUD'u masaüstü ve mobilde kalıcı kaldırılır. Mobil için özgün dokunmatik kontroller tasarlanır.
+
+**Uygulama kararı:** Mevcut Babylon/Havok oyununu yerel HTTPS origin üzerinde çalıştıran, varlıkları içinde taşıyan Android WebView kabuğu; yatay tam ekran, çevrimdışı kurulum ve debug imzalı ilk APK. Sürüş/fizik yeniden yazılmaz.
+
+**Açık:** Fiziksel telefon performansı, uzun sürüş/ısınma/pil kabulü ve mağaza yayını için sürüm imzası. [Android notları](ANDROID.md).

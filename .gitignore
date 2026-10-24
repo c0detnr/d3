@@ -32,3 +32,11 @@ node_modules/
 Thumbs.db
 /playwright-report/
 /test-results/
+
+# Android generated files and local installable artifacts
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/app/src/main/assets/
+/android/local.properties
+/artifacts/

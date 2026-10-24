@@ -23,7 +23,9 @@
     "audio:test": "node --experimental-strip-types scripts/check-audio.ts",
     "drive:test": "node --experimental-strip-types scripts/check-driving.ts",
     "combat:test": "node --experimental-strip-types scripts/check-combat.ts && node --experimental-strip-types scripts/check-combat-input.ts",
-    "mg:test": "node --experimental-strip-types scripts/check-machine-gun.ts && node --experimental-strip-types scripts/check-machine-gun-input.ts"
+    "mg:test": "node --experimental-strip-types scripts/check-machine-gun.ts && node --experimental-strip-types scripts/check-machine-gun-input.ts",
+    "android:build": "bash scripts/build-android.sh",
+    "touch:test": "node --experimental-strip-types scripts/check-touch-input.ts"
   },
   "dependencies": {
     "@babylonjs/core": "9.32.0",

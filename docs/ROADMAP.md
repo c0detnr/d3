@@ -153,3 +153,7 @@ Kullanıcı onayıyla hızlı geri çekilen/sekmesiz dönen namlu, yönlü gövd
 ### 2026-10-24 — Yumuşak taret ve namlu hareketi
 
 Taret için 0,08 s hız tepkisi; namlu için 0,10 s hedefe yaklaşım ve sönümlenen hız eklendi. 35°/s, 15°/s ve −8°…+20° sınırları korunur. Sabit adımda hızlanma/durma, yön değişimi, küçük açı ayarı, sıfırlama, hedefi aşmama ve 30/60/120 FPS eşitliği gerçek GLB üzerinde kontrol edildi. `turret:test`, `combat:test`, `mg:test`, `npm test` ve `map:build` geçti; mevcut büyük paket uyarısı sürüyor. Chromium headless 1280 × 720 içinde Q/E, tekerlek ve yakın kamera denendi; sayfa hatası yok. İnsan hareket hissi kabulü açık; M1/M2/M3 tamamlanmadı.
+
+## Android ve mobil ek teslim — 2026-10-24
+
+Kullanıcı isteğiyle masaüstü kapsamına Android APK ve mobil tarayıcı eklendi. Sol geliştirici paneli kaldırıldı; çoklu dokunmatik sürüş/nişan/ateş ve yardımcı kontroller uygulandı. Yerel HTTPS WebView ile çevrimdışı APK üretildi, imza doğrulandı ve Android emülatöründe açıldı. `touch:test`, çekirdek/savaş/MG kontrolleri ve web derlemesi geçti. Fiziksel telefon performansı, uzun sürüş ve insan hissi kabulü açık; M1/M2/M3 tamamlanmış sayılmaz. [Android teslimi](ANDROID.md).

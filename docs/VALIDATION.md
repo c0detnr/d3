@@ -158,3 +158,12 @@ Namlu, termal kılıf, siyah namlu ucu ve namlu ağzı referansı birlikte geri 
 ### 2026-10-24 — Yumuşak taret ve namlu hareketi
 
 Taret için 0,08 s hız tepkisi; namlu için 0,10 s hedefe yaklaşım ve sönümlenen hız eklendi. 35°/s, 15°/s ve −8°…+20° sınırları korunur. Sabit adımda hızlanma/durma, yön değişimi, küçük açı ayarı, sıfırlama, hedefi aşmama ve 30/60/120 FPS eşitliği gerçek GLB üzerinde kontrol edildi. `turret:test`, `combat:test`, `mg:test`, `npm test` ve `map:build` geçti; mevcut büyük paket uyarısı sürüyor. Chromium headless 1280 × 720 içinde Q/E, tekerlek ve yakın kamera denendi; sayfa hatası yok. İnsan hareket hissi kabulü açık; M1/M2/M3 tamamlanmadı.
+
+## 2026-10-24 — Android ve dokunmatik kontrol
+
+- `touch:test`: eşzamanlı sürüş/nişan/ateş, pointer sahipliği, bırakma/cancel/capture kaybı, dolum sırasında atış kuyruğu reddi, blur/gizli sekme, kamera ve dispose geçti.
+- `npm test`, `combat:test`, `mg:test`, `map:check`, `map:build` geçti. Vite büyük paket uyarısı sürüyor.
+- Chromium headless / Linux / SwiftShader, mobil 915×412 DPR 1: sahne, iki çubuk ve aynı anda top ateşi/dolum, bırakınca sıfırlama, MG geçişi görüldü; pageerror yok. Masaüstü 1280×720: sol panel yok, dokunmatik arayüz gizli. [Görsel](previews/android-touch-controls.png).
+- Android API 37.2 x86_64 Pixel 6 emülatörü / SwiftShader / WebView, yatay 2400×1080 fiziksel, 914×411 CSS: imzalı APK kuruldu, paket içinden GLB/Havok sahnesi açıldı ve WebGL2 doğrulandı. Fiziksel telefon bağlı değildi. Emülatör kaydı bir FPS veya performans kabulü değildir.
+- İlk Gradle bin indirmesi zaman aşımı verdi; aynı sürümün yerelde bulunan all dağıtımıyla build tamamlandı. İlk WebView otomasyonunda Playwright tap bağlamı dokunmatik değildi; gerçek CDP touch olaylarına geçildi.
+- Gerçek telefon ısınma/pil/FPS ve uzun kullanım testi açık. Debug imza yerel kurulum içindir.
