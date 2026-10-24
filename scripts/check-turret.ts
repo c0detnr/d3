@@ -27,7 +27,7 @@ try {
     assert.ok(hull.getWorldMatrix().equals(hullBefore), 'joints do not rotate the hull');
     turret.reset();
     turret.fixedUpdate(new Vector3(100, 2, 0), 1 / 60);
-    near(Math.abs(turret.angles.yaw), IRON_DUST_01.turretYawSpeed / 60);
+    assert.ok(Math.abs(turret.angles.yaw) > 0 && Math.abs(turret.angles.yaw) < IRON_DUST_01.turretYawSpeed / 60, 'yaw starts smoothly');
     assert.ok(Math.abs(turret.angles.elevation) <= IRON_DUST_01.gunPitchSpeed / 60 + 1e-9);
     advance(new Vector3(0, 1000, 100), 12);
     near(turret.angles.elevation, IRON_DUST_01.gunMaxElevation);
@@ -71,6 +71,44 @@ try {
     });
     assert.deepEqual(results[0], results[1]); assert.deepEqual(results[1], results[2]);
     turret.reset(); near(turret.angles.yaw, 0); near(turret.angles.elevation, 0);
+    // Smooth start, release, reversal, mechanical bounds and a fine wheel increment.
+    turret.reset();
+    let lastYaw = 0, lastSpeed = 0;
+    for (let i = 0; i < 60; i++) {
+      turret.fixedUpdateSmoothManual(1, i === 0 ? 0.01 : 0, 1 / 60);
+      const speed = -wrapAngle(turret.angles.yaw - lastYaw) * 60;
+      assert.ok(speed > 0 && speed >= lastSpeed - 1e-9 && speed <= IRON_DUST_01.turretYawSpeed);
+      assert.ok(turret.angles.elevation >= 0 && turret.angles.elevation <= 0.01);
+      lastYaw = turret.angles.yaw; lastSpeed = speed;
+    }
+    let lastReleaseSpeed = lastSpeed;
+    for (let i = 0; i < 90; i++) {
+      turret.fixedUpdateSmoothManual(0, 0, 1 / 60);
+      const speed = -wrapAngle(turret.angles.yaw - lastYaw) * 60;
+      assert.ok(speed >= -1e-9 && speed <= lastReleaseSpeed + 1e-9, 'release decelerates monotonically');
+      lastYaw = turret.angles.yaw; lastReleaseSpeed = speed;
+    }
+    near(turret.angles.elevation, 0.01);
+    assert.ok(lastReleaseSpeed < 1e-7);
+    for (let i = 0; i < 240; i++) {
+      turret.fixedUpdateSmoothManual(-1, i === 0 ? 100 : 0, 1 / 60);
+      assert.ok(turret.angles.elevation <= IRON_DUST_01.gunMaxElevation);
+    }
+    near(turret.angles.elevation, IRON_DUST_01.gunMaxElevation);
+    turret.fixedUpdateSmoothManual(0, -0.001, 1 / 60);
+    assert.ok(turret.angles.elevation < IRON_DUST_01.gunMaxElevation, 'fine reversal starts immediately');
+    turret.reset();
+    turret.fixedUpdateSmoothManual(0, 0, 1 / 60);
+    near(turret.angles.yaw, 0); near(turret.angles.elevation, 0);
+    const smoothResults = [30, 60, 120].map(fps => {
+      turret.reset(); const clock = new FixedStep(); let ticks = 0;
+      for (let frame = 0; frame < fps * 3; frame++) clock.advance(1 / fps, dt => {
+        turret.fixedUpdateSmoothManual(ticks < 60 ? 1 : ticks < 120 ? -1 : 0,
+          ticks === 0 ? 0.2 : ticks === 90 ? -0.3 : 0, dt); ticks++;
+      });
+      return turret.angles;
+    });
+    assert.deepEqual(smoothResults[0], smoothResults[1]); assert.deepEqual(smoothResults[1], smoothResults[2]);
     turret.dispose(); tank.dispose();
     assert.equal(scene.meshes.length, 0); assert.equal(scene.transformNodes.length, 0); assert.equal(scene.materials.length, 0);
   }

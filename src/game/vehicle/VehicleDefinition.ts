@@ -15,6 +15,8 @@ export interface VehicleDefinition {
   reverseDelay: number;
   turretYawSpeed: number;
   gunPitchSpeed: number;
+  turretResponseTime: number;
+  gunResponseTime: number;
   gunMinElevation: number;
   gunMaxElevation: number;
 }
@@ -25,5 +27,6 @@ export const IRON_DUST_01: Readonly<VehicleDefinition> = Object.freeze({
   suspensionTravel: 0.45, staticCompression: 0.22, dampingRatio: 0.7,
   reverseDelay: 0.25,
   turretYawSpeed: 35 * Math.PI / 180, gunPitchSpeed: 15 * Math.PI / 180,
+  turretResponseTime: 0.08, gunResponseTime: 0.10, // seconds
   gunMinElevation: -8 * Math.PI / 180, gunMaxElevation: 20 * Math.PI / 180,
 });

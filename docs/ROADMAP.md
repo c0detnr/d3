@@ -148,3 +148,8 @@ MG02 gerçek GLB ile kuleye monte edildi. 2/1 POV/tank seçimi, sınırlı fare 
 ### 2026-10-24 — Top atışı hissi yenilemesi
 
 Kullanıcı onayıyla hızlı geri çekilen/sekmesiz dönen namlu, yönlü gövde darbesi, küçük sönümlü kamera sarsıntısı, ayrı parlama/gaz dokuları, kısa namlu ışığı, zemine bağlı basınç tozu ve üç varyasyonlu stereo prosedürel top sesi uygulandı. [Ayarlar ve sınırlar](SHOT_FEEDBACK.md). `combat:test`, `audio:test`, `map:build`, kamera regresyonu, `drive:test`, `effects:test` ve `npm test` geçti. Yakın/normal atış tarayıcıda incelendi; insan dinlemesi ve son atış hissi kabulü açık. M1/M2/M3 tamamlandı sayılmaz.
+
+
+### 2026-10-24 — Yumuşak taret ve namlu hareketi
+
+Taret için 0,08 s hız tepkisi; namlu için 0,10 s hedefe yaklaşım ve sönümlenen hız eklendi. 35°/s, 15°/s ve −8°…+20° sınırları korunur. Sabit adımda hızlanma/durma, yön değişimi, küçük açı ayarı, sıfırlama, hedefi aşmama ve 30/60/120 FPS eşitliği gerçek GLB üzerinde kontrol edildi. `turret:test`, `combat:test`, `mg:test`, `npm test` ve `map:build` geçti; mevcut büyük paket uyarısı sürüyor. Chromium headless 1280 × 720 içinde Q/E, tekerlek ve yakın kamera denendi; sayfa hatası yok. İnsan hareket hissi kabulü açık; M1/M2/M3 tamamlanmadı.

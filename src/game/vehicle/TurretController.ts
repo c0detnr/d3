@@ -1,3 +1,4 @@
+import { SmoothJoint } from './SmoothJoint.ts';
 import { Matrix, Quaternion, Vector3, type TransformNode } from '@babylonjs/core';
 import type { TankModel } from './tankRig.ts';
 import { IRON_DUST_01, type VehicleDefinition } from './VehicleDefinition.ts';
@@ -17,6 +18,9 @@ export class TurretController {
   private readonly pitchRest: Quaternion;
   private previous = { yaw: 0, elevation: 0 };
   private current = { yaw: 0, elevation: 0 };
+  private readonly yawMotion = new SmoothJoint();
+  private readonly pitchMotion = new SmoothJoint();
+  private smoothElevation = 0;
   limited = false;
   constructor(tank: TankModel, definition: Readonly<VehicleDefinition> = IRON_DUST_01) {
     this.definition = definition;
@@ -48,12 +52,12 @@ export class TurretController {
   /** Caller supplies the current fixed hull pose, never an interpolated render pose. */
   fixedUpdate(target: Vector3 | null, dt: number) {
     this.previous = { ...this.current };
-    if (!target) { this.limited = false; this.apply(this.current.yaw, this.current.elevation); return; }
+    if (!target) { this.yawMotion.reset(); this.pitchMotion.reset(); this.limited = false; this.apply(this.current.yaw, this.current.elevation); return; }
     const local = this.restDirection(this.yawPivot, this.yawRest, target);
     if (Math.hypot(local.x, local.z) > 1e-6) {
       const delta = wrapAngle(Math.atan2(local.x, local.z) - this.current.yaw);
-      const max = this.definition.turretYawSpeed * dt;
-      this.current.yaw = wrapAngle(this.current.yaw + clamp(delta, -max, max));
+      this.current.yaw = wrapAngle(this.current.yaw + this.yawMotion.advanceTarget(
+        delta, this.definition.turretYawSpeed, this.definition.turretResponseTime, dt));
     }
     this.apply(this.current.yaw, this.current.elevation);
     const gun = this.restDirection(this.pitchPivot, this.pitchRest, target);
@@ -61,8 +65,21 @@ export class TurretController {
     const desired = Math.atan2(gun.y, Math.max(1e-6, Math.hypot(gun.x, gun.z)));
     const constrained = clamp(desired, this.definition.gunMinElevation, this.definition.gunMaxElevation);
     this.limited = Math.abs(desired - constrained) > 1e-5;
-    const max = this.definition.gunPitchSpeed * dt;
-    this.current.elevation += clamp(constrained - this.current.elevation, -max, max);
+    this.current.elevation += this.pitchMotion.advanceTarget(constrained - this.current.elevation,
+      this.definition.gunPitchSpeed, this.definition.gunResponseTime, dt);
+    this.apply(this.current.yaw, this.current.elevation);
+  }
+  /** Smoothed local commands; angles stay relative to the hull. */
+  fixedUpdateSmoothManual(turn: number, elevationDelta: number, dt: number) {
+    this.previous = { ...this.current };
+    this.current.yaw = wrapAngle(this.current.yaw + this.yawMotion.advanceVelocity(
+      -clamp(turn, -1, 1) * this.definition.turretYawSpeed, this.definition.turretResponseTime, dt));
+    const desired = this.smoothElevation + elevationDelta;
+    this.smoothElevation = clamp(desired, this.definition.gunMinElevation, this.definition.gunMaxElevation);
+    this.limited = Math.abs(desired - this.smoothElevation) > 1e-9;
+    this.current.elevation += this.pitchMotion.advanceTarget(this.smoothElevation - this.current.elevation,
+      this.definition.gunPitchSpeed, this.definition.gunResponseTime, dt);
+    this.current.elevation = clamp(this.current.elevation, this.definition.gunMinElevation, this.definition.gunMaxElevation);
     this.apply(this.current.yaw, this.current.elevation);
   }
   render(alpha: number) {
@@ -74,6 +91,6 @@ export class TurretController {
     return { origin: this.muzzle.getAbsolutePosition().clone(),
       direction: Vector3.TransformNormal(Vector3.Forward(), this.muzzle.getWorldMatrix()).normalize() };
   }
-  reset() { this.previous = { yaw: 0, elevation: 0 }; this.current = { ...this.previous }; this.limited = false; this.apply(0, 0); }
+  reset() { this.yawMotion.reset(); this.pitchMotion.reset(); this.smoothElevation = 0; this.previous = { yaw: 0, elevation: 0 }; this.current = { ...this.previous }; this.limited = false; this.apply(0, 0); }
   dispose() { this.reset(); }
 }

@@ -153,3 +153,8 @@ Namlu, termal kılıf, siyah namlu ucu ve namlu ağzı referansı birlikte geri 
 - `map:build` ve `node --experimental-strip-types scripts/check-camera-turret-zoom.ts` yalnız bu teslimin farklarını içeren kopyada geçti. Mevcut büyük paket uyarısı sürüyor. `drive:test`, `effects:test`, `npm test` çalışma alanında geçti.
 - Headless Chromium 153.0.8010.12, Linux, ANGLE Vulkan SwiftShader, 1100×700, DPR 1, varsayılan sahne/gölge ayarları: yakın ve normal kamerada atış/dolum çalıştı, kısa parlama ve dağılan gaz görüldü; sayfa hatası kaydı boş. Bu yazılım render incelemesi performans ölçümü değildir. [Görüntü](previews/cannon-shot-feedback.png).
 - İnsan dinlemesi, kullanıcı atış hissi kabulü ve gerçek GPU'da performans ölçümü yapılmadı. [Tasarım ve açık konular](SHOT_FEEDBACK.md).
+
+
+### 2026-10-24 — Yumuşak taret ve namlu hareketi
+
+Taret için 0,08 s hız tepkisi; namlu için 0,10 s hedefe yaklaşım ve sönümlenen hız eklendi. 35°/s, 15°/s ve −8°…+20° sınırları korunur. Sabit adımda hızlanma/durma, yön değişimi, küçük açı ayarı, sıfırlama, hedefi aşmama ve 30/60/120 FPS eşitliği gerçek GLB üzerinde kontrol edildi. `turret:test`, `combat:test`, `mg:test`, `npm test` ve `map:build` geçti; mevcut büyük paket uyarısı sürüyor. Chromium headless 1280 × 720 içinde Q/E, tekerlek ve yakın kamera denendi; sayfa hatası yok. İnsan hareket hissi kabulü açık; M1/M2/M3 tamamlanmadı.
