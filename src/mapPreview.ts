@@ -23,7 +23,7 @@ import { WeaponSystem } from './game/combat/WeaponSystem.ts';
 import { ProjectileSystem } from './game/combat/ProjectileSystem.ts';
 import { ArmorRange, type ArmorResolution } from './game/combat/ArmorTarget.ts';
 import { CombatEffects } from './game/combat/CombatEffects.ts';
-import { GunnerSight } from './game/combat/GunnerSight.ts';
+import { CombatInput } from './game/input/CombatInput.ts';
 import { IRON_DUST_01_WEAPON } from './game/combat/WeaponDefinition.ts';
 import { createChaoticSky } from './game/world/SkyAtmosphere.ts';
 import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
@@ -48,13 +48,13 @@ let weapon: WeaponSystem | undefined;
 let projectiles: ProjectileSystem | undefined;
 let combatRange: ArmorRange | undefined;
 let combatEffects: CombatEffects | undefined;
-let gunnerSight: GunnerSight | undefined;
-let fireRequested = false;
 let lastCombatResult = '';
 let combatResultTime = 0;
 const aim = new AimSystem(scene, followCamera, document.querySelector<HTMLElement>('#aim-bore')!,
-  document.querySelector<HTMLElement>('#aim-status')!, () => gunnerSight?.isActive ?? false);
-followCamera.aiming = true;
+  document.querySelector<HTMLElement>('#aim-status')!);
+const combatInput = new CombatInput(canvas, () => !!weapon?.ready && !followCamera.isOverview && !paused,
+  () => !!vehicle && !followCamera.isOverview && !paused,
+  (x, y) => followCamera.look(x, y), () => { followCamera.aiming = false; });
 let lastTime = performance.now();
 let paused = document.hidden;
 const keys = bindDriveKeys(window, () => reset());
@@ -84,19 +84,17 @@ function updateCombatHud() {
 function reset() {
   keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); movementEffects?.reset();
   vehicleAudio?.reset(); turret?.reset(); weapon?.reset(); projectiles?.reset(); combatEffects?.reset();
-  gunnerSight?.reset(); fireRequested = false; lastCombatResult = ''; combatResultTime = 0;
+  combatInput.clear(); lastCombatResult = ''; combatResultTime = 0;
   aim.reset(); followCamera.follow();
   lastTime = performance.now();
 }
-const requestFire = (event: PointerEvent) => { if (event.button === 0) fireRequested = true; };
-canvas.addEventListener('pointerdown', requestFire);
 const visibility = () => {
   paused = document.hidden; movementEffects?.reset(); keys.clear(); input.reset(); clock.reset(); lastTime = performance.now();
-  fireRequested = false;
-  if (document.hidden) { gunnerSight?.reset(); void audio.suspend(); }
+  combatInput.clear();
+  if (document.hidden) { void audio.suspend(); }
   else if (soundToggle.checked) void audio.resume();
 };
-const blur = () => { keys.clear(); input.reset(); };
+const blur = () => { keys.clear(); input.reset(); combatInput.clear(); };
 document.addEventListener('visibilitychange', visibility);
 window.addEventListener('blur', blur);
 const ambient = new HemisphericLight('sky', new Vector3(0, 1, 0), scene);
@@ -114,7 +112,7 @@ shadows.bias = 0.001;
 shadows.normalBias = 0.04;
 shadows.setDarkness(0.25);
 
-const overview = () => followCamera.overview();
+const overview = () => { combatInput.clear(); followCamera.overview(); };
 const spawn = () => reset();
 document.querySelector('#overview')!.addEventListener('click', overview);
 document.querySelector('#spawn')!.addEventListener('click', spawn);
@@ -204,7 +202,6 @@ async function start() {
       ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance }
       : undefined;
   });
-  gunnerSight = new GunnerSight(scene, canvas, tank, aim, turret, followCamera);
   audioSnapshot = {
     speed: 0, forwardSpeed: vehicle.definition.forwardSpeed, driveForce: 0,
     traction: vehicle.definition.traction, contacts: vehicle.contacts,
@@ -214,7 +211,7 @@ async function start() {
   followCamera.follow();
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('rimView')) {
     followCamera.overview();
-    followCamera.camera.setPosition(new Vector3(-25, 6, -235));
+    followCamera.camera.position.copyFrom(new Vector3(-25, 6, -235));
     followCamera.camera.setTarget(new Vector3(0, -12, -152));
   }
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('driveTest')) observation = new DrivingObservation(engine, reset);
@@ -230,6 +227,7 @@ async function start() {
     scene.imageProcessingConfiguration.exposure = 1 + stormFlash * 0.32;
     ambient.intensity = 0.6 + stormFlash * 0.4;
     sun.intensity = 1.05 + stormFlash * 0.25;
+    followCamera.aiming = combatInput.aiming;
     aim.acquire(vehicle);
     const alpha = clock.advance(dt, step => {
       const command = input.resolve(observation?.keys() ?? keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
@@ -241,10 +239,9 @@ async function start() {
       visual!.fixedUpdate(vehicle!, step);
       // Joint calculations use the current physics pose; render interpolation follows below.
       visual!.syncHull(vehicle!, 1);
-      turret!.fixedUpdate(aim.target, step);
+      turret!.fixedUpdate(combatInput.aiming ? aim.target : null, step);
       weapon!.fixedUpdate(step);
-      if (fireRequested) {
-        fireRequested = false;
+      if (combatInput.consumeFire()) {
         const shot = weapon!.fire();
         if (shot) {
           projectiles!.spawn(shot.origin, shot.direction, IRON_DUST_01_WEAPON.ammo.muzzleVelocity);
@@ -267,8 +264,7 @@ async function start() {
     turret!.render(alpha);
     projectiles!.render(alpha);
     combatEffects!.render(alpha);
-    if (!gunnerSight?.isActive) followCamera.update(vehicle, tank.anchor.position, Math.min(dt, 0.1));
-    gunnerSight?.update();
+    followCamera.update(vehicle, tank.anchor.position, Math.min(dt, 0.1), turret);
     hudElapsed += dt;
     combatResultTime = Math.max(0, combatResultTime - dt);
     if (combatResultTime === 0 && lastCombatResult) lastCombatResult = '';
@@ -301,7 +297,7 @@ function dispose() {
   document.querySelector('#overview')?.removeEventListener('click', overview);
   document.querySelector('#spawn')?.removeEventListener('click', spawn);
   dustToggle.removeEventListener('change', toggleDust);
-  canvas.removeEventListener('pointerdown', requestFire);
+  combatInput.dispose();
   soundToggle.removeEventListener('change', toggleSound);
   soundVolume.removeEventListener('input', changeVolume);
   window.removeEventListener('pointerdown', unlockOnGesture);
@@ -312,7 +308,7 @@ function dispose() {
   window.removeEventListener('blur', blur);
   observation?.dispose();
   movementEffects?.dispose();
-  gunnerSight?.dispose(); projectiles?.dispose(); combatEffects?.dispose(); combatRange?.dispose();
+  projectiles?.dispose(); combatEffects?.dispose(); combatRange?.dispose();
   vehicleAudio?.dispose();
   audio.dispose();
   aim.dispose(); turret?.dispose(); visual?.dispose(); vehicle?.dispose(); followCamera.dispose();

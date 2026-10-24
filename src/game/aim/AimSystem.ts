@@ -6,34 +6,29 @@ import type { TurretController } from '../vehicle/TurretController.ts';
 /** Camera intent and physical bore direction are separate; no ballistic prediction. */
 export class AimSystem {
   target = Vector3.Zero();
-  private initialized = false;
   readonly scene: Scene;
   readonly camera: FollowCamera;
   readonly marker: HTMLElement;
   readonly label: HTMLElement;
-  readonly isSniper?: () => boolean;
+
   rangeMeters = 0;
-  constructor(scene: Scene, camera: FollowCamera, marker: HTMLElement, label: HTMLElement,
-    isSniper?: () => boolean) {
+  constructor(scene: Scene, camera: FollowCamera, marker: HTMLElement, label: HTMLElement) {
     this.scene = scene; this.camera = camera; this.marker = marker; this.label = label;
-    this.isSniper = isSniper;
   }
-  reset() { this.initialized = false; this.marker.hidden = true; }
+  reset() { this.marker.hidden = true; }
   acquire(vehicle: TankVehicle) {
-    if (this.isSniper?.() || this.camera.isOverview || (this.camera.freeLook && this.initialized)) return;
+    if (!this.camera.aiming || this.camera.isOverview) return;
     const camera = this.scene.activeCamera!;
     camera.getViewMatrix(true);
-    const ray = camera.getForwardRay(800);
+    const ray = { origin: camera.globalPosition, direction: this.camera.direction };
     const hit = this.scene.getPhysicsEngine()!.raycast(ray.origin, ray.origin.add(ray.direction.scale(800)), { ignoreBody: vehicle.body });
     this.target.copyFrom(hit.hasHit ? hit.hitPointWorld : ray.origin.add(ray.direction.scale(800)));
     this.rangeMeters = hit.hasHit ? hit.hitDistance : 800;
-    this.initialized = true;
   }
   render(vehicle: TankVehicle, turret: TurretController) {
-    const sniper = this.isSniper?.() ?? false;
     const hidden = this.camera.isOverview;
-    document.querySelector<HTMLElement>('#aim-intent')!.hidden = hidden || this.camera.freeLook || sniper;
-    this.label.hidden = hidden || sniper;
+    document.querySelector<HTMLElement>('#aim-intent')!.hidden = hidden || !this.camera.aiming;
+    this.label.hidden = hidden;
     if (hidden) { this.marker.hidden = true; return; }
     const ray = turret.getMuzzleRay();
     const hit = this.scene.getPhysicsEngine()!.raycast(ray.origin, ray.origin.add(ray.direction.scale(800)), { ignoreBody: vehicle.body });
@@ -50,7 +45,7 @@ export class AimSystem {
     const blocked = hit.hasHit && Vector3.Distance(ray.origin, hit.hitPointWorld) < 12;
     this.marker.classList.toggle('blocked', blocked);
     const error = Math.acos(Math.max(-1, Math.min(1, Vector3.Dot(ray.direction, this.target.subtract(ray.origin).normalize())))) * 180 / Math.PI;
-    this.label.textContent = this.camera.freeLook ? 'SERBEST BAKIŞ · Hedef korunuyor' : blocked ? 'YAKIN ENGEL · Namlu doğrultusu' : turret.limited ? 'NAMLU AÇI SINIRI' : error > 1 ? `TARET HİZALANIYOR · ${error.toFixed(0)}°` : 'TARET TAKİBİ · Halka: namlu doğrultusu';
+    this.label.textContent = !this.camera.aiming ? 'SERBEST BAKIŞ · Halka: namlu doğrultusu' : blocked ? 'YAKIN ENGEL · Namlu doğrultusu' : turret.limited ? 'NAMLU AÇI SINIRI' : error > 1 ? `TARET HİZALANIYOR · ${error.toFixed(0)}°` : 'TARET TAKİBİ · Halka: namlu doğrultusu';
   }
   dispose() { this.marker.hidden = true; this.label.hidden = true; }
 }

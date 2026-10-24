@@ -116,3 +116,7 @@ Düz gradyan gökyüzü, prosedürel fırtına shader'ıyla değiştirildi: sür
 **Durum:** Plan hazır; uygulama başlamadı. [Ayrıntılı plan ve kabul senaryoları](AIM_AND_FIRE_REWORK.md).
 
 Sıra: A1 kamera/girdi → A2 nişangâh/tek atış/dolum → A3 görünür balistik → A4 geri tepme/yüzey/ses → A5 doğrulama ve teslim. Mevcut M3.1 davranışını yeniler; hasar, delme/sekme tasarımı ve tank imhası bu işte yok. M1/M2 açık kabul maddeleri korunur; sürüş teslimi bu yenilemeye bağlanmaz. Bu tarihte yalnız belge hazırlandı, oyun testleri veya tarayıcı kabulü yapılmadı.
+
+### 2026-10-24 — Nişan yenileme A1
+
+Kamera ve girdi uygulandı: normal serbest bakış, sağ tuşta sağ yan yakın kamera, bırakınca yerel taret açısı tutma. `map:check`, `turret:test`, `combat:test` geçti; tarayıcı kabulü bekliyor. M1/M2/M3 son kabulü açık.

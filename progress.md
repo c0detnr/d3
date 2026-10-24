@@ -115,3 +115,9 @@
 - README belge haritası, DECISIONS ve ROADMAP güncellendi. Eski M3.1 kayıtları tarihsel olarak korundu; uygulandı iddiası eklenmedi.
 - Oyun kodu, paketler ve Blender/GLB değiştirilmedi. Oyun testleri ve tarayıcı incelemesi belge görevi için çalıştırılmadı.
 - Belge doğrulaması: 7 dosyada 33 yerel Markdown bağlantısı ve plandaki kaynak yolları geçerli; A1–A5/kapsam/kabul maddeleri mevcut. `git diff --check` geçti. Git teslimi için yalnız ilgili 7 Markdown dosyası seçildi.
+
+## 2026-10-24 — A1 kamera ve girdi
+
+- Tek CombatInput sahibi: sağ tuş hedef yetkisi, iki tuş birleşimi, erken atışın reddi, iptal/odak/görünürlük/Esc temizliği. Normal fare hareketi serbest bakış; Alt/C zorunluluğu kaldırıldı.
+- Tek sağ yan / normal kamera; tank görünür, niyet ve fiziksel taret birbirinden bağımsız. Kamera hacmi için beş ışın ve geçiş süpürmesi. Namlu kamerası ve dürbün katmanı kaldırıldı.
+- `map:check`, `turret:test`, `combat:test` geçti. Gerçek GLB üzerinde bırakınca yerel açı tutma ve gövdeyle taşınma eklendi. Tarayıcı ve engel geometrisi kabulü sonraki doğrulamada.

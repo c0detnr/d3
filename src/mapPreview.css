@@ -2,9 +2,5 @@
 
 #aim-intent,#aim-bore,#aim-status{position:absolute;pointer-events:none}#aim-intent{left:50%;top:50%;transform:translate(-50%,-50%);font:24px monospace;color:#eee8db;text-shadow:0 1px 3px #000}#aim-bore{width:20px;height:20px;border:2px solid #d5c7ab;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 3px #000}#aim-bore.blocked{border-color:#f5a56b}#aim-status{bottom:28px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:1px;background:#252b27dd;padding:10px 16px;border-radius:3px}[hidden]{display:none!important}
 #sound-volume{width:100%;margin:8px 0 2px;accent-color:#bdab8b}#audio-status{font-size:11px;color:#afb5a7;margin:0 0 8px}
-#scope{position:absolute;inset:0;pointer-events:none;z-index:2;background:radial-gradient(circle at 50% 50%,#0000 0 29vmin,#000c 44vmin,#000 63vmin)}
-#scope::before{content:'';position:absolute;left:50%;top:50%;width:1px;height:44px;background:#d5c7abcc;transform:translate(-50%,-50%)}
-#scope::after{content:'';position:absolute;left:50%;top:50%;width:44px;height:1px;background:#d5c7abcc;transform:translate(-50%,-50%)}
-#scope-dot{position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#eee8db;transform:translate(-50%,-50%);box-shadow:0 0 4px #000}
 #combat-hud{position:absolute;left:24px;bottom:24px;z-index:3;display:flex;gap:18px;align-items:center;padding:10px 16px;background:#252b27e6;border-left:3px solid #bdab8b;border-radius:3px;font:11px/1.2 monospace;letter-spacing:1px;pointer-events:none}
 #ammo-state{color:#d5c7ab;min-width:130px}#range-readout{color:#eee8db}#hit-result{color:#eee8db;min-width:150px}#hit-result.penetrated{color:#f5c56b}#hit-result.ricochet{color:#9fc7e8}#hit-result.blocked{color:#c7c2b5}

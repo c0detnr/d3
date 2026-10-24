@@ -235,3 +235,20 @@ M1/M2 tarayıcı kabulü, gerçek GPU performans ölçümü ve insan görsel de�
 ## Next Step
 
 Belge kontrolleri tamamlandı; yalnız ilgili belgeleri commit edip origin/main'e push et. Sonraki uygulama adımı docs/AIM_AND_FIRE_REWORK.md içindeki A1 kamera/girdidir; bu belge görevinde oyun koduna başlanmayacak.
+
+## Nişan ve atış uygulaması — 2026-10-24
+
+### Phase 21: A1 Kamera ve tek girdi sahibi
+**Status:** complete
+
+### Phase 22: A2–A3 Atış ve görünür balistik
+**Status:** in_progress
+
+### Phase 23: A4 Atış tepkileri ve ses
+**Status:** pending
+
+### Phase 24: A5 Kontroller, tarayıcı ve teslim
+**Status:** pending
+
+## Next Step
+A1 uygulanıyor; mevcut hareket efektleri, sürüş ve varlıklar korunacak.

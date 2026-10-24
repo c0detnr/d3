@@ -1,73 +1,79 @@
-import { ArcRotateCamera, Matrix, Vector3, type Scene } from '@babylonjs/core';
+import { FreeCamera, Vector3, type Scene } from '@babylonjs/core';
 import type { TankVehicle } from '../vehicle/TankVehicle.ts';
+import type { TurretController } from '../vehicle/TurretController.ts';
 
-/** Mouse orbit, delayed heading recovery and physics obstruction queries. */
+/** Camera tuning in metres, radians and seconds; independent intent never follows gun lag. */
+export const AIM_CAMERA = Object.freeze({ right: 2.6, back: 4.6, height: 1.1,
+  transitionRate: 9, clearance: 0.4, sensitivity: 0.002, kick: 0.025 });
 export class FollowCamera {
-  readonly camera: ArcRotateCamera;
-  private lastMouseTime = 0;
+  readonly camera: FreeCamera;
+  private yaw = 0;
+  private pitch = -0.09;
   private desiredRadius = 15;
   private overviewMode = false;
+  private blend = 0;
+  private kick = 0;
+  private positioned = false;
   aiming = false;
-  private altHeld = false;
-  private freeLookToggled = false;
-  get freeLook() { return this.altHeld || this.freeLookToggled; }
   get isOverview() { return this.overviewMode; }
-  private keyDown = (event: KeyboardEvent) => { if (event.code === 'AltLeft' || event.code === 'AltRight') { event.preventDefault(); this.altHeld = true; } if (event.code === 'KeyC' && !event.repeat) { event.preventDefault(); this.freeLookToggled = !this.freeLookToggled; } };
-  private keyUp = (event: KeyboardEvent) => { if (event.code === 'AltLeft' || event.code === 'AltRight') this.altHeld = false; };
-  private clearInput = () => { this.altHeld = false; this.freeLookToggled = false; };
-  private pointer = () => { this.lastMouseTime = performance.now(); this.overviewMode = false; };
-  private wheel = (event: WheelEvent) => {
-    event.preventDefault(); this.desiredRadius = Math.max(7, Math.min(32, this.desiredRadius + event.deltaY * 0.015));
-    this.pointer();
-  };
+  get direction() { return new Vector3(Math.sin(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), Math.cos(this.yaw) * Math.cos(this.pitch)); }
   readonly scene: Scene;
   readonly canvas: HTMLCanvasElement;
   constructor(scene: Scene, canvas: HTMLCanvasElement) {
     this.scene = scene; this.canvas = canvas;
-    this.camera = new ArcRotateCamera('tank-follow', -Math.PI / 2, 1.48, 15, Vector3.Zero(), scene);
-    this.camera.minZ = 0.15;
-    this.camera.lowerBetaLimit = 0.25; this.camera.upperBetaLimit = 1.8;
-    this.camera.panningSensibility = 0;
-    this.camera.inputs.removeByType('ArcRotateCameraMouseWheelInput');
-    this.camera.attachControl(canvas, true);
-    window.addEventListener('keydown', this.keyDown); window.addEventListener('keyup', this.keyUp);
-    window.addEventListener('blur', this.clearInput);
-    document.addEventListener('visibilitychange', this.clearInput);
-    canvas.addEventListener('pointerdown', this.pointer);
-    canvas.addEventListener('pointermove', this.onMove);
+    this.camera = new FreeCamera('tank-follow', Vector3.Zero(), scene);
+    this.camera.minZ = 0.15; this.camera.fov = 0.8; this.camera.inputs.clear();
     canvas.addEventListener('wheel', this.wheel, { passive: false });
   }
-  private onMove = (event: PointerEvent) => { if (event.buttons) this.pointer(); };
-  follow() { this.overviewMode = false; this.camera.alpha = -Math.PI / 2; this.camera.beta = 1.48; this.camera.inertialAlphaOffset = 0; this.camera.inertialBetaOffset = 0; this.clearInput(); this.desiredRadius = 15; }
-  overview() { this.overviewMode = true; this.camera.setTarget(Vector3.Zero()); this.camera.radius = 160; this.camera.beta = 0.6; }
-  update(vehicle: TankVehicle, visualPosition: Vector3, dt: number) {
+  look(x: number, y: number) {
     if (this.overviewMode) return;
-    const target = visualPosition.add(new Vector3(0, this.aiming ? 3 : 1.8, 0));
-    this.camera.setTarget(target, false, false, true);
-    if (!this.aiming && !this.freeLook && performance.now() - this.lastMouseTime > 1500 && Math.abs(vehicle.speed) > 0.6) {
-      const forward = Vector3.TransformNormal(Vector3.Forward(), Matrix.Compose(Vector3.One(), vehicle.current.rotation, Vector3.Zero()));
-      const desired = Math.atan2(-forward.z, -forward.x);
-      const delta = Math.atan2(Math.sin(desired - this.camera.alpha), Math.cos(desired - this.camera.alpha));
-      this.camera.alpha += delta * (1 - Math.exp(-dt * 2));
-    }
-    const beta = this.camera.beta, alpha = this.camera.alpha;
-    const direction = new Vector3(Math.cos(alpha) * Math.sin(beta), Math.cos(beta), Math.sin(alpha) * Math.sin(beta));
-    const physics = this.scene.getPhysicsEngine()!;
-    let radius = this.desiredRadius;
-    // Five rays approximate a camera volume and include invisible tree collision proxies.
-    const right = Vector3.Cross(direction, Vector3.Up()).normalize();
-    for (const offset of [Vector3.Zero(), right.scale(0.3), right.scale(-0.3), new Vector3(0, 0.3, 0), new Vector3(0, -0.3, 0)]) {
-      const from = target.add(offset);
-      const hit = physics.raycast(from, from.add(direction.scale(this.desiredRadius)), { ignoreBody: vehicle.body });
-      if (hit.hasHit) radius = Math.min(radius, Math.max(0.5, Vector3.Distance(from, hit.hitPointWorld) - 0.45));
-    }
-    this.camera.radius = radius < this.camera.radius ? radius : this.camera.radius + (radius - this.camera.radius) * (1 - Math.exp(-dt * 5));
+    this.yaw += x * AIM_CAMERA.sensitivity;
+    this.pitch = Math.max(-1.15, Math.min(1.15, this.pitch - y * AIM_CAMERA.sensitivity));
   }
-  dispose() {
-    window.removeEventListener('keydown', this.keyDown); window.removeEventListener('keyup', this.keyUp);
-    window.removeEventListener('blur', this.clearInput);
-    document.removeEventListener('visibilitychange', this.clearInput);
-    this.canvas.removeEventListener('pointerdown', this.pointer); this.canvas.removeEventListener('pointermove', this.onMove);
-    this.canvas.removeEventListener('wheel', this.wheel); this.camera.dispose();
+  private wheel = (e: WheelEvent) => {
+    e.preventDefault();
+    if (!this.aiming) this.desiredRadius = Math.max(7, Math.min(32, this.desiredRadius + e.deltaY * 0.015));
+  };
+  follow() { this.overviewMode = false; this.yaw = 0; this.pitch = -0.09; this.aiming = false; this.blend = 0; this.kick = 0; this.desiredRadius = 15; this.positioned = false; }
+  overview() { this.overviewMode = true; this.aiming = false; this.camera.position.set(0, 120, -130); this.camera.setTarget(Vector3.Zero()); }
+  impulse() { this.kick = AIM_CAMERA.kick; }
+  /** Five offset rays approximate the camera volume; sweep the transition as well as the boom. */
+  private safePosition(from: Vector3, to: Vector3, vehicle: TankVehicle) {
+    const direction = to.subtract(from), length = direction.length();
+    if (length < 1e-5) return to;
+    direction.scaleInPlace(1 / length);
+    let distance = length;
+    const c = AIM_CAMERA.clearance;
+    const right = Vector3.Cross(Vector3.Up(), direction).normalize().scale(c);
+    for (const offset of [Vector3.Zero(), right, right.negate(), new Vector3(0, c, 0), new Vector3(0, -c, 0)]) {
+      const start = from.add(offset);
+      const hit = this.scene.getPhysicsEngine()!.raycast(start, to.add(offset), { ignoreBody: vehicle.body });
+      if (hit.hasHit) distance = Math.min(distance, Math.max(0, Vector3.Distance(start, hit.hitPointWorld) - c));
+    }
+    return from.add(direction.scale(distance));
   }
+  update(vehicle: TankVehicle, visualPosition: Vector3, dt: number, turret?: TurretController) {
+    if (this.overviewMode) return;
+    this.blend += ((this.aiming ? 1 : 0) - this.blend) * (1 - Math.exp(-dt * AIM_CAMERA.transitionRate));
+    const direction = this.direction;
+    const anchor = visualPosition.add(new Vector3(0, 2.7, 0));
+    const normal = anchor.subtract(direction.scale(this.desiredRadius));
+    let close = normal;
+    if (turret) {
+      turret.yawPivot.computeWorldMatrix(true);
+      const pivot = turret.yawPivot.getAbsolutePosition();
+      // Real world bore defines the turret's right side, irrespective of asset node names/handedness.
+      const forward = turret.getMuzzleRay().direction; forward.y = 0; forward.normalize();
+      const right = Vector3.Cross(Vector3.Up(), forward).normalize();
+      close = pivot.add(right.scale(AIM_CAMERA.right)).subtract(forward.scale(AIM_CAMERA.back)).add(new Vector3(0, AIM_CAMERA.height, 0));
+    }
+    const desired = Vector3.Lerp(normal, close, this.blend);
+    let safe = this.safePosition(anchor, desired, vehicle);
+    if (this.positioned) safe = this.safePosition(this.camera.position, safe, vehicle);
+    this.camera.position.copyFrom(safe); this.positioned = true;
+    this.kick *= Math.exp(-dt * 20);
+    const view = new Vector3(direction.x, direction.y + this.kick, direction.z).normalize();
+    this.camera.setTarget(safe.add(view.scale(800)));
+  }
+  dispose() { this.canvas.removeEventListener('wheel', this.wheel); this.camera.dispose(); }
 }

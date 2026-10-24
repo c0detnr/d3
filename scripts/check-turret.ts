@@ -48,6 +48,15 @@ try {
     advance(target, 12);
     const ray = turret.getMuzzleRay();
     assert.ok(Vector3.Dot(ray.direction, target.subtract(ray.origin).normalize()) > 0.99999, 'inclined hull uses world target');
+    const held = turret.angles;
+    for (let i = 0; i < 60; i++) turret.fixedUpdate(null, 1 / 60);
+    assert.deepEqual(turret.angles, held, 'release immediately freezes local joint angles');
+    tank.anchor.rotationQuaternion = Quaternion.RotationYawPitchRoll(-1, 0.1, 0.12);
+    tank.anchor.computeWorldMatrix(true);
+    turret.fixedUpdate(null, 1 / 60);
+    assert.deepEqual(turret.angles, held, 'hull rotation carries the held turret');
+    tank.anchor.rotationQuaternion = Quaternion.RotationYawPitchRoll(1.2, 0.06, -0.08);
+    tank.anchor.computeWorldMatrix(true); turret.render(1);
     // Interpolation must not change the simulation state.
     const angles = turret.angles;
     turret.render(0.4);

@@ -43,8 +43,9 @@ export class TurretController {
     return Vector3.TransformNormal(local, Matrix.Compose(Vector3.One(), rest.conjugate(), Vector3.Zero()));
   }
   /** Caller supplies the current fixed hull pose, never an interpolated render pose. */
-  fixedUpdate(target: Vector3, dt: number) {
+  fixedUpdate(target: Vector3 | null, dt: number) {
     this.previous = { ...this.current };
+    if (!target) { this.limited = false; this.apply(this.current.yaw, this.current.elevation); return; }
     const local = this.restDirection(this.yawPivot, this.yawRest, target);
     if (Math.hypot(local.x, local.z) > 1e-6) {
       const delta = wrapAngle(Math.atan2(local.x, local.z) - this.current.yaw);

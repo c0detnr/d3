@@ -1,6 +1,6 @@
 # Kamera, nişan ve atış yenileme planı
 
-Tarih: 2026-10-24. Durum: **Plan hazır; uygulama başlamadı.**
+Tarih: 2026-10-24. Durum: **Uygulama sürüyor; A1 otomatik kontrolleri geçti, tarayıcı kabulü açık.**
 
 ## Amaç ve sınır
 
@@ -73,7 +73,7 @@ Sürüş kuvvetleri, dünya, mevcut hareket tozu, Blender/GLB ve paket kilidi ko
 
 ## Uygulama sırası
 
-Tüm uygulama adımları **bekliyor**. Her tamamlanabilir adımda ilgili kontroller, diff incelemesi, commit ve izlenen dala push yapılır.
+A1 uygulandı; A2–A5 sürüyor. Her tamamlanabilir adımda ilgili kontroller, diff incelemesi, commit ve izlenen dala push yapılır.
 
 ### A1 — Kamera ve girdi
 
