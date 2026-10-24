@@ -14,6 +14,8 @@ Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağ�
 
 İlk özgün tank Blender MCP ile üretildi: [Blender kaynağı](assets/tanks/iron_dust_01/iron_dust_01.blend) · [GLB](assets/tanks/iron_dust_01/iron_dust_01.glb) · [önizlemeler ve doğrulama](assets/tanks/iron_dust_01/README.md). Görünür geometri 14.512 üçgen; Babylon entegrasyonu ve ilk dinamik sürüş prototipi mevcut.
 
+İlk kabin iç gövdesi ve ana konsol Blender MCP ile üretildi: [kaynak, GLB ve iki önizleme](assets/cockpit/iron_dust_cockpit_01/README.md). 16.732 üçgen; oyun entegrasyonu ve dış tank hacmine montaj doğrulaması açık.
+
 ## Belge haritası
 
 Özel GitHub deposu: [c0detnr/d3](https://github.com/c0detnr/d3). Ana dal `main` olarak kullanılır. Kaynak kod, belgeler, paket kilidi ve teslim edilen tank varlıkları izlenir; bağımlılıklar, derleme çıktıları ve yerel yedekler `.gitignore` ile dışarıda tutulur.

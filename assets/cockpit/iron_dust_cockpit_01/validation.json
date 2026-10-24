@@ -1,0 +1,41 @@
+{
+  "blender_version": "5.2.1 LTS",
+  "asset_meshes": 89,
+  "asset_objects": 91,
+  "source_triangles": 16732,
+  "glb_triangles": 16732,
+  "glb_bytes": 265892,
+  "source_bounds_m": [
+    [
+      -1.399999976158142,
+      -1.21999990940094,
+      -0.09000000357627869
+    ],
+    [
+      1.399999976158142,
+      1.8299999237060547,
+      2.299999952316284
+    ]
+  ],
+  "reserved_volume_overlap": [],
+  "display_visibility_rays": [
+    "ID_MainDisplay_Surface",
+    "ID_MainDisplay_Surface",
+    "ID_MainDisplay_Surface",
+    "ID_MainDisplay_Surface",
+    "ID_MainDisplay_Surface"
+  ],
+  "display_dimensions_m": [
+    0.949999988079071,
+    0.00800000037997961,
+    0.5199999809265137
+  ],
+  "eye_reference_m": [
+    0.0,
+    0.0,
+    1.350000023841858
+  ],
+  "glb_reimport_objects": 91,
+  "checks": "PASS",
+  "tank_mounting": "Separate +Y cabin space. Exterior shell fit and engine integration remain unverified."
+}

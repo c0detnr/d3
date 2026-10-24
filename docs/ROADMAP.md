@@ -157,3 +157,7 @@ Taret için 0,08 s hız tepkisi; namlu için 0,10 s hedefe yaklaşım ve sönüm
 ## Android ve mobil ek teslim — 2026-10-24
 
 Kullanıcı isteğiyle masaüstü kapsamına Android APK ve mobil tarayıcı eklendi. Sol geliştirici paneli kaldırıldı; çoklu dokunmatik sürüş/nişan/ateş ve yardımcı kontroller uygulandı. Yerel HTTPS WebView ile çevrimdışı APK üretildi, imza doğrulandı ve Android emülatöründe açıldı. `touch:test`, çekirdek/savaş/MG kontrolleri ve web derlemesi geçti. Fiziksel telefon performansı, uzun sürüş ve insan hissi kabulü açık; M1/M2/M3 tamamlanmış sayılmaz. [Android teslimi](ANDROID.md).
+
+### 2026-10-24 — Kabin iç gövdesi ve ana konsol v01
+
+CABIN bölüm 1 Blender MCP ile üretildi: [kaynak, GLB ve önizlemeler](../assets/cockpit/iron_dust_cockpit_01/README.md). Kalın zırh kabuğu, konsol, ayrı 0,95 × 0,52 m ekran ve boş kumanda montaj yüzeyleri; 16.732 üçgen. Sağ mekanizma hacmi açıklığı, beş ekran görüş ışını, GLB sayımı ve yeniden içe aktarım kontrol edildi. Oyun kodu değişmedi; dış tank içine montaj, tarayıcı görünümü ve kullanıcı görsel kabulü açık. M1/M2/M3 tamamlandı sayılmaz.
