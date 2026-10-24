@@ -128,3 +128,11 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Uygulanan teknik tercih (prototip):** Dış doku kullanmadan, çalışma anında üretilen albedo + normal + ince detay üçlüsü. Albedo büyük toprak kümeleri, taş taneleri, seyrek çatlaklar ve kuru bitki artıkları taşır; normal haritası aynı yükseklik alanından türetilir. 22 m'lik dikişsiz ana tekrar, farklı ölçekli detay katmanıyla kırılır. Arazi düzgün normallerle gölgelenir.
 - **Gerekçe:** Önceki tek düze gri tanecik düz bir yüzey gibi okunuyordu; dış kaplama lisansı ve paket maliyeti olmadan malzeme çeşitliliği, mikro rölyef ve tekrar kırma hedeflendi.
 - **Açık:** Doku ölçeği, taş/çatlak yoğunluğu, parlaklık, farklı zemin türleri ve performans etkisi insan değerlendirmesi ve ölçümle netleşecek. Bu, onaylanmış son görsel karar değildir.
+
+## 2026-10-24 — Kamera, nişan ve atışın yeniden planlanması
+
+- **Kullanıcı kararları:** Normal fare bakışı taret/namluyu etkilemez. Yalnız sağ tuş basılıyken taretin sağ yanından yakın üçüncü şahıs nişanı ve yatay/dikey silah kontrolü; bırakınca normal kamera ve son silah yönü. Sol tık iki görünümde tek atış; görünür uçuş/düşüş, kısa iz; otomatik balistik çarpma tahmini yok. Hasarlar sonra planlanacak.
+- **Kabul edilen başlangıç planı:** Bakış yönünü koruyan yumuşak geçiş; 5 saniye dolum ve atış kuyruğu yok; gerçek namludan çıkan hasarsız deneme mermisi; geri tepme, yüzey isabeti ve ses geri bildirimi.
+- **Önceki kayıtla ilişki:** M3.1'in dürbün görünümü, varsayılan kamera-taret takibi, 900 m/s / 6,5 s ayarları ve AP/delme/sekme seçimi tarihsel prototipi anlatır. Yeni tasarımda mühimmat/hasar kararı olarak kullanılmaz; kod henüz değiştirilmedi.
+- **Uygulama yorumları / açık ayarlar:** Bırakınca yerel taret ve namlu açılarını tutma; kamera ofseti, hassasiyet, mermi hızı/düşüşü ve görsel/ses dengesi prototipte doğrulanacak.
+- **Plan:** [Kamera, nişan ve atış yenileme](AIM_AND_FIRE_REWORK.md). Bu görev yalnız belgedir; M1/M2/M3 kabul durumu değişmedi.

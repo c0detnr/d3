@@ -98,3 +98,11 @@
 - Gerçek GLB testi ilk denemede Hull düğümünü yalnızca transformNodes içinde aradığı için başarısız oldu; Hull mesh olduğundan metadata ile tüm düğümler üzerinde arama düzeltildi. Son taret testi geçti.
 - Başlangıç kamerasının eski 26° aşağı bakışı namlunun −8° sınırının dışındaydı. Nişan için hedef yüksekliği 3 m ve başlangıç beta 1,48 rad seçildi; gökyüzüne bakabilmek için üst beta sınırı genişletildi.
 - Yaw gecikmesinde arkadaki hedef namluyu gereksizce yukarı kaldırmasın diye yükseliş yatay uzaklıktan hesaplandı. Yakın engel göstergesi gerçek Havok sorgusu; balistik isabet tahmini değil.
+
+## Kamera, nişan ve atış yenileme — 2026-10-24
+
+- Çalışma başında main dalı temiz, HEAD `68d5743`; origin/main izleniyor.
+- Güncel kaynak Babylon/Havok kullanıyor. GunnerSight dar açılı namlu kamerası açıp tankı gizliyor; AimSystem normal kameradan hedef alıyor ve taret her sabit adımda bu hedefi izliyor. Yeni girdi sözleşmesi bu bağlantıları ayırmayı gerektiriyor.
+- WeaponDefinition mevcut değerleri 900 m/s ve 6,5 s. Kullanıcı okunur uçuş/düşüşü ve 5 s başlangıç dolumunu kabul etti; kesin balistik değerler seçilmedi.
+- Mevcut ArmorModel/ArmorTarget delme/sekme içeriyor; hasar yeniden tasarımı istenmedi. Yeni atış yolu bunlara bağımlı olmayacak; ilgisiz kod topluca silinmeyecek.
+- Kullanıcının bu turdaki teslim isteği plan dosyası; uygulama kodu ve varlıklar değiştirilmez.

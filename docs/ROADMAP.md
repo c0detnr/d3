@@ -110,3 +110,9 @@ Tek 120 mm AP mermisi, gerçek namlu ağzı, 6,5 s dolum, görsel geri tepme, ye
 ### 2026-10-24 — Kaotik gökyüzü
 
 Düz gradyan gökyüzü, prosedürel fırtına shader'ıyla değiştirildi: sürüklenen/çalkalanan bulut katmanları, sıcak toprak ufku, düşük açılı sıcak güneş, yoğunlaştırılmış sis ve ara ara şimşek çakması. Gökyüzü, sis rengi ve şimşek aydınlatması `src/game/world/SkyAtmosphere.ts` içinde; sahne kapanışında gökyüzü kaynağı temizlenir. `npm run map:check` ve `npm run map:build` geçti. Chromium 152 headless, 1280 × 720, WebGL2'de sahne hatasız açıldı; [görsel kanıt](previews/chaotic-sky.png). İnsan görsel kabulü, şimşek sıklığı/okunabilirlik ayarı ve performans kaydı açık; M1 kabul maddeleri bu değişiklikle tamamlanmış sayılmaz.
+
+### 2026-10-24 — Kamera, nişan ve atış yenileme planı
+
+**Durum:** Plan hazır; uygulama başlamadı. [Ayrıntılı plan ve kabul senaryoları](AIM_AND_FIRE_REWORK.md).
+
+Sıra: A1 kamera/girdi → A2 nişangâh/tek atış/dolum → A3 görünür balistik → A4 geri tepme/yüzey/ses → A5 doğrulama ve teslim. Mevcut M3.1 davranışını yeniler; hasar, delme/sekme tasarımı ve tank imhası bu işte yok. M1/M2 açık kabul maddeleri korunur; sürüş teslimi bu yenilemeye bağlanmaz. Bu tarihte yalnız belge hazırlandı, oyun testleri veya tarayıcı kabulü yapılmadı.

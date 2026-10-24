@@ -220,3 +220,18 @@ Kullanıcı arazi dokularının gerçekçi olmasını istedi. Dış varlık kull
 ## Next Step
 
 M1/M2 tarayıcı kabulü, gerçek GPU performans ölçümü ve insan görsel değerlendirmesi sürüyor. Farklı zemin türleri (çamur, çakıl, kaya) için malzeme ayrımı açık.
+
+## Kamera, nişan ve atış plan dosyası — 2026-10-24
+
+### Phase 19: Konuşma kararlarını mevcut prototiple eşleştir ve planı yaz
+**Status:** complete
+
+- `docs/AIM_AND_FIRE_REWORK.md`: onaylanan kontroller, uygulama yorumları, dosya sorumlulukları, A1–A5 sırası ve kabul senaryoları.
+- README, DECISIONS ve ROADMAP bağlantıları; hasar kapsam dışı, uygulama henüz başlamadı.
+
+### Phase 20: Belge kontrolleri ve Git teslim hazırlığı
+**Status:** complete
+
+## Next Step
+
+Belge kontrolleri tamamlandı; yalnız ilgili belgeleri commit edip origin/main'e push et. Sonraki uygulama adımı docs/AIM_AND_FIRE_REWORK.md içindeki A1 kamera/girdidir; bu belge görevinde oyun koduna başlanmayacak.

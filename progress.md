@@ -100,3 +100,11 @@
 - Kullanıcı isteğiyle arazi dokuları gerçekçileştirildi. `src/game/world/terrainSurfaceTextures.ts` içinde çalışma anında üretilen 1024² albedo, 1024² normal ve 256² ince detay dokusu eklendi; tümü sabit tohumlu ve dikişsiz.
 - Albedo toprak kümeleri, taş taneleri, seyrek çatlaklar ve kuru yaprak/dal artıkları taşır. Normal haritası aynı yükseklik alanından türetilir; detay katmanı farklı ölçekte örneklenerek 22 m'lik ana tekrar kırılır. Arazi düzgün normallerle gölgelenir; patika kenarı dünya gürültüsüyle düzensizleştirildi.
 - `npm run map:check`, `npm run map:test` ve `npm run map:build` geçti. Üç kur/temizle çevriminde yeni kaplamalar dahil tüm kaynaklar temizleniyor. Görsel kontrol Chromium headless/SwiftShader 1280 × 720'de yapıldı; [kanıt](docs/previews/terrain-surface.png). FPS ölçülmedi; insan görsel kabulü ve doku ayarı açık. M1/M2/M3 kabulü tamamlanmadı.
+
+## 2026-10-24 — Kamera, nişan ve atış yenileme planı
+
+- Konuşmadaki kontroller, görünür balistik ve hasarı sonraya bırakma kararı `docs/AIM_AND_FIRE_REWORK.md` içine aktarıldı.
+- Mevcut kamera/nişan/silah kaynakları okundu; A1–A5 uygulama sırası, girdi/odak güvenliği, otomatik ve tarayıcı kabul senaryoları yazıldı.
+- README belge haritası, DECISIONS ve ROADMAP güncellendi. Eski M3.1 kayıtları tarihsel olarak korundu; uygulandı iddiası eklenmedi.
+- Oyun kodu, paketler ve Blender/GLB değiştirilmedi. Oyun testleri ve tarayıcı incelemesi belge görevi için çalıştırılmadı.
+- Belge doğrulaması: 7 dosyada 33 yerel Markdown bağlantısı ve plandaki kaynak yolları geçerli; A1–A5/kapsam/kabul maddeleri mevcut. `git diff --check` geçti. Git teslimi için yalnız ilgili 7 Markdown dosyası seçildi.
