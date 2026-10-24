@@ -25,7 +25,7 @@ Bu belge mevcut M3.1 prototipinin yenilenmesini tarif eder. Hasar, mühimmat sı
 | Geri bildirim | Namlu geri tepmesi, kısa parlama/duman, hafif gövde tepkisi, kısa kamera darbesi, atış ve doldurma sesi, sade dolum göstergesi. |
 | Çarpma | Mermi ilk engele çarpar ve biter; yüzeye uygun görsel/ses geri bildirimi verilir. Hasar uygulanmaz. |
 
-Yakınlaşma ve geri dönüş kısa, yumuşak geçişlerdir. Yakın nişanda mevcut bakış yönü korunur; taret bu yöne fiziksel hız sınırlarıyla yönelir. Yakın nişanın mesafesi sabittir; bu teslimde dürbün veya kademeli yakın nişan zoom'u yoktur.
+Yakınlaşma ve geri dönüş kısa, yumuşak geçişlerdir. 2026-10-24 kullanıcı düzeltmesi: Yakın nişanda kamera gerçek taret/namlu yönüne döner ve onu izler; serbest bakış tareti yönlendirmez. Yakın nişanın mesafesi sabittir; bu teslimde dürbün veya kademeli yakın nişan zoom'u yoktur.
 
 ## Başlangıç ayarları ve uygulama yorumları
 

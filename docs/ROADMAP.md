@@ -132,3 +132,7 @@ Namlu dumanı, gövdeye küçük sabit adımlı darbe, niyet açısını değiş
 ### 2026-10-24 — MG 02 Blender varlığı
 
 Kullanıcı isteğiyle mevcut makineli dosyasına dokunmadan sıfırdan `iron_dust_mg_02` üretildi. 2.396 üçgen; ayrı yaw/yükseliş/geri tepme ve kamera/namlu referansları. GLB yeniden aktarımı ve 897 örnek duruşta tankla yüzey açıklığı doğrulandı; önizlemeler hazır. [Blender teslimi ve açık kontroller](../assets/weapons/iron_dust_mg_02/README.md). Dinamik kapak açılma doğrulaması ve oyun entegrasyonu açık; M1/M2/M3 kabulü tamamlanmadı.
+
+### 2026-10-24 — Yakın kamera taret yönü düzeltmesi
+
+Sağ tuşla yakın kamera gerçek namlu yönüne en kısa açıdan yumuşak döner; sağ omuz konumu taret yönünü izler. Bırakınca bağımsız serbest bakış geri gelir. `node --experimental-strip-types scripts/check-camera-turret-zoom.ts` gerçek GLB/Havok üzerinde yana/arkaya dönük taret, yükseliş, yakınken dönüş, bakışa geri dönüş, engel ve üç temizleme çevrimini geçti. `map:build` geçti; mevcut büyük paket uyarısı sürüyor. Tarayıcı kontrolünün sonucu görev ilerleme kaydında; M1/M2/M3 son kabulü açık.

@@ -2,7 +2,7 @@ import { FreeCamera, Vector3, type Scene } from '@babylonjs/core';
 import type { TankVehicle } from '../vehicle/TankVehicle.ts';
 import type { TurretController } from '../vehicle/TurretController.ts';
 
-/** Camera tuning in metres, radians and seconds; independent intent never follows gun lag. */
+/** Camera tuning in metres, radians and seconds; free look stays independent; close aim follows the real bore. */
 export const AIM_CAMERA = Object.freeze({ right: 2.6, back: 4.6, height: 1.1,
   transitionRate: 9, clearance: 0.4, sensitivity: 0.002, kick: 0.025 });
 export class FollowCamera {
@@ -55,15 +55,23 @@ export class FollowCamera {
   update(vehicle: TankVehicle, visualPosition: Vector3, dt: number, turret?: TurretController) {
     if (this.overviewMode) return;
     this.blend += ((this.aiming ? 1 : 0) - this.blend) * (1 - Math.exp(-dt * AIM_CAMERA.transitionRate));
-    const direction = this.direction;
+    const freeDirection = this.direction;
+    const bore = turret?.getMuzzleRay().direction;
+    // Blend angles over the shortest arc, including when free look faces backwards.
+    const aimYaw = bore ? Math.atan2(bore.x, bore.z) : this.yaw;
+    const yawDelta = Math.atan2(Math.sin(aimYaw - this.yaw), Math.cos(aimYaw - this.yaw));
+    const yaw = this.yaw + yawDelta * this.blend;
+    const aimPitch = bore ? Math.asin(Math.max(-1, Math.min(1, bore.y))) : this.pitch;
+    const pitch = this.pitch + (aimPitch - this.pitch) * this.blend;
+    const direction = new Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
     const anchor = visualPosition.add(new Vector3(0, 2.7, 0));
-    const normal = anchor.subtract(direction.scale(this.desiredRadius));
+    const normal = anchor.subtract(freeDirection.scale(this.desiredRadius));
     let close = normal;
     if (turret) {
       turret.yawPivot.computeWorldMatrix(true);
       const pivot = turret.yawPivot.getAbsolutePosition();
-      // Real world bore defines the turret's right side, irrespective of asset node names/handedness.
-      const forward = turret.getMuzzleRay().direction; forward.y = 0; forward.normalize();
+      // Keep the shoulder behind and to the right of the actual turret.
+      const forward = new Vector3(bore!.x, 0, bore!.z).normalize();
       const right = Vector3.Cross(Vector3.Up(), forward).normalize();
       close = pivot.add(right.scale(AIM_CAMERA.right)).subtract(forward.scale(AIM_CAMERA.back)).add(new Vector3(0, AIM_CAMERA.height, 0));
     }
