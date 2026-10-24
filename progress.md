@@ -1,5 +1,12 @@
 # İlerleme kaydı
 
+## 2026-10-24 — Makineli tüfek Blender planı
+
+- `docs/MACHINE_GUN_ASSET_PLAN.md` oluşturuldu; README belge haritasına eklendi.
+- Kullanıcının ikinci silah, sürüş sırasında POV, öne sınırlı dönüş ve izli mermi tercihleri; yerleşim, açı, bütçe ve efekt sıklığı önerilerinden ayrıldı.
+- Mevcut tank ve silah taslağını koruyan modelleme sırası, pivot hiyerarşisi, POV ve GLB teslim kontrolleri yazıldı. Kontrol listeleri gelecekteki uygulama içindir; henüz tamamlandı sayılmadı.
+- Model ve oyun kodu değiştirilmedi; M1/M2/M3 kabul durumu değişmedi.
+
 ## 2026-10-23 — Başlangıç adresi düzeltmesi
 
 - Eksik kök giriş dosyası nedeniyle oluşan 404 giderildi; `index.html` test haritasına yönlendirir.
