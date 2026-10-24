@@ -244,7 +244,7 @@ async function start() {
           projectiles!.spawn(shot.origin, shot.direction, IRON_DUST_01_WEAPON.ammo.muzzleVelocity);
           combatEffects!.muzzleFlash(shot.origin, shot.direction);
           followCamera.impulse();
-          vehicle!.body.applyImpulse(shot.direction.scale(-SHOT_FEEDBACK.hullImpulse), turret!.yawPivot.getAbsolutePosition());
+          vehicle!.body.applyImpulse(shot.direction.scale(-SHOT_FEEDBACK.hullImpulse), turret!.pitchPivot.getAbsolutePosition());
           if (!audio.muted) combatAudio?.shot();
           lastCombatResult = 'ATIŞ · UÇUYOR'; combatResultTime = 3;
         } else {

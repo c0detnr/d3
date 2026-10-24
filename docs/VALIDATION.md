@@ -135,3 +135,7 @@ Başlangıç hedefi, belirlenecek referans masaüstü cihazda 1920×1080 çözü
 - `npm run map:test` geçti: gerçek Havok ile görsel/fizik yüzey eşleşmesi, başlangıç düzlüğü, orman/patika yerleşimi ve deterministik kurulum korundu. Üç kur/temizle çevriminden sonra harita mesh, materyal, kaplama ve fizik gövdesi kalmadı; yeni albedo, normal ve detay kaplamaları da temizleniyor.
 - Chromium headless (SwiftShader), 1280 × 720, yerel Vite: varsayılan takip görünümü ve orman zemini yakın görünümünde toprak taneleri, taşlar, ince çatlaklar, kuru bitki artıkları ve mikro rölyef görüldü. Düz üçgen gölgeleri yerine düzgün zemin normalleri okundu. Konsolda uygulama hatası görülmedi.
 - [Görsel kanıt](previews/terrain-surface.png). Bu, yazılım renderer ile alınmış görsel kalite kontrolüdür; FPS veya performans ölçümü değildir. İnsan görsel kabulü, doku ölçek/yoğunluk ayarı, farklı zemin türleri ve gerçek GPU performansı açık.
+
+### 2026-10-24 — Gövde ve namlu geri tepmesi düzeltmesi
+
+Namlu, termal kılıf, siyah namlu ucu ve namlu ağzı referansı birlikte geri çekilir. Atış darbesi 16000 N·s ile namlu yükseliş pivotundan uygulanır; mevcut fiziksel süspansiyon öne/arkaya veya yana salınımı sönümler. `node --experimental-strip-types scripts/check-cannon-recoil.ts` gerçek GLB/Havok ile üç namlu yönü, parça bağlılığı, sıfırlama, darbe yönü, süspansiyon salınımı, üç saniyede durulma ve 30/60/120 FPS eşitliğini kontrol eder. M1/M2/M3 son kabulü açık kalır.

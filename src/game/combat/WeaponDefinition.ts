@@ -41,4 +41,4 @@ export const IRON_DUST_01_WEAPON: Readonly<WeaponDefinition> = Object.freeze({
 export const TRAINING_BALLISTICS = Object.freeze({ gravity: -9.81, maxRange: 900, maxAge: 8,
   trailSeconds: 0.025, trailLength: 4.5, diameter: 0.09 });
 
-export const SHOT_FEEDBACK = Object.freeze({ hullImpulse: 1100 }); // N·s
+export const SHOT_FEEDBACK = Object.freeze({ hullImpulse: 16000 }); // N·s

@@ -15,13 +15,11 @@ export class WeaponSystem {
   recoilOffset = 0;
   shotsFired = 0;
   private recoilVelocity = 0;
-  private readonly barrelBase: Vector3;
-  private readonly muzzleBase: Vector3;
+  private readonly recoilParts: { node: TurretController['barrel']; rest: Vector3 }[];
   constructor(turret: TurretController, definition: Readonly<WeaponDefinition> = IRON_DUST_01_WEAPON) {
     this.turret = turret;
     this.definition = definition;
-    this.barrelBase = turret.barrel.position.clone();
-    this.muzzleBase = turret.muzzle.position.clone();
+    this.recoilParts = turret.recoilParts.map(node => ({ node, rest: node.position.clone() }));
   }
   get ready() { return this.reloadRemaining <= 0; }
   get reloadFraction() {
@@ -55,12 +53,11 @@ export class WeaponSystem {
     this.applyRecoil();
   }
   private applyRecoil() {
-    this.turret.barrel.position.copyFrom(this.barrelBase);
-    this.turret.muzzle.position.copyFrom(this.muzzleBase);
-    this.turret.barrel.position.z -= this.recoilOffset;
-    this.turret.muzzle.position.z -= this.recoilOffset;
-    this.turret.barrel.computeWorldMatrix(true);
-    this.turret.muzzle.computeWorldMatrix(true);
+    for (const { node, rest } of this.recoilParts) {
+      node.position.copyFrom(rest);
+      node.position.z -= this.recoilOffset;
+      node.computeWorldMatrix(true);
+    }
   }
   reset() {
     this.reloadRemaining = 0;

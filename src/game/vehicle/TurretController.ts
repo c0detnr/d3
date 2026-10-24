@@ -11,6 +11,7 @@ export class TurretController {
   readonly pitchPivot: TransformNode;
   readonly barrel: TransformNode;
   readonly muzzle: TransformNode;
+  readonly recoilParts: readonly TransformNode[];
   readonly definition: Readonly<VehicleDefinition>;
   private readonly yawRest: Quaternion;
   private readonly pitchRest: Quaternion;
@@ -27,6 +28,8 @@ export class TurretController {
     };
     this.yawPivot = find('TurretPivot'); this.pitchPivot = find('GunPitchPivot');
     this.barrel = find('Barrel'); this.muzzle = find('MuzzlePoint');
+    // All four are siblings in the asset; sleeves and the muzzle cap must travel with the tube.
+    this.recoilParts = [this.barrel, find('ThermalSleeve'), find('MuzzleShroud'), this.muzzle];
     this.yawRest = this.yawPivot.rotationQuaternion?.clone() ?? Quaternion.FromEulerVector(this.yawPivot.rotation);
     this.pitchRest = this.pitchPivot.rotationQuaternion?.clone() ?? Quaternion.FromEulerVector(this.pitchPivot.rotation);
   }
