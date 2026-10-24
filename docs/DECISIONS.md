@@ -148,3 +148,12 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Kullanıcı kararı:** Mevcut geri tepme, ses ve duman başarılı kabul edilmez; yeniden tasarlanır. Kamera küçük ölçüde sallanabilir. Uygulama açıkça onaylandı.
 - **Uygulanan prototip ayarları:** 65 ms geri hareket + 720 ms sekmesiz dönüş; yönlü 16000 N·s gövde darbesi; nişan niyetini değiştirmeyen kısa kamera hareketi; ayrı gaz/parlama ve zemine bağlı basınç tozu; üç stereo prosedürel top sesi varyasyonu. Balistik ve hasar kapsamı genişletilmedi.
 - **Açık:** İnsan dinlemesi ve kullanıcının atış hissi kabulü. Geometriye bağlı yankı simülasyonu yok; ses kaydı eklenmedi. [Ayrıntılar](SHOT_FEEDBACK.md).
+
+## 2026-10-24 — Kül Vadisi harita ve model planı
+
+- **Kullanıcı kararı:** Üretilen kuşbakışı Kül Vadisi harita taslağı kullanılacak; harita ve model planı Markdown olarak kaydedilecek.
+- **Gerekçe:** Kullanıcı görsel taslağı beğendi ve bu haritanın kullanılmasını istedi.
+- **Öneriler:** 6'ya 6, 800 × 800 m, merkezde tek ele geçirme alanı, 30–45 saniye ilk karşılaşma hedefi ve 15 temel Blender çevre varlığından başlayan üretim sırası. Sayısal değerler ve model listesi kesinleşmiş kullanıcı kararları değildir.
+- **Açık:** Son ölçek, oyuncu sayısı, mod/yeniden doğma kuralları, varlık ölçüleri ve bütçeleri, görüş/erişim dengesi.
+- **Durum:** Gelecek çok oyunculu harita planı kaydedildi; kodlama, Blender üretimi ve ağ altyapısı başlatılmadı. Mevcut tek oyunculu MVP sırası ve açık kabul maddeleri korunur.
+- **Etkilenen belgeler:** [Harita ve Blender model planı](MAP_AND_MODEL_PLAN.md), README belge haritası; seçilen görsel `docs/previews/kul-vadisi-map-plan.png` olarak saklandı.
