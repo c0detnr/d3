@@ -4,6 +4,7 @@ import HavokPhysics from '@babylonjs/havok';
 import { HavokPlugin, MeshBuilder, NullEngine, PhysicsAggregate, PhysicsShapeType, Scene, Vector3 } from '@babylonjs/core';
 import { loadTankModel } from '../src/game/vehicle/loadTankModel.ts';
 import { TurretController } from '../src/game/vehicle/TurretController.ts';
+import { FixedStep } from '../src/game/core/fixedStep.ts';
 import { WeaponSystem } from '../src/game/combat/WeaponSystem.ts';
 import { IRON_DUST_01_WEAPON } from '../src/game/combat/WeaponDefinition.ts';
 import { ProjectileSystem, type ProjectileHit } from '../src/game/combat/ProjectileSystem.ts';
@@ -41,11 +42,12 @@ async function testWeapon() {
       const shot = weapon.fire();
       assert.ok(shot, 'first shot is ready');
       assert.ok(Vector3.Dot(shot!.direction, ray.direction) > 0.999999, 'shot follows the physical bore');
-      near(Vector3.Distance(shot!.origin, ray.origin), 0.35, 1e-6);
+      near(Vector3.Distance(shot!.origin, ray.origin), 0, 1e-6);
       assert.equal(weapon.shotsFired, 1);
       near(weapon.reloadRemaining, IRON_DUST_01_WEAPON.reloadSeconds);
       assert.equal(weapon.ready, false);
       assert.equal(weapon.fire(), undefined, 'cannot fire while reloading');
+      assert.equal(weapon.definition.reloadSeconds, 5);
       near(weapon.recoilOffset, IRON_DUST_01_WEAPON.recoilDistance);
       for (let i = 0; i < 18; i++) weapon.fixedUpdate(1 / 60);
       assert.ok(weapon.recoilOffset < IRON_DUST_01_WEAPON.recoilDistance, 'recoil starts returning');
@@ -59,6 +61,11 @@ async function testWeapon() {
       near(weapon.reloadFraction, 1);
       assert.ok(weapon.fire(), 'second shot after reload');
       assert.equal(weapon.shotsFired, 2);
+      weapon.reset(); weapon.fire();
+      for (let i = 0; i < 299; i++) weapon.fixedUpdate(1 / 60);
+      assert.equal(weapon.ready, false, 'before reload boundary');
+      weapon.fixedUpdate(1 / 60); assert.equal(weapon.ready, true, 'exact 5 s boundary');
+      assert.equal(weapon.shotsFired, 1, 'no queued early fire');
       weapon.reset();
       assert.equal(weapon.ready, true);
       assert.equal(weapon.shotsFired, 0);
@@ -99,11 +106,33 @@ function testProjectiles() {
   const projectiles = new ProjectileSystem(scene, raycast);
   try {
     // Semi-implicit gravity drop over one second of fixed steps.
-    const falling = projectiles.spawn(new Vector3(0, 100, -30), Vector3.Forward(), 900)!;
+    const falling = projectiles.spawn(new Vector3(0, 100, -30), Vector3.Forward(), 180)!;
     for (let i = 0; i < 60; i++) projectiles.fixedUpdate(1 / 60);
     const expectedDrop = 9.81 * (1 / 60) ** 2 * 60 * 61 / 2;
     near(100 - falling.position.y, expectedDrop, 0.05);
 
+    const positions = [30, 60, 120].map(fps => {
+      projectiles.reset(); const clock = new FixedStep();
+      const shot = projectiles.spawn(new Vector3(0, 100, -30), Vector3.Forward(), 180)!;
+      for (let frame = 0; frame < fps; frame++) {
+        const alpha = clock.advance(1 / fps, dt => projectiles.fixedUpdate(dt)); projectiles.render(alpha);
+      }
+      return shot.position.clone();
+    });
+    assert.deepEqual(positions[0], positions[1]); assert.deepEqual(positions[1], positions[2]);
+    for (const meters of [50, 150, 300]) {
+      projectiles.reset();
+      const shot = projectiles.spawn(new Vector3(0, 100, 0), Vector3.Forward(), 180)!;
+      while (shot.alive && shot.position.z < meters) projectiles.fixedUpdate(1 / 60);
+      assert.ok(100 - shot.position.y > (meters === 300 ? 13 : meters === 150 ? 3 : 0.3));
+    }
+    projectiles.reset();
+    for (let i = 0; i < projectiles.capacity; i++) assert.ok(projectiles.spawn(new Vector3(0, 500, 0), Vector3.Up(), 10));
+    assert.equal(projectiles.spawn(Vector3.Zero(), Vector3.Up(), 10), undefined);
+    for (let i = 0; i < 500; i++) projectiles.fixedUpdate(1 / 60);
+    assert.equal(projectiles.active.length, 0, 'age terminates slow shells');
+    assert.equal(projectiles.projectiles.length, projectiles.capacity);
+    projectiles.reset();
     // A 0.2 m thin plate must stop the shell; the swept query cannot tunnel past it.
     let impact: ProjectileHit | undefined;
     const shot = projectiles.spawn(new Vector3(0, 2.5, 0), Vector3.Forward(), 900)!;

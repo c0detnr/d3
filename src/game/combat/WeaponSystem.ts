@@ -17,7 +17,6 @@ export class WeaponSystem {
   private recoilVelocity = 0;
   private readonly barrelBase: Vector3;
   private readonly muzzleBase: Vector3;
-  private readonly spawnOffset = 0.35;
   constructor(turret: TurretController, definition: Readonly<WeaponDefinition> = IRON_DUST_01_WEAPON) {
     this.turret = turret;
     this.definition = definition;
@@ -39,12 +38,12 @@ export class WeaponSystem {
     this.shotsFired++;
     const ray = this.turret.getMuzzleRay();
     return {
-      origin: ray.origin.add(ray.direction.scale(this.spawnOffset)),
+      origin: ray.origin.clone(),
       direction: ray.direction.clone(),
     };
   }
   fixedUpdate(dt: number) {
-    if (this.reloadRemaining > 0) this.reloadRemaining = Math.max(0, this.reloadRemaining - dt);
+    if (this.reloadRemaining > 0) this.reloadRemaining = Math.max(0, this.reloadRemaining - dt < 1e-9 ? 0 : this.reloadRemaining - dt);
     const acceleration = -this.definition.recoilStiffness * this.recoilOffset
       - this.definition.recoilDamping * this.recoilVelocity;
     this.recoilVelocity += acceleration * dt;

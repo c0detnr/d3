@@ -21,7 +21,7 @@ import { VehicleAudio } from './game/audio/VehicleAudio.ts';
 import type { VehicleAudioSnapshot } from './game/audio/VehicleAudioModel.ts';
 import { WeaponSystem } from './game/combat/WeaponSystem.ts';
 import { ProjectileSystem } from './game/combat/ProjectileSystem.ts';
-import { ArmorRange, type ArmorResolution } from './game/combat/ArmorTarget.ts';
+import { ArmorRange } from './game/combat/ArmorTarget.ts';
 import { CombatEffects } from './game/combat/CombatEffects.ts';
 import { CombatInput } from './game/input/CombatInput.ts';
 import { IRON_DUST_01_WEAPON } from './game/combat/WeaponDefinition.ts';
@@ -62,14 +62,6 @@ const telemetry = document.querySelector<HTMLElement>('#telemetry')!;
 const ammoState = document.querySelector<HTMLElement>('#ammo-state')!;
 const rangeReadout = document.querySelector<HTMLElement>('#range-readout')!;
 const hitResult = document.querySelector<HTMLElement>('#hit-result')!;
-const faceLabel = { front: 'ön', rear: 'arka', left: 'sol', right: 'sağ', top: 'üst', bottom: 'alt' } as const;
-function formatCombat(resolution?: ArmorResolution) {
-  if (!resolution) return 'ENGEL · İlk cisim durdurdu';
-  const kind = resolution.result.kind === 'penetrated' ? 'DELDİ'
-    : resolution.result.kind === 'ricochet' ? 'SEKTİ' : 'DELMEDİ';
-  const part = resolution.part === 'hull' ? 'gövde' : 'kule';
-  return `${kind} · ${part} ${faceLabel[resolution.face]} · ${resolution.result.effectiveMm.toFixed(0)}/${resolution.result.penetrationMm.toFixed(0)} mm`;
-}
 function updateCombatHud() {
   if (!weapon) return;
   ammoState.textContent = weapon.ready
@@ -77,9 +69,8 @@ function updateCombatHud() {
     : `DOLUM · ${weapon.reloadRemaining.toFixed(1)} s`;
   rangeReadout.textContent = `${aim.rangeMeters.toFixed(0)} m`;
   hitResult.textContent = lastCombatResult;
-  hitResult.className = lastCombatResult.startsWith('DELDİ') ? 'penetrated'
-    : lastCombatResult.startsWith('SEKTİ') ? 'ricochet'
-    : lastCombatResult.startsWith('ENGEL') || lastCombatResult.startsWith('DELMEDİ') ? 'blocked' : '';
+  hitResult.className = '';
+  document.querySelector<HTMLProgressElement>('#reload-progress')!.value = weapon.reloadFraction;
 }
 function reset() {
   keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); movementEffects?.reset();
@@ -251,10 +242,10 @@ async function start() {
           lastCombatResult = 'DOLUM SÜRÜYOR'; combatResultTime = 1;
         }
       }
-      projectiles!.fixedUpdate(step, (hit, projectile) => {
-        const resolution = combatRange!.resolve(IRON_DUST_01_WEAPON.ammo, hit, projectile.velocity, projectile.traveled);
-        combatEffects!.impact(hit.point, hit.normal, !!resolution);
-        lastCombatResult = formatCombat(resolution);
+      projectiles!.fixedUpdate(step, (hit) => {
+        const metal = hit.body?.transformNode.metadata?.surface === 'metal';
+        combatEffects!.impact(hit.point, hit.normal, metal);
+        lastCombatResult = metal ? 'İSABET · METAL' : 'İSABET · TOPRAK';
         combatResultTime = 4;
       });
       combatEffects!.fixedUpdate(step);

@@ -15,7 +15,7 @@ export interface WeaponDefinition {
   recoilDistance: number;
   recoilStiffness: number;
   recoilDamping: number;
-  ammo: Readonly<AmmoDefinition>;
+  ammo: Readonly<{ id: string; label: string; muzzleVelocity: number; projectileMass: number }>;
 }
 
 export const IRON_DUST_01_AMMO: Readonly<AmmoDefinition> = Object.freeze({
@@ -30,9 +30,13 @@ export const IRON_DUST_01_AMMO: Readonly<AmmoDefinition> = Object.freeze({
 });
 
 export const IRON_DUST_01_WEAPON: Readonly<WeaponDefinition> = Object.freeze({
-  reloadSeconds: 6.5,
+  reloadSeconds: 5,
   recoilDistance: 0.42,
   recoilStiffness: 150,
   recoilDamping: 18,
-  ammo: IRON_DUST_01_AMMO,
+  ammo: Object.freeze({ id: 'training', label: 'DENEME', muzzleVelocity: 180, projectileMass: 7.1 }),
 });
+
+/** Deliberately readable training ballistics, not real ammunition performance. */
+export const TRAINING_BALLISTICS = Object.freeze({ gravity: -9.81, maxRange: 900, maxAge: 8,
+  trailSeconds: 0.025, trailLength: 4.5, diameter: 0.09 });

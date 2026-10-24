@@ -120,3 +120,7 @@ Sıra: A1 kamera/girdi → A2 nişangâh/tek atış/dolum → A3 görünür bali
 ### 2026-10-24 — Nişan yenileme A1
 
 Kamera ve girdi uygulandı: normal serbest bakış, sağ tuşta sağ yan yakın kamera, bırakınca yerel taret açısı tutma. `map:check`, `turret:test`, `combat:test` geçti; tarayıcı kabulü bekliyor. M1/M2/M3 son kabulü açık.
+
+### 2026-10-24 — Nişan yenileme A2–A3
+
+5 s dolum, tek basış atış, gerçek namlu ucundan hasarsız deneme mermisi, 180 m/s uçuş, kısa tracer, 900 m / 8 s sınırı uygulandı. Oyun akışı zırh çözümünü çağırmaz; eski zırh kodu/testleri korunur. `combat:test` ve `map:check` geçti; tarayıcıda uçuş okunabilirliği açık.

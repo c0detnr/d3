@@ -121,3 +121,9 @@
 - Tek CombatInput sahibi: sağ tuş hedef yetkisi, iki tuş birleşimi, erken atışın reddi, iptal/odak/görünürlük/Esc temizliği. Normal fare hareketi serbest bakış; Alt/C zorunluluğu kaldırıldı.
 - Tek sağ yan / normal kamera; tank görünür, niyet ve fiziksel taret birbirinden bağımsız. Kamera hacmi için beş ışın ve geçiş süpürmesi. Namlu kamerası ve dürbün katmanı kaldırıldı.
 - `map:check`, `turret:test`, `combat:test` geçti. Gerçek GLB üzerinde bırakınca yerel açı tutma ve gövdeyle taşınma eklendi. Tarayıcı ve engel geometrisi kabulü sonraki doğrulamada.
+
+## 2026-10-24 — A2–A3 atış ve balistik
+
+- 5 s dolum ve HUD çubuğu; olay anında reddedilen dolum tıklaması. Mermi 35 cm ileriden değil gerçek GLB namlu ucundan çıkar.
+- Hasarsız deneme mermisi: 180 m/s, −9,81 m/s², 900 m/8 s ömür. En fazla 8 mermi ve 4,5 m / 25 ms iz; render interpolasyonu. Oyun eski delme/sekme çözümünü çağırmaz; tarihsel kod/testler korunur.
+- `combat:test` ve `map:check` geçti; 50/150/300 m düşüş, 30/60/120 FPS eşitliği, dolum sınırı, havuz/ömür ve ince plaka/ilk engel kontrolleri.

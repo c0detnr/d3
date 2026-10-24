@@ -1,5 +1,7 @@
 import { Color3, MeshBuilder, Quaternion, StandardMaterial, Vector3, type Mesh, type PhysicsBody, type Scene } from '@babylonjs/core';
 
+import { TRAINING_BALLISTICS } from './WeaponDefinition.ts';
+
 export interface ProjectileHit {
   point: Vector3;
   normal: Vector3;
@@ -18,9 +20,6 @@ export interface ProjectileState {
 
 export type ProjectileRaycast = (from: Vector3, to: Vector3) => ProjectileHit | undefined;
 
-const GRAVITY = -9.81;
-const MAX_RANGE = 2500;
-const TARGET_TRAIL = 7;
 
 /** Kinematic projectiles: no rigid body per shell, swept segment queries prevent tunnelling. */
 export class ProjectileSystem {
@@ -39,7 +38,7 @@ export class ProjectileSystem {
     this.material.emissiveColor = new Color3(1, 0.72, 0.28);
     this.tracers = Array.from({ length: capacity }, (_, index) => {
       const tracer = MeshBuilder.CreateCylinder(`projectile-tracer-${index}`,
-        { height: TARGET_TRAIL, diameter: 0.11, tessellation: 6 }, scene);
+        { height: 1, diameter: TRAINING_BALLISTICS.diameter, tessellation: 6 }, scene);
       tracer.material = this.material;
       tracer.rotationQuaternion = Quaternion.Identity();
       tracer.isPickable = false;
@@ -70,8 +69,9 @@ export class ProjectileSystem {
       if (!projectile.alive) continue;
       projectile.previous.copyFrom(projectile.position);
       projectile.age += dt;
-      projectile.velocity.y += GRAVITY * dt;
-      const to = projectile.position.add(projectile.velocity.scale(dt));
+      projectile.velocity.y += TRAINING_BALLISTICS.gravity * dt;
+      const distance = Math.min(projectile.velocity.length() * dt, TRAINING_BALLISTICS.maxRange - projectile.traveled);
+      const to = projectile.position.add(projectile.velocity.normalizeToNew().scale(distance));
       const hit = this.raycast(projectile.position, to);
       if (hit) {
         projectile.position.copyFrom(hit.point);
@@ -82,7 +82,7 @@ export class ProjectileSystem {
       }
       projectile.position.copyFrom(to);
       projectile.traveled += projectile.position.subtract(projectile.previous).length();
-      if (projectile.traveled > MAX_RANGE || projectile.position.y < -60) projectile.alive = false;
+      if (projectile.traveled >= TRAINING_BALLISTICS.maxRange || projectile.age >= TRAINING_BALLISTICS.maxAge || projectile.position.y < -60) projectile.alive = false;
     }
   }
   render(alpha: number) {
@@ -91,7 +91,11 @@ export class ProjectileSystem {
       tracer.isVisible = projectile.alive;
       if (!projectile.alive) return;
       Vector3.LerpToRef(projectile.previous, projectile.position, alpha, tracer.position);
-      Quaternion.FromUnitVectorsToRef(Vector3.Up(), projectile.velocity.normalizeToNew(), tracer.rotationQuaternion!);
+      const direction = projectile.velocity.normalizeToNew();
+      const length = Math.min(TRAINING_BALLISTICS.trailLength, projectile.velocity.length() * TRAINING_BALLISTICS.trailSeconds, projectile.traveled);
+      tracer.scaling.y = length;
+      tracer.position.subtractInPlace(direction.scale(length / 2));
+      Quaternion.FromUnitVectorsToRef(Vector3.Up(), direction, tracer.rotationQuaternion!);
     });
   }
   reset() {

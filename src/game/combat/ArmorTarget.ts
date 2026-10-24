@@ -28,6 +28,7 @@ export class ArmorPart {
     this.inverseYaw = yaw.clone();
     this.inverseYaw.conjugate();
     this.mesh = MeshBuilder.CreateBox(name, { width: size.x, height: size.y, depth: size.z }, scene);
+    this.mesh.metadata = { surface: 'metal' };
     this.mesh.position.copyFrom(position);
     this.mesh.rotationQuaternion = yaw.clone();
     this.mesh.material = material;

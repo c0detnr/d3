@@ -4,3 +4,4 @@
 #sound-volume{width:100%;margin:8px 0 2px;accent-color:#bdab8b}#audio-status{font-size:11px;color:#afb5a7;margin:0 0 8px}
 #combat-hud{position:absolute;left:24px;bottom:24px;z-index:3;display:flex;gap:18px;align-items:center;padding:10px 16px;background:#252b27e6;border-left:3px solid #bdab8b;border-radius:3px;font:11px/1.2 monospace;letter-spacing:1px;pointer-events:none}
 #ammo-state{color:#d5c7ab;min-width:130px}#range-readout{color:#eee8db}#hit-result{color:#eee8db;min-width:150px}#hit-result.penetrated{color:#f5c56b}#hit-result.ricochet{color:#9fc7e8}#hit-result.blocked{color:#c7c2b5}
+#reload-progress{width:72px;height:5px;accent-color:#d5c7ab}
