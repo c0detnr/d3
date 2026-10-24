@@ -1,5 +1,13 @@
 # İlerleme kaydı
 
+## 2026-10-24 — Silah ve taret planı
+
+- Kullanıcı plan istedi; önceliğini nişan/atış hissi, taret, stabilizasyon ve geri tepme olarak belirledi.
+- Mevcut prototip kaynakları incelendi. Hedefe bakan nişancı kamerası ile gerçek namlu farkı ve namlu önündeki 0,35 m başlangıç boşluğu W1 doğrulama konuları olarak kaydedildi.
+- `docs/WEAPON_TURRET_PLAN.md`: mevcut temel, W1–W3 teslimleri, sonraki W4 hasar önerisi, kod bağlantıları ve kabul senaryoları. README, kararlar, yol haritası ve görev kaydı bağlandı.
+- Belge kontrolü: altı dosyada 35 yerel bağlantı geçerli; diff boşluk kontrolü geçti.
+- Oyun kodu ve varlıklar değiştirilmedi; oyun testleri/tarayıcı kabulü bu planlama görevinde çalıştırılmadı. M1/M2/M3 kabul durumu değişmedi.
+
 ## 2026-10-23 — Başlangıç adresi düzeltmesi
 
 - Eksik kök giriş dosyası nedeniyle oluşan 404 giderildi; `index.html` test haritasına yönlendirir.

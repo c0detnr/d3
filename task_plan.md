@@ -1,5 +1,12 @@
 # IRON DUST — Başlangıç belgeleri
 
+## Silah ve taret planı — 2026-10-24
+
+- Mevcut tasarım/kararlar, taret, nişancı görüşü, atış ve balistik kaynak incelemesi: tamamlandı.
+- Kullanıcı önceliği: nişan ve atış hissi; taret, stabilizasyon, geri tepme.
+- W1 nişan/engel → W2 stabilizasyon → W3 atış hissi/ses planı ve kabul koşulları: tamamlandı; [plan](docs/WEAPON_TURRET_PLAN.md).
+- Uygulama yapılmadı. W4 hasar/modüller sonraki kapsam önerisi; M1/M2/M3 kabulü açık.
+
 ## Git kurulumu — 2026-10-23
 
 - Depo/hesap incelemesi: complete. Yerel Git deposu ve `c0detnr/d3` uzak deposu yok; GitHub hesabı Emirix.

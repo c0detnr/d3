@@ -61,6 +61,8 @@ Kabul koşulları:
 
 ## Kapsam kontrolü
 
+2026-10-24 silah/taret planı: Kullanıcı önceliği nişan ve atış hissi (taret, stabilizasyon, geri tepme). Önerilen sıra W1 nişan/engel tutarlılığı → W2 taret/stabilizasyon → W3 atış hissi/ses. W4 hasar/modüller sonraki kapsam önerisidir. [Ayrıntılar ve kabul koşulları](WEAPON_TURRET_PLAN.md). Bu çalışma yalnızca plandır; M1/M2/M3 kabul durumu değişmedi.
+
 Multiplayer, mağaza, geniş araç listesi, dev haritalar ve kapsamlı yapı yıkımı planın dışında. M3 için düşman AI zorunlu değil. Her aşama sonunda ancak tespit edilen ihtiyaçlar sonraki plana alınır.
 
 ### 2026-10-23 — Basit test alanı kanıtı

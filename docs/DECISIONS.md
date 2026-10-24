@@ -1,5 +1,14 @@
 # Kararlar ve açık konular
 
+## 2026-10-24 — Silah ve taret geliştirme planı
+
+- **Kullanıcı isteği:** Silah ve taret sistemini geliştirmek için plan yap.
+- **Kullanıcı önceliği:** Nişan ve atış hissi; taret, stabilizasyon ve geri tepme.
+- **Önerilen sıra:** W1 nişancı görüşü/gerçek namlu ayrımı ve yakın engel → W2 mekanik sınırlar içinde stabilizasyon → W3 geri tepme, dolum geri bildirimi ve mevcut ses planına bağlı servo/top/isabet sesleri.
+- **Sonraki kapsam önerisi:** W4 hasar ve modüller; ilk teslimlere dahil değil. İlk M3.1 için hasar eklememe kararı korunuyor.
+- **Açık:** Stabilizasyon gücü, taret ivmesi ihtiyacı, zoom/hassasiyet ve sarsıntı ayarları; namlu engelin içindeyken ateşi engelleme davranışı teknik öneridir.
+- **Belge:** [Silah ve taret geliştirme planı](WEAPON_TURRET_PLAN.md). Bu görevde oyun kodu değişmedi; M1/M2/M3 kabulü açık.
+
 ## Kullanıcı tarafından belirlenen kararlar — 2026-10-23
 
 | Konu | Karar |

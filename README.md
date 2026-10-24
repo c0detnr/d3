@@ -25,6 +25,7 @@ Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağ�
 | [Görsel yön](docs/ART_DIRECTION.md) | Palet, ışık, tank, çevre ve varlık standardı |
 | [Hareket efektleri planı](docs/MOVEMENT_EFFECTS.md) | Palet/hız/dönüş tozu uygulaması; fren/iniş ve sonraki efektlerin planı |
 | [Ses sistemi planı](docs/SOUND_DESIGN.md) | Prosedürel motor/palet/rüzgâr sesleri, savaş sesleri, mimari ve doğrulama |
+| [Silah ve taret planı](docs/WEAPON_TURRET_PLAN.md) | Nişan/engel tutarlılığı, stabilizasyon, geri tepme ve ses; sonraki hasar kapsamı |
 | [Tank modelleme standardı](docs/TANK_ASSET.md) | Blender parça hiyerarşisi, hareket hazırlığı, üçgen hedefi ve teslim önerisi |
 | [Teknik mimari](docs/ARCHITECTURE.md) | Seçilen yığın, sistem sınırları ve fizik yaklaşımı |
 | [Yol haritası](docs/ROADMAP.md) | M1 dünya → M2 sürüş → M3 savaş |
