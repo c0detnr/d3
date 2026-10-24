@@ -272,8 +272,12 @@ async function start() {
         const shot = weapon!.fire();
         if (shot) {
           projectiles!.spawn(shot.origin, shot.direction, IRON_DUST_01_WEAPON.ammo.muzzleVelocity);
-          combatEffects!.muzzleFlash(shot.origin, shot.direction);
-          followCamera.impulse();
+          const ground = scene.getPhysicsEngine()!.raycast(shot.origin,
+            shot.origin.add(new Vector3(0, -4.5, 0)), { ignoreBody: vehicle!.body });
+          combatEffects!.muzzleFlash(shot.origin, shot.direction,
+            ground.hasHit && ground.body?.transformNode.name === 'natural-terrain'
+              ? { point: ground.hitPointWorld.clone(), normal: ground.hitNormalWorld.clone() } : undefined);
+          followCamera.impulse(shot.direction);
           vehicle!.body.applyImpulse(shot.direction.scale(-SHOT_FEEDBACK.hullImpulse), turret!.pitchPivot.getAbsolutePosition());
           if (!audio.muted) combatAudio?.shot();
           lastCombatResult = 'ATIŞ · UÇUYOR'; combatResultTime = 3;
@@ -305,6 +309,7 @@ async function start() {
     visual.render(vehicle, alpha);
     movementEffects!.render(alpha);
     turret!.render(alpha);
+    weapon!.render(alpha);
     projectiles!.render(alpha);
     mgProjectiles!.render(alpha);
     combatEffects!.render(alpha);

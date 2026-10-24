@@ -1,10 +1,11 @@
 import { FreeCamera, Vector3, type Scene } from '@babylonjs/core';
+import { ShotCameraMotion } from './ShotCameraMotion.ts';
 import type { TankVehicle } from '../vehicle/TankVehicle.ts';
 import type { TurretController } from '../vehicle/TurretController.ts';
 
 /** Camera tuning in metres, radians and seconds; free look stays independent; close aim follows the real bore. */
 export const AIM_CAMERA = Object.freeze({ right: 2.6, back: 4.6, height: 1.1,
-  transitionRate: 9, clearance: 0.4, sensitivity: 0.002, kick: 0.025 });
+  transitionRate: 9, clearance: 0.4, sensitivity: 0.002 });
 export class FollowCamera {
   readonly camera: FreeCamera;
   private yaw = 0;
@@ -12,7 +13,7 @@ export class FollowCamera {
   private desiredRadius = 15;
   private overviewMode = false;
   private blend = 0;
-  private kick = 0;
+  private readonly shotMotion = new ShotCameraMotion();
   private positioned = false;
   aiming = false;
   get isOverview() { return this.overviewMode; }
@@ -34,9 +35,12 @@ export class FollowCamera {
     e.preventDefault();
     if (!this.aiming) this.desiredRadius = Math.max(7, Math.min(32, this.desiredRadius + e.deltaY * 0.015));
   };
-  follow() { this.overviewMode = false; this.yaw = 0; this.pitch = -0.09; this.aiming = false; this.blend = 0; this.kick = 0; this.desiredRadius = 15; this.positioned = false; }
+  follow() { this.overviewMode = false; this.yaw = 0; this.pitch = -0.09; this.aiming = false; this.blend = 0; this.shotMotion.reset(); this.desiredRadius = 15; this.positioned = false; }
   overview() { this.overviewMode = true; this.aiming = false; this.camera.position.set(0, 120, -130); this.camera.setTarget(Vector3.Zero()); }
-  impulse() { this.kick = AIM_CAMERA.kick; }
+  impulse(direction = this.direction) {
+    const right = Vector3.Cross(Vector3.Up(), this.direction).normalize();
+    this.shotMotion.impulse(Vector3.Dot(direction, right));
+  }
   /** Five offset rays approximate the camera volume; sweep the transition as well as the boom. */
   private safePosition(from: Vector3, to: Vector3, vehicle: TankVehicle) {
     const direction = to.subtract(from), length = direction.length();
@@ -86,9 +90,12 @@ export class FollowCamera {
       safe = this.safePosition(this.camera.position, safe, vehicle);
     }
     this.camera.position.copyFrom(safe); this.positioned = true;
-    this.kick *= Math.exp(-dt * 20);
-    const view = new Vector3(direction.x, direction.y + this.kick, direction.z).normalize();
+    const motion = this.shotMotion.update(dt);
+    const right = Vector3.Cross(Vector3.Up(), direction).normalize();
+    const up = Vector3.Cross(direction, right).normalize();
+    const view = direction.add(up.scale(motion.pitch)).add(right.scale(motion.yaw)).normalize();
     this.camera.setTarget(safe.add(view.scale(800)));
+    this.camera.rotation.z = motion.roll;
   }
   dispose() { this.canvas.removeEventListener('wheel', this.wheel); this.camera.dispose(); }
 }

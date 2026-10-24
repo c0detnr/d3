@@ -127,3 +127,7 @@ Her adım sonunda ilgili otomatik kontroller, tarayıcı dinlemesi ve mümkünse
 | Dinleme referansı (hoparlör/kulaklık) ve hedef cihaz | S1 dinlemesi |
 | Reverb/oda hissi: kapalı alan yokken ne kadar? | S1–S2 ayarı |
 | Müzik ve ambiyans derinliği | MVP sonrası |
+
+## 2026-10-24 — Top raporunun yenilenmesi
+
+Top atışı, üç kısa ton yerine başlangıçta üretilen üç farklı stereo buffer üzerinden çalışır: keskin rapor, basınç gövdesi, sessiz mekanik katman ve yaygın sönüm. Tek kaynak mevcut ses grafiğine/limitere bağlanır; buffer üretimi atış döngüsünde yapılmaz. Dolum tamamlanma sesi de gürültü tabanlı mekanik katmanlarla yenilendi. Kaynak/lisans: bu proje için kodla üretildi; dış ses dosyası yok. Dalga biçimi/havuz kontrolleri geçti; insan dinlemesi açık. [Ayrıntılar](SHOT_FEEDBACK.md).

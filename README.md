@@ -23,6 +23,7 @@ Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağ�
 | [AGENTS.md](AGENTS.md) | Projede çalışan ajanların kuralları |
 | [Oyun tasarımı](docs/GAME_DESIGN.md) | Kimlik, oyuncu deneyimi ve kapsam |
 | [Görsel yön](docs/ART_DIRECTION.md) | Palet, ışık, tank, çevre ve varlık standardı |
+| [Top atışı geri bildirimi](docs/SHOT_FEEDBACK.md) | Yeni namlu hareketi, küçük kamera sarsıntısı, gaz/toz ve stereo top sesi; insan kabulü açık |
 | [Hareket efektleri planı](docs/MOVEMENT_EFFECTS.md) | Palet/hız/dönüş tozu uygulaması; fren/iniş ve sonraki efektlerin planı |
 | [Kamera, nişan ve atış yenileme planı](docs/AIM_AND_FIRE_REWORK.md) | Sağ tuşla sağ yan yakın kamera, bağımsız serbest bakış ve görünür balistik; henüz uygulanmadı |
 | [Ses sistemi planı](docs/SOUND_DESIGN.md) | Prosedürel motor/palet/rüzgâr sesleri, savaş sesleri, mimari ve doğrulama |

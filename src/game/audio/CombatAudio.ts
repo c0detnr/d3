@@ -1,3 +1,4 @@
+import { createCannonBlast } from './cannonBlast.ts';
 import { createNoiseBuffer } from './proceduralAudio.ts';
 import { IMPACT_FEEDBACK, type ImpactSurface } from '../combat/ImpactSurface.ts';
 
@@ -7,6 +8,8 @@ export class CombatAudio {
   private readonly context: BaseAudioContext;
   private readonly output: AudioNode;
   private readonly noise: AudioBuffer;
+  private readonly blasts: AudioBuffer[];
+  private shotIndex = 0;
   private readonly voices: Voice[] = [];
   private disposed = false;
   readonly capacity = 12;
@@ -14,6 +17,7 @@ export class CombatAudio {
   constructor(context: BaseAudioContext, output: AudioNode) {
     this.context = context; this.output = output;
     this.noise = createNoiseBuffer(context, 1, 7153);
+    this.blasts = [7153, 9401, 12647].map(seed => createCannonBlast(context, seed));
   }
   private tone(frequency: number, seconds: number, level: number, noise: boolean, pan = 0) {
     if (this.disposed) return;
@@ -33,12 +37,23 @@ export class CombatAudio {
     source.start(now); source.stop(now + seconds + 0.02);
   }
   shot() {
-    this.tone(1900, 0.34, 0.65, true);
-    this.tone(95, 0.45, 0.5, false);
-    this.tone(800, 0.12, 0.13, true);
+    if (this.disposed) return;
+    if (this.voices.length >= this.capacity) this.release(this.voices[0]);
+    const ctx = this.context, now = ctx.currentTime;
+    const source = ctx.createBufferSource();
+    const buffer = this.blasts[this.shotIndex++ % this.blasts.length];
+    source.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass'; filter.frequency.value = 32; filter.Q.value = 0.7;
+    const gain = ctx.createGain(); gain.gain.value = 0.95;
+    const pan = ctx.createStereoPanner(); pan.pan.value = 0;
+    source.connect(filter); filter.connect(gain); gain.connect(pan); pan.connect(this.output);
+    const voice = { source, filter, gain, pan }; this.voices.push(voice);
+    source.onended = () => this.release(voice);
+    source.start(now); source.stop(now + buffer.length / ctx.sampleRate);
   }
   machineGunShot() { this.tone(2400, 0.065, 0.24, true); this.tone(160, 0.07, 0.12, false); }
-  reload() { this.tone(1300, 0.14, 0.16, true); this.tone(430, 0.1, 0.08, false); }
+  reload() { this.tone(1600, 0.085, 0.13, true); this.tone(320, 0.12, 0.16, true); }
   impact(surface: ImpactSurface, distance: number, pan: number) {
     const feedback = IMPACT_FEEDBACK[surface];
     const attenuation = 1 / (1 + Math.max(0, distance) / 45);

@@ -144,3 +144,7 @@ Namlu, termal kılıf, siyah namlu ucu ve namlu ağzı referansı birlikte geri 
 ### 2026-10-24 — MG02 oyun entegrasyonu kanıtı
 
 MG02 gerçek GLB ile kuleye monte edildi. 2/1 POV/tank seçimi, sınırlı fare nişanı, sürerken sol tuşla otomatik atış, tracer/namlu alevi/ses ve kaynak temizliği uygulandı. `npm run mg:test`, taret/giriş kontrolleri ve `npm run map:build` geçti. Derlenmiş Chromium'da POV, seri ateş sayacı, sürüş ve tank moduna dönüş görüldü; sayfa hatası yok. Hasar/ısınma/mühimmat stokları açık, genel M1/M2/M3 kabulü tamamlanmış sayılmaz.
+
+### 2026-10-24 — Top atışı hissi yenilemesi
+
+Kullanıcı onayıyla hızlı geri çekilen/sekmesiz dönen namlu, yönlü gövde darbesi, küçük sönümlü kamera sarsıntısı, ayrı parlama/gaz dokuları, kısa namlu ışığı, zemine bağlı basınç tozu ve üç varyasyonlu stereo prosedürel top sesi uygulandı. [Ayarlar ve sınırlar](SHOT_FEEDBACK.md). `combat:test`, `audio:test`, `map:build`, kamera regresyonu, `drive:test`, `effects:test` ve `npm test` geçti. Yakın/normal atış tarayıcıda incelendi; insan dinlemesi ve son atış hissi kabulü açık. M1/M2/M3 tamamlandı sayılmaz.

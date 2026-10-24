@@ -142,3 +142,9 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Kullanıcı kararı:** 2 makineli tüfek POV; sol tık ateş; 1 normal tank moduna dönüş. Önceki tercih: POV sırasında sürüş ve öne sınırlı yönlendirme.
 - **Uygulama tercihi:** Basılı sol tuşla seri ateş; MG02 mevcut kuleye bağlı, ±60° yatay ve −10°…+45° yükseliş. 600 atım/dakika, 320 m/s, 600 m menzil, her mermide kısa tracer ilk deneme ayarlarıdır.
 - **Açık:** Son ateş hızı, kalibre, hasar, ısınma, mühimmat sınırı ve iz sıklığı; bu teslimde stok/hasar uygulanmadı.
+
+## 2026-10-24 — Atış hissi yenilemesi
+
+- **Kullanıcı kararı:** Mevcut geri tepme, ses ve duman başarılı kabul edilmez; yeniden tasarlanır. Kamera küçük ölçüde sallanabilir. Uygulama açıkça onaylandı.
+- **Uygulanan prototip ayarları:** 65 ms geri hareket + 720 ms sekmesiz dönüş; yönlü 4200 N·s gövde darbesi; nişan niyetini değiştirmeyen kısa kamera hareketi; ayrı gaz/parlama ve zemine bağlı basınç tozu; üç stereo prosedürel top sesi varyasyonu. Balistik ve hasar kapsamı genişletilmedi.
+- **Açık:** İnsan dinlemesi ve kullanıcının atış hissi kabulü. Geometriye bağlı yankı simülasyonu yok; ses kaydı eklenmedi. [Ayrıntılar](SHOT_FEEDBACK.md).

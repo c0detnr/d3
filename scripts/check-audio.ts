@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createCannonBlast } from '../src/game/audio/cannonBlast.ts';
 import { CombatAudio } from '../src/game/audio/CombatAudio.ts';
 import { IRON_DUST_AUDIO } from '../src/game/audio/AudioDefinition.ts';
 import { AudioSystem } from '../src/game/audio/AudioSystem.ts';
@@ -114,8 +115,9 @@ const fakeContext = () => {
       return node({ type: 'lowpass', frequency: param(), Q: param(), gain: param() });
     },
     createStereoPanner() { counters.created++; return node({ pan: param() }); },
-    createBuffer(_channels: number, length: number, sampleRate: number) {
-      return { getChannelData: () => new Float32Array(length), length, sampleRate };
+    createBuffer(channels: number, length: number, sampleRate: number) {
+      const data = Array.from({ length: channels }, () => new Float32Array(length));
+      return { getChannelData: (channel: number) => data[channel], length, sampleRate };
     },
     suspend() { counters.suspends++; context.state = 'suspended'; return Promise.resolve(); },
     resume() { counters.resumes++; context.state = 'running'; return Promise.resolve(); },
@@ -143,8 +145,8 @@ assert.ok(fake.counters.resumes > 0, 'Ses açılınca bağlam devam etmeli');
 const graph = system.graph!;
 for (let cycle = 0; cycle < 3; cycle++) {
   const combat = new CombatAudio(graph.context, graph.output);
-  combat.shot(); assert.equal(combat.activeVoices, 3);
-  combat.reload(); assert.equal(combat.activeVoices, 5);
+  combat.shot(); assert.equal(combat.activeVoices, 1);
+  combat.reload(); assert.equal(combat.activeVoices, 3);
   combat.impact('soil', 50, 0); combat.impact('concrete', 150, -1); combat.impact('metal', 300, 1);
   for (let i = 0; i < 100; i++) combat.shot();
   assert.equal(combat.activeVoices, combat.capacity, 'combat voices bounded');
@@ -162,3 +164,22 @@ system.dispose();
 assert.equal(fake.counters.closed, true, 'AudioContext kapatılmalı');
 
 console.log('Ses kontrolleri geçti: eşleme sınırları, palet hızı/yön/dönüş, hava, model sıfırlama, ses grafiği kur/kapat ve kaynak temizliği.');
+
+for (const rate of [44100, 48000]) {
+  const ctx = fakeContext().context;
+  Object.defineProperty(ctx, 'sampleRate', { value: rate });
+  const buffer = createCannonBlast(ctx, 7153);
+  const left = buffer.getChannelData(0), right = buffer.getChannelData(1);
+  assert.equal(left.length, Math.ceil(rate * 1.65));
+  assert.notDeepEqual(left.slice(2000, 2200), right.slice(2000, 2200), 'diffuse stereo channels');
+  const rms = (a: number, b: number) => {
+    const samples = left.slice(Math.floor(a * rate), Math.floor(b * rate));
+    return Math.sqrt(samples.reduce((sum, n) => sum + n * n, 0) / samples.length);
+  };
+  assert.ok(rms(0, 0.1) > rms(0.3, 0.5) * 2, 'sharp report has a quieter decay');
+  assert.ok(rms(0.3, 0.5) > rms(1.4, 1.6) * 10, 'tail settles');
+  assert.ok(left.every(n => Number.isFinite(n) && Math.abs(n) <= 0.881), 'finite unclipped waveform');
+  assert.ok(Math.abs(left.reduce((sum, n) => sum + n, 0) / left.length) < 0.001, 'no DC offset');
+  assert.ok(Math.abs(left[left.length - 1]) < 0.0001, 'no truncated tail click');
+}
+console.log('Cannon audio: stereo waveform, report/decay balance, unclipped peak, DC and tail at 44.1/48 kHz passed.');

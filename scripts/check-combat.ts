@@ -4,11 +4,14 @@ import HavokPhysics from '@babylonjs/havok';
 import { HavokPlugin, MeshBuilder, NullEngine, PhysicsAggregate, PhysicsShapeType, Scene, Vector3 } from '@babylonjs/core';
 import { loadTankModel } from '../src/game/vehicle/loadTankModel.ts';
 import { TurretController } from '../src/game/vehicle/TurretController.ts';
-import { CombatEffects } from '../src/game/combat/CombatEffects.ts';
+import { ShotCameraMotion } from '../src/game/camera/ShotCameraMotion.ts';
+import { CombatEffects, COMBAT_PARTICLE_CAPACITY } from '../src/game/combat/CombatEffects.ts';
 import { impactSurface } from '../src/game/combat/ImpactSurface.ts';
 import { FixedStep } from '../src/game/core/fixedStep.ts';
+import { TankVehicle } from '../src/game/vehicle/TankVehicle.ts';
+import { extractTankRig } from '../src/game/vehicle/tankRig.ts';
 import { WeaponSystem } from '../src/game/combat/WeaponSystem.ts';
-import { IRON_DUST_01_WEAPON } from '../src/game/combat/WeaponDefinition.ts';
+import { IRON_DUST_01_WEAPON, SHOT_FEEDBACK } from '../src/game/combat/WeaponDefinition.ts';
 import { ProjectileSystem, type ProjectileHit } from '../src/game/combat/ProjectileSystem.ts';
 import { effectiveArmorMm, penetrationAtRangeMm, resolveArmor } from '../src/game/combat/ArmorModel.ts';
 import { ArmorRange } from '../src/game/combat/ArmorTarget.ts';
@@ -50,7 +53,21 @@ async function testWeapon() {
       assert.equal(weapon.ready, false);
       assert.equal(weapon.fire(), undefined, 'cannot fire while reloading');
       assert.equal(weapon.definition.reloadSeconds, 5);
-      near(weapon.recoilOffset, IRON_DUST_01_WEAPON.recoilDistance);
+      near(weapon.recoilOffset, 0);
+      let last = 0;
+      for (let i = 0; i < 4; i++) {
+        weapon.fixedUpdate(1 / 60);
+        assert.ok(weapon.recoilOffset >= last && weapon.recoilOffset <= weapon.definition.recoilDistance);
+        last = weapon.recoilOffset;
+      }
+      assert.ok(last > weapon.definition.recoilDistance * 0.99, 'fast rearward stroke');
+      for (let i = 0; i < 60; i++) {
+        weapon.fixedUpdate(1 / 60);
+        assert.ok(weapon.recoilOffset >= 0 && weapon.recoilOffset <= last, 'return never bounces');
+        last = weapon.recoilOffset;
+      }
+      near(last, 0);
+      weapon.reset(); weapon.fire();
       for (let i = 0; i < 18; i++) weapon.fixedUpdate(1 / 60);
       assert.ok(weapon.recoilOffset < IRON_DUST_01_WEAPON.recoilDistance, 'recoil starts returning');
       assert.ok(weapon.recoilOffset > -IRON_DUST_01_WEAPON.recoilDistance, 'recoil stays bounded');
@@ -68,6 +85,16 @@ async function testWeapon() {
       assert.equal(weapon.ready, false, 'before reload boundary');
       weapon.fixedUpdate(1 / 60); assert.equal(weapon.ready, true, 'exact 5 s boundary');
       assert.equal(weapon.shotsFired, 1, 'no queued early fire');
+      const positions = [30, 60, 120].map(fps => {
+        weapon.reset(); weapon.fire();
+        const clock = new FixedStep();
+        for (let frame = 0; frame < fps / 2; frame++) {
+          const alpha = clock.advance(1 / fps, dt => weapon.fixedUpdate(dt));
+          weapon.render(alpha);
+        }
+        return weapon.recoilOffset;
+      });
+      assert.deepEqual(positions, [positions[0], positions[0], positions[0]], 'render rate never changes recoil simulation');
       weapon.reset();
       assert.equal(weapon.ready, true);
       assert.equal(weapon.shotsFired, 0);
@@ -174,7 +201,7 @@ function testEffects() {
   const { engine, scene } = makeScene(false);
   try {
     for (let cycle = 0; cycle < 3; cycle++) {
-      const baseline = { sprites: scene.spriteManagers?.length ?? 0, textures: scene.textures.length };
+      const baseline = { sprites: scene.spriteManagers?.length ?? 0, textures: scene.textures.length, lights: scene.lights.length };
       const effects = new CombatEffects(scene);
       assert.equal(impactSurface(), 'soil');
       for (const surface of ['soil', 'concrete', 'metal'] as const) {
@@ -183,13 +210,30 @@ function testEffects() {
         const bright = effects.particles.filter(p => p.gravity < 0).length;
         assert.equal(bright, surface === 'soil' ? 0 : surface === 'concrete' ? 2 : 9);
       }
+      effects.reset();
+      effects.muzzleFlash(new Vector3(0, 2, 0), Vector3.Forward());
+      assert.equal(effects.particles.filter(p => p.kind === 'dust').length, 0, 'no invented ground in the air');
+      assert.ok(effects.particles.filter(p => p.kind === 'smoke').every(p => p.velocity.z > 6), 'gas follows bore');
+      const gasCount = effects.particles.length;
+      effects.reset();
+      effects.muzzleFlash(new Vector3(0, 2, 0), Vector3.Forward(), { point: Vector3.Zero(), normal: Vector3.Up() });
+      assert.ok(effects.particles.length > gasCount, 'near soil produces pressure dust');
+      assert.ok(effects.particles.filter(p => p.kind === 'dust').every(p => p.position.y > 0));
+      for (let i = 0; i < 12; i++) effects.fixedUpdate(1 / 60);
+      assert.ok(effects.particles.filter(p => p.kind === 'flash').every(p => p.age >= p.life));
+      assert.ok(effects.particles.filter(p => p.kind === 'smoke').some(p => p.age < p.life), 'gas outlasts flash');
+      effects.reset();
+      effects.muzzleFlash(new Vector3(0, 5, 0), Vector3.Forward(), { point: Vector3.Zero(), normal: Vector3.Up() });
+      assert.equal(effects.particles.filter(p => p.kind === 'dust').length, 0, 'high muzzle creates no soil blast');
       for (let i = 0; i < 1000; i++) effects.muzzleFlash(Vector3.Zero(), Vector3.Forward());
-      assert.ok(effects.particles.length <= 48);
+      assert.ok(effects.particles.length <= COMBAT_PARTICLE_CAPACITY);
       for (let i = 0; i < 120; i++) effects.fixedUpdate(1 / 60);
-      effects.render(0.5); assert.ok(effects.particles.every(p => p.age >= p.life));
+      effects.render(0); assert.ok(effects.particles.every(p => p.age >= p.life));
+      assert.ok(scene.spriteManagers.filter(m => m.name.startsWith('combat-')).every(m => m.sprites.every(s => !s.isVisible)), 'expired interpolated particles never reappear');
       effects.reset(); effects.dispose();
       assert.equal(scene.spriteManagers.length, baseline.sprites);
       assert.equal(scene.textures.length, baseline.textures);
+      assert.equal(scene.lights.length, baseline.lights);
     }
     console.log('Effects: soil/concrete/metal response, bounded pool and 3 cleanup cycles passed.');
   } finally { scene.dispose(); engine.dispose(); }
@@ -270,3 +314,38 @@ try {
 } finally {
   // Havok is process-scoped in this harness.
 }
+
+// Camera motion must end at the same real time regardless of render rate.
+for (const fps of [30, 60, 120]) {
+  const motion = new ShotCameraMotion(); motion.impulse(0.7);
+  let peak = 0;
+  for (let i = 0; i < fps; i++) {
+    const sample = motion.update(1 / fps);
+    peak = Math.max(peak, Math.abs(sample.pitch));
+    assert.ok(Math.abs(sample.pitch) < 0.015 && Math.abs(sample.yaw) < 0.005 && Math.abs(sample.roll) < 0.005);
+  }
+  assert.ok(peak > 0.001, 'small but visible camera impulse');
+  assert.deepEqual(motion.update(0), { pitch: 0, yaw: 0, roll: 0 });
+  motion.impulse(); motion.reset();
+  assert.deepEqual(motion.update(0), { pitch: 0, yaw: 0, roll: 0 });
+}
+
+async function testHullShotImpulse() {
+  const { engine, scene } = makeScene(true);
+  const tank = await loadTankModel(scene, bytes, Vector3.Zero());
+  const vehicle = new TankVehicle(scene, extractTankRig(tank), Vector3.Zero());
+  try {
+    for (const direction of [Vector3.Forward(), Vector3.Right()]) {
+      vehicle.reset();
+      const mount = vehicle.node.position.add(new Vector3(0, 1.1, 0));
+      vehicle.body.applyImpulse(direction.scale(-SHOT_FEEDBACK.hullImpulse), mount);
+      const linear = vehicle.body.getLinearVelocity();
+      const angular = vehicle.body.getAngularVelocity();
+      assert.ok(Vector3.Dot(linear, direction) < -0.05 && linear.length() < 0.5, 'heavy hull receives a small opposing velocity');
+      const axis = Vector3.Cross(Vector3.Up(), direction.negate()).normalize();
+      assert.ok(Vector3.Dot(angular, axis) > 0, 'pitch/roll follows the gun direction');
+    }
+  } finally { vehicle.dispose(); tank.dispose(); scene.dispose(); engine.dispose(); }
+}
+await testHullShotImpulse();
+console.log('Shot feedback: render-rate recoil equality, camera bounds/settling and directional Havok hull impulses passed.');
