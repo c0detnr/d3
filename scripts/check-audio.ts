@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { CombatAudio } from '../src/game/audio/CombatAudio.ts';
 import { IRON_DUST_AUDIO } from '../src/game/audio/AudioDefinition.ts';
 import { AudioSystem } from '../src/game/audio/AudioSystem.ts';
 import { VehicleAudio } from '../src/game/audio/VehicleAudio.ts';
@@ -140,6 +141,16 @@ system.setMuted(false);
 assert.ok(fake.counters.resumes > 0, 'Ses açılınca bağlam devam etmeli');
 
 const graph = system.graph!;
+for (let cycle = 0; cycle < 3; cycle++) {
+  const combat = new CombatAudio(graph.context, graph.output);
+  combat.shot(); assert.equal(combat.activeVoices, 3);
+  combat.reload(); assert.equal(combat.activeVoices, 5);
+  combat.impact('soil', 50, 0); combat.impact('concrete', 150, -1); combat.impact('metal', 300, 1);
+  for (let i = 0; i < 100; i++) combat.shot();
+  assert.equal(combat.activeVoices, combat.capacity, 'combat voices bounded');
+  combat.reset(); assert.equal(combat.activeVoices, 0);
+  combat.dispose(); combat.shot(); assert.equal(combat.activeVoices, 0);
+}
 const vehicleAudio = new VehicleAudio(graph.context, graph.output, IRON_DUST_AUDIO);
 for (let index = 0; index < 90; index++) vehicleAudio.update(snapshot(10, 10, 10, 50000), 1 / 60);
 vehicleAudio.reset();

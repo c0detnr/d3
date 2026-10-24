@@ -69,7 +69,14 @@ export class FollowCamera {
     }
     const desired = Vector3.Lerp(normal, close, this.blend);
     let safe = this.safePosition(anchor, desired, vehicle);
-    if (this.positioned) safe = this.safePosition(this.camera.position, safe, vehicle);
+    if (this.positioned) {
+      const currentDistance = Vector3.Distance(anchor, this.camera.position);
+      const offset = safe.subtract(anchor), distance = offset.length();
+      if (distance > currentDistance && distance > 1e-5) {
+        safe = anchor.add(offset.scale((currentDistance + (distance - currentDistance) * (1 - Math.exp(-dt * 5))) / distance));
+      }
+      safe = this.safePosition(this.camera.position, safe, vehicle);
+    }
     this.camera.position.copyFrom(safe); this.positioned = true;
     this.kick *= Math.exp(-dt * 20);
     const view = new Vector3(direction.x, direction.y + this.kick, direction.z).normalize();

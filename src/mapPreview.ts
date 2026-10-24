@@ -15,6 +15,8 @@ import { TankVisual } from './game/vehicle/TankVisual.ts';
 import { AimSystem } from './game/aim/AimSystem.ts';
 import { TurretController } from './game/vehicle/TurretController.ts';
 import { FollowCamera } from './game/camera/FollowCamera.ts';
+import { CombatAudio } from './game/audio/CombatAudio.ts';
+import { impactSurface } from './game/combat/ImpactSurface.ts';
 import { AudioSystem } from './game/audio/AudioSystem.ts';
 import { IRON_DUST_AUDIO } from './game/audio/AudioDefinition.ts';
 import { VehicleAudio } from './game/audio/VehicleAudio.ts';
@@ -24,7 +26,7 @@ import { ProjectileSystem } from './game/combat/ProjectileSystem.ts';
 import { ArmorRange } from './game/combat/ArmorTarget.ts';
 import { CombatEffects } from './game/combat/CombatEffects.ts';
 import { CombatInput } from './game/input/CombatInput.ts';
-import { IRON_DUST_01_WEAPON } from './game/combat/WeaponDefinition.ts';
+import { IRON_DUST_01_WEAPON, SHOT_FEEDBACK } from './game/combat/WeaponDefinition.ts';
 import { createChaoticSky } from './game/world/SkyAtmosphere.ts';
 import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
 
@@ -74,7 +76,7 @@ function updateCombatHud() {
 }
 function reset() {
   keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); movementEffects?.reset();
-  vehicleAudio?.reset(); turret?.reset(); weapon?.reset(); projectiles?.reset(); combatEffects?.reset();
+  vehicleAudio?.reset(); combatAudio?.reset(); turret?.reset(); weapon?.reset(); projectiles?.reset(); combatEffects?.reset();
   combatInput.clear(); lastCombatResult = ''; combatResultTime = 0;
   aim.reset(); followCamera.follow();
   lastTime = performance.now();
@@ -82,10 +84,10 @@ function reset() {
 const visibility = () => {
   paused = document.hidden; movementEffects?.reset(); keys.clear(); input.reset(); clock.reset(); lastTime = performance.now();
   combatInput.clear();
-  if (document.hidden) { void audio.suspend(); }
+  if (document.hidden) { combatAudio?.reset(); void audio.suspend(); }
   else if (soundToggle.checked) void audio.resume();
 };
-const blur = () => { keys.clear(); input.reset(); combatInput.clear(); };
+const blur = () => { keys.clear(); input.reset(); combatInput.clear(); combatAudio?.reset(); };
 document.addEventListener('visibilitychange', visibility);
 window.addEventListener('blur', blur);
 const ambient = new HemisphericLight('sky', new Vector3(0, 1, 0), scene);
@@ -116,6 +118,7 @@ const audio = new AudioSystem({
   muted: !soundToggle.checked,
 });
 let vehicleAudio: VehicleAudio | undefined;
+let combatAudio: CombatAudio | undefined;
 let audioSnapshot: VehicleAudioSnapshot | undefined;
 let audioUnlockStarted = false;
 const toggleDust = () => { if (movementEffects) { movementEffects.enabled = dustToggle.checked; movementEffects.reset(); } };
@@ -124,6 +127,7 @@ function ensureVehicleAudio() {
   if (vehicleAudio || !vehicle || !audio.graph || !audioSnapshot) return;
   const graph = audio.graph;
   vehicleAudio = new VehicleAudio(graph.context, graph.output, IRON_DUST_AUDIO);
+  combatAudio = new CombatAudio(graph.context, graph.output);
   vehicleAudio.reset();
 }
 async function unlockAudio() {
@@ -137,7 +141,7 @@ async function unlockAudio() {
   }
   audio.setMuted(!soundToggle.checked);
   ensureVehicleAudio();
-  audioStatus.textContent = audio.muted ? 'Ses: kapalı' : 'Ses: motor, palet, rüzgâr';
+  audioStatus.textContent = audio.muted ? 'Ses: kapalı' : 'Ses: motor, palet, rüzgâr, atış';
 }
 const unlockOnGesture = () => { void unlockAudio(); };
 const toggleSound = async () => {
@@ -146,10 +150,10 @@ const toggleSound = async () => {
     await unlockAudio();
     if (audio.ready) {
       audio.setMuted(false);
-      audioStatus.textContent = 'Ses: motor, palet, rüzgâr';
+      audioStatus.textContent = 'Ses: motor, palet, rüzgâr, atış';
     }
   } else {
-    audio.setMuted(true);
+    combatAudio?.reset(); audio.setMuted(true);
     audioStatus.textContent = 'Ses: kapalı';
   }
 };
@@ -231,21 +235,29 @@ async function start() {
       // Joint calculations use the current physics pose; render interpolation follows below.
       visual!.syncHull(vehicle!, 1);
       turret!.fixedUpdate(combatInput.aiming ? aim.target : null, step);
+      const wasReady = weapon!.ready;
       weapon!.fixedUpdate(step);
+      if (!wasReady && weapon!.ready && !audio.muted) combatAudio?.reload();
       if (combatInput.consumeFire()) {
         const shot = weapon!.fire();
         if (shot) {
           projectiles!.spawn(shot.origin, shot.direction, IRON_DUST_01_WEAPON.ammo.muzzleVelocity);
           combatEffects!.muzzleFlash(shot.origin, shot.direction);
+          followCamera.impulse();
+          vehicle!.body.applyImpulse(shot.direction.scale(-SHOT_FEEDBACK.hullImpulse), turret!.yawPivot.getAbsolutePosition());
+          if (!audio.muted) combatAudio?.shot();
           lastCombatResult = 'ATIŞ · UÇUYOR'; combatResultTime = 3;
         } else {
           lastCombatResult = 'DOLUM SÜRÜYOR'; combatResultTime = 1;
         }
       }
       projectiles!.fixedUpdate(step, (hit) => {
-        const metal = hit.body?.transformNode.metadata?.surface === 'metal';
-        combatEffects!.impact(hit.point, hit.normal, metal);
-        lastCombatResult = metal ? 'İSABET · METAL' : 'İSABET · TOPRAK';
+        const surface = impactSurface(hit.body);
+        combatEffects!.impact(hit.point, hit.normal, surface);
+        const offset = hit.point.subtract(followCamera.camera.position);
+        const right = Vector3.Cross(Vector3.Up(), followCamera.direction).normalize();
+        if (!audio.muted) combatAudio?.impact(surface, offset.length(), Vector3.Dot(offset.normalizeToNew(), right));
+        lastCombatResult = `İSABET · ${{ soil: 'TOPRAK', concrete: 'BETON', metal: 'METAL' }[surface]}`;
         combatResultTime = 4;
       });
       combatEffects!.fixedUpdate(step);
@@ -300,7 +312,7 @@ function dispose() {
   observation?.dispose();
   movementEffects?.dispose();
   projectiles?.dispose(); combatEffects?.dispose(); combatRange?.dispose();
-  vehicleAudio?.dispose();
+  combatAudio?.dispose(); vehicleAudio?.dispose();
   audio.dispose();
   aim.dispose(); turret?.dispose(); visual?.dispose(); vehicle?.dispose(); followCamera.dispose();
   tank?.dispose();

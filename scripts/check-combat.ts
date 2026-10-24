@@ -4,6 +4,8 @@ import HavokPhysics from '@babylonjs/havok';
 import { HavokPlugin, MeshBuilder, NullEngine, PhysicsAggregate, PhysicsShapeType, Scene, Vector3 } from '@babylonjs/core';
 import { loadTankModel } from '../src/game/vehicle/loadTankModel.ts';
 import { TurretController } from '../src/game/vehicle/TurretController.ts';
+import { CombatEffects } from '../src/game/combat/CombatEffects.ts';
+import { impactSurface } from '../src/game/combat/ImpactSurface.ts';
 import { FixedStep } from '../src/game/core/fixedStep.ts';
 import { WeaponSystem } from '../src/game/combat/WeaponSystem.ts';
 import { IRON_DUST_01_WEAPON } from '../src/game/combat/WeaponDefinition.ts';
@@ -168,6 +170,30 @@ function testProjectiles() {
   }
 }
 
+function testEffects() {
+  const { engine, scene } = makeScene(false);
+  try {
+    for (let cycle = 0; cycle < 3; cycle++) {
+      const baseline = { sprites: scene.spriteManagers?.length ?? 0, textures: scene.textures.length };
+      const effects = new CombatEffects(scene);
+      assert.equal(impactSurface(), 'soil');
+      for (const surface of ['soil', 'concrete', 'metal'] as const) {
+        effects.reset(); effects.impact(Vector3.Zero(), Vector3.Up(), surface);
+        assert.ok(effects.particles.length > 0);
+        const bright = effects.particles.filter(p => p.gravity < 0).length;
+        assert.equal(bright, surface === 'soil' ? 0 : surface === 'concrete' ? 2 : 9);
+      }
+      for (let i = 0; i < 1000; i++) effects.muzzleFlash(Vector3.Zero(), Vector3.Forward());
+      assert.ok(effects.particles.length <= 48);
+      for (let i = 0; i < 120; i++) effects.fixedUpdate(1 / 60);
+      effects.render(0.5); assert.ok(effects.particles.every(p => p.age >= p.life));
+      effects.reset(); effects.dispose();
+      assert.equal(scene.spriteManagers.length, baseline.sprites);
+      assert.equal(scene.textures.length, baseline.textures);
+    }
+    console.log('Effects: soil/concrete/metal response, bounded pool and 3 cleanup cycles passed.');
+  } finally { scene.dispose(); engine.dispose(); }
+}
 function testArmorMath() {
   near(penetrationAtRangeMm(IRON_DUST_01_AMMO, 0), 220);
   near(penetrationAtRangeMm(IRON_DUST_01_AMMO, 500), 180);
@@ -238,6 +264,7 @@ function testTargets() {
 try {
   await testWeapon();
   testProjectiles();
+  testEffects();
   testArmorMath();
   testTargets();
 } finally {

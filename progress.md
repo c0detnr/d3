@@ -127,3 +127,10 @@
 - 5 s dolum ve HUD çubuğu; olay anında reddedilen dolum tıklaması. Mermi 35 cm ileriden değil gerçek GLB namlu ucundan çıkar.
 - Hasarsız deneme mermisi: 180 m/s, −9,81 m/s², 900 m/8 s ömür. En fazla 8 mermi ve 4,5 m / 25 ms iz; render interpolasyonu. Oyun eski delme/sekme çözümünü çağırmaz; tarihsel kod/testler korunur.
 - `combat:test` ve `map:check` geçti; 50/150/300 m düşüş, 30/60/120 FPS eşitliği, dolum sınırı, havuz/ömür ve ince plaka/ilk engel kontrolleri.
+
+## 2026-10-24 — A4 atış hissi ve ses
+
+- Kısa duman ve kamera darbesi; gövdeye 1100 N·s geri tepme. Toprak, beton ve metal görsel/ses profilleri; dış ses dosyası yok.
+- Mevcut AudioContext/master/limiter üzerinde en fazla 12 kısa ses; dolum bitiş olayı fizik zamanından gelir. Sıfırlama, gizli sekme, odak kaybı ve sessizde eski sesler bırakılır.
+- İlk efekt testinde SpriteManager oluşturulmadan önce `scene.spriteManagers` alanı undefined idi; başlangıç sayımı düzeltildi. Son `combat:test`, `audio:test`, `map:build` geçti. Üç efekt/ses kur/kapat ve havuz sınırı kontrol edildi.
+- CUA tarayıcı envanteri ve Chrome açma denemesi `Unable to load browser request-header policy` hatası verdi. Bu, oyun yükleme sonucu değildir; insan ses/atış hissi henüz değerlendirilmedi.

@@ -124,3 +124,7 @@ Kamera ve girdi uygulandı: normal serbest bakış, sağ tuşta sağ yan yakın 
 ### 2026-10-24 — Nişan yenileme A2–A3
 
 5 s dolum, tek basış atış, gerçek namlu ucundan hasarsız deneme mermisi, 180 m/s uçuş, kısa tracer, 900 m / 8 s sınırı uygulandı. Oyun akışı zırh çözümünü çağırmaz; eski zırh kodu/testleri korunur. `combat:test` ve `map:check` geçti; tarayıcıda uçuş okunabilirliği açık.
+
+### 2026-10-24 — Nişan yenileme A4
+
+Namlu dumanı, gövdeye küçük sabit adımlı darbe, niyet açısını değiştirmeyen kamera darbesi, toprak/beton/metal görsel tepkileri ve mevcut AudioSystem üzerinden sınırlı prosedürel atış/dolum/isabet sesleri uygulandı. `combat:test`, `audio:test`, `map:build` geçti. Beton tepkisi test düzeninde kontrol edildi; dünyaya yeni yapı eklenmedi. İnsan dinlemesi ve atış hissi kabulü açık.

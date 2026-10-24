@@ -245,10 +245,10 @@ Belge kontrolleri tamamlandı; yalnız ilgili belgeleri commit edip origin/main'
 **Status:** complete
 
 ### Phase 23: A4 Atış tepkileri ve ses
-**Status:** in_progress
+**Status:** complete
 
 ### Phase 24: A5 Kontroller, tarayıcı ve teslim
-**Status:** pending
+**Status:** in_progress
 
 ## Next Step
 A1 uygulanıyor; mevcut hareket efektleri, sürüş ve varlıklar korunacak.

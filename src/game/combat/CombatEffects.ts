@@ -1,4 +1,5 @@
 import { Color4, RawTexture, Sprite, SpriteManager, Texture, Vector3, type Scene } from '@babylonjs/core';
+import { IMPACT_FEEDBACK, type ImpactSurface } from './ImpactSurface.ts';
 import { seededRandom } from '../world/terrain.ts';
 
 function createFlareTexture(scene: Scene) {
@@ -29,7 +30,7 @@ interface CombatParticle {
 
 const CAPACITY = 48;
 
-/** Original pooled sprites for muzzle flash and impact feedback; no audio. */
+/** Original pooled sprites for muzzle flash and impact feedback; sounds share the AudioSystem output. */
 export class CombatEffects {
   readonly particles: CombatParticle[] = [];
   private readonly manager: SpriteManager;
@@ -64,18 +65,22 @@ export class CombatEffects {
       this.spawn(origin, forward.scale(5 + this.random() * 5).add(spread), 0.07 + this.random() * 0.05,
         0.7 + this.random() * 0.8, new Color4(1, 0.78 + this.random() * 0.2, 0.38, 1));
     }
+    for (let i = 0; i < 3; i++) this.spawn(origin.add(forward.scale(0.35)),
+      forward.scale(1.5).add(new Vector3((this.random() - 0.5) * 0.7, 0.8, 0)),
+      0.3 + this.random() * 0.2, 0.6 + this.random() * 0.4, new Color4(0.58, 0.56, 0.51, 0.22));
   }
-  impact(point: Vector3, normal: Vector3, armored: boolean) {
+  impact(point: Vector3, normal: Vector3, surface: ImpactSurface) {
     const outward = normal.normalizeToNew();
-    const sparks = armored ? 7 : 4;
+    const feedback = IMPACT_FEEDBACK[surface];
+    const sparks = feedback.sparks;
     for (let i = 0; i < sparks; i++) {
       const random = new Vector3(this.random() - 0.5, this.random() - 0.5, this.random() - 0.5).scale(9);
       this.spawn(point, outward.scale(3 + this.random() * 5).add(random), 0.16 + this.random() * 0.22,
         0.18 + this.random() * 0.22, new Color4(1, 0.82, 0.42, 1), -9.81);
     }
-    for (let i = 0; i < (armored ? 2 : 3); i++) {
+    for (let i = 0; i < feedback.fragments; i++) {
       this.spawn(point.add(outward.scale(0.15)), outward.scale(0.6 + this.random()).add(new Vector3(0, 0.8, 0)),
-        0.5 + this.random() * 0.45, 1.1 + this.random() * 1.2, new Color4(0.55, 0.52, 0.46, 0.62));
+        0.5 + this.random() * 0.45, 1.1 + this.random() * 1.2, new Color4(feedback.color[0], feedback.color[1], feedback.color[2], 0.5));
     }
   }
   fixedUpdate(dt: number) {
