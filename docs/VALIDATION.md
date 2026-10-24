@@ -1,5 +1,13 @@
 # Doğrulama planı
 
+## 2026-10-24 — Fren pufu, iniş pufu ve küçük taşlar
+
+- `npm run effects:test` geçti: ileri/geri fren basılıyken tek tetik, frensiz yavaşlama ve kapalı efekt kapıları, altı temasın tek taraf inişine birleşmesi, sadece inen tarafta doğum, kısa temas kaybı/zayıf darbenin elenmesi, taş yüzey kapısı/boyutu/balistik ömrü, 24 taş ve 320 toz havuzu, toplam üretim sınırı, R geçmiş temizliği, 30/60/120 FPS eşitliği ve 36.000 adımlık havuz kontrolü. Gerçek GLB/Havok ile düşüşte iniş olayı ve üç kur/kapat çevriminde sprite/kaplama/mesh/materyal sayılarının tabana dönüşü doğrulandı.
+- Regresyonlar geçti: `npm test`, `drive:test`, `tank:test`, `map:test`, `turret:test`, `audio:test`, `combat:test`, `map:check`, `map:build`. Önceden mevcut büyük paket uyarısı sürüyor.
+- Windows, Headless Chromium 153.0.8010.12, ANGLE Vulkan SwiftShader yazılım renderer, 1280×720, DPR 1: gerçek GLB ile ayrı düz zemin sahnesinde kontrollü temas girdileri kullanıldı. [Fren](previews/movement-brake.png), [iniş](previews/movement-landing.png), [taş/sürüş](previews/movement-gravel.png) örnekleri alındı. Bu sahne gölge/gökyüzü olmadan efekt görünümünü ayırır; doğal arazi sürüş kabulü değildir. Küçük taşlar gerçek 1–4 cm ölçeğindedir; geniş görünümde seyrektir.
+- Gerçek harita sayfasında yükleme, W ile kısa sürüş, Space fren, efekt kutusunu kapat/aç ve R sıfırlama akışları çalıştırıldı; `pageerror` kaydı boş. Doğal arazide gerçek sıçrama/inişin görsel kabulü, insan değerlendirmesi, 10 dakika tarayıcı sürüşü ve gerçek GPU üzerinde açık/kapalı performans ölçümü yapılmadı.
+- Taşlar görsel balistiktir; Havok gövdesi yoktur. Kısa ömür ve doğum temas düzlemiyle söner; yeni arazi engelleriyle çarpışma/zıplama modellenmez. M1/M2 kabulü açık kalır.
+
 ## 2026-10-23 — Ana adres 404 düzeltmesi
 
 - Neden: kökte `index.html` yoktu; `/` 404, `/map-preview.html` 200 dönüyordu.

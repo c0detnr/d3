@@ -8,7 +8,7 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 export interface ContactState {
   compression: number; load: number; speed: number; grounded: boolean;
   point: Vector3; normal: Vector3; velocity: Vector3; lateral: Vector3;
-  sideSpeed: number; surfaceName: string;
+  sideSpeed: number; surfaceName: string; approachSpeed: number;
 }
 const pose = (node: TransformNode) => ({ position: node.position.clone(), rotation: node.rotationQuaternion!.clone() });
 
@@ -21,6 +21,7 @@ export class TankVehicle {
   current: ReturnType<typeof pose>;
   speed = 0;
   driveForce = 0;
+  brake = 0;
   private readonly physics;
   readonly scene: Scene;
   readonly rig: TankRig;
@@ -43,13 +44,14 @@ export class TankVehicle {
     this.body.disablePreStep = true;
     this.contacts = rig.wheels.map(() => ({ compression: 0, load: 0, speed: 0, grounded: false,
       point: Vector3.Zero(), normal: Vector3.Up(), velocity: Vector3.Zero(), lateral: Vector3.Right(),
-      sideSpeed: 0, surfaceName: '' }));
+      sideSpeed: 0, surfaceName: '', approachSpeed: 0 }));
     this.previous = pose(this.node); this.current = pose(this.node);
   }
   private velocityAt(point: Vector3, linear: Vector3, angular: Vector3) {
     return linear.add(Vector3.Cross(angular, point.subtract(this.node.position)));
   }
   beforeStep(dt: number, command: DriveCommand) {
+    this.brake = command.brake;
     this.previous = pose(this.node);
     const d = this.definition;
     const pointMass = d.mass / this.contacts.length;
@@ -71,7 +73,7 @@ export class TankVehicle {
       const length = d.suspensionTravel + wheel.radius;
       const to = from.subtract(up.scale(length));
       const hit = this.physics.raycast(from, to, { ignoreBody: this.body });
-      Object.assign(contact, { grounded: false, compression: 0, load: 0, speed: 0, sideSpeed: 0, surfaceName: '' });
+      Object.assign(contact, { grounded: false, compression: 0, load: 0, speed: 0, sideSpeed: 0, surfaceName: '', approachSpeed: 0 });
       if (!hit.hasHit || Vector3.Dot(hit.hitNormalWorld, up) < 0.25) continue;
       const normal = hit.hitNormalWorld.normalizeToNew();
       const point = hit.hitPointWorld;
@@ -83,7 +85,7 @@ export class TankVehicle {
       const speed = Vector3.Dot(velocity, tangent);
       const sideSpeed = Vector3.Dot(velocity, lateral);
       Object.assign(contact, { grounded: true, compression, load, speed, sideSpeed,
-        surfaceName: hit.body?.transformNode.name ?? '' });
+        surfaceName: hit.body?.transformNode.name ?? '', approachSpeed: Math.max(0, -Vector3.Dot(velocity, normal)) });
       contact.point.copyFrom(point); contact.normal.copyFrom(normal); contact.lateral.copyFrom(lateral);
       contact.velocity.copyFrom(velocity.subtract(normal.scale(Vector3.Dot(velocity, normal))));
       let drive = (command.throttle - wheel.side * steer) / normalization;
@@ -119,8 +121,8 @@ export class TankVehicle {
     this.body.disablePreStep = true;
     this.body.setLinearVelocity(Vector3.Zero()); this.body.setAngularVelocity(Vector3.Zero());
     this.previous = pose(this.node); this.current = pose(this.node);
-    this.speed = 0; this.driveForce = 0;
-    this.contacts.forEach(contact => Object.assign(contact, { grounded: false, compression: 0, load: 0, speed: 0, sideSpeed: 0, surfaceName: '' }));
+    this.speed = 0; this.driveForce = 0; this.brake = 0;
+    this.contacts.forEach(contact => Object.assign(contact, { grounded: false, compression: 0, load: 0, speed: 0, sideSpeed: 0, surfaceName: '', approachSpeed: 0 }));
   }
   dispose() { this.body.dispose(); this.shape.dispose(); this.node.dispose(); }
 }

@@ -65,6 +65,8 @@ Son görünüm: [Gerçekçi arazi yüzeyi](docs/previews/terrain-surface.png). �
 
 Sürüş ayarları `src/game/vehicle/VehicleDefinition.ts` içinde SI birimleriyle tutulur. Palet geometrisi korunur; yürüyen bant deseni geçici prosedürel görseldir. Palet temas, hızlı sürüş ve dönüş tozu mevcut; paneldeki **Toz efektleri** kutusuyla kapatılabilir. Motor, iki palet ve rüzgâr sesleri prosedürel Web Audio ile çalışıyor; paneldeki **Ses** kutusu ve düzey kaydırıcısıyla denetlenir. Ses yalnızca ilk kullanıcı etkileşiminde açılır; sekme gizlenince askıya alınır. S2 süspansiyon/fren/taret ve S3 savaş sesleri henüz yok; insan dinlemesi ve M2 kabulü açık. Geliştirme sunucusunda `/map-preview.html?driveTest`, isteğe bağlı 10 dakika otomatik gözlem aracını açar; bu insan sürüş hissi değerlendirmesinin yerini tutmaz.
 
+Hareket efektleri: mevcut palet/hız/dönüş tozuna sert fren pufu, darbe şiddetine bağlı palet başına iniş pufu ve seyrek küçük taşlar eklendi. **Toz efektleri** kutusu tümünü denetler. Taşlar görsel balistiktir; fizik cismi veya zıplama simülasyonu değildir. `npm run effects:test` yeni olayları, taş bütçesini ve yaşam döngüsünü de kontrol eder. [Uygulama ve kabul kaydı](docs/MOVEMENT_EFFECTS.md).
+
 ## Taret ve ateş prototipi (M3.1)
 
 Harita önizlemesinde fareyi sürükleyerek taret hedefini değiştir. Taret 35°/s hızla yetişir; namlu −8°…+20° arasında 15°/s hareket eder. Bunlar ilk oyun ayarlarıdır. Alt basılıyken sürükle veya C ile serbest bakışı aç/kapat: kamera dönerken son nişan hedefi korunur. R tankla birlikte tareti, silahı ve hedefleri sıfırlar.

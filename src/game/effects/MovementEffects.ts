@@ -1,4 +1,4 @@
-import { Color4, RawTexture, Sprite, SpriteManager, Texture, Vector3, type Scene } from '@babylonjs/core';
+import { Color3, Color4, MeshBuilder, RawTexture, Sprite, SpriteManager, StandardMaterial, Texture, Vector3, type Mesh, type Scene } from '@babylonjs/core';
 import type { TankVehicle } from '../vehicle/TankVehicle.ts';
 import { seededRandom } from '../world/terrain.ts';
 import { DustSimulation } from './DustSimulation.ts';
@@ -30,6 +30,8 @@ export class MovementEffects {
   private readonly manager: SpriteManager;
   private readonly sprites: Sprite[];
   private readonly sides: number[];
+  private readonly debrisMeshes: Mesh[];
+  private readonly debrisMaterial: StandardMaterial;
   enabled = true;
   constructor(scene: Scene, vehicle: TankVehicle) {
     this.sides = vehicle.rig.wheels.map(wheel => wheel.side);
@@ -43,13 +45,30 @@ export class MovementEffects {
       sprite.isVisible = false;
       return sprite;
     });
+    this.debrisMaterial = new StandardMaterial('original-procedural-track-gravel', scene);
+    this.debrisMaterial.diffuseColor = new Color3(0.31, 0.24, 0.17);
+    this.debrisMaterial.specularColor = Color3.Black();
+    this.debrisMeshes = this.simulation.debris.map((_, index) => {
+      const mesh = MeshBuilder.CreatePolyhedron(`track-gravel-${index}`, { type: 1, size: 0.5 }, scene);
+      mesh.material = this.debrisMaterial; mesh.isPickable = false; mesh.setEnabled(false);
+      return mesh;
+    });
   }
   fixedUpdate(vehicle: TankVehicle, dt: number) {
     const cameraDistance = Vector3.Distance(vehicle.node.position, vehicle.scene.activeCamera!.globalPosition);
     const density = !this.enabled || cameraDistance > 350 ? 0 : cameraDistance > 80 ? 0.25 : 1;
-    this.simulation.step(dt, vehicle.contacts, this.sides, vehicle.definition.mass * 9.81 / vehicle.contacts.length, density);
+    this.simulation.step(dt, vehicle.contacts, this.sides, vehicle.definition.mass * 9.81 / vehicle.contacts.length,
+      density, vehicle.brake, vehicle.speed);
   }
   render(alpha: number) {
+    this.simulation.debris.forEach((p, index) => {
+      const mesh = this.debrisMeshes[index];
+      mesh.setEnabled(this.enabled && p.age < p.life);
+      if (!mesh.isEnabled()) return;
+      Vector3.LerpToRef(p.previous, p.position, alpha, mesh.position);
+      mesh.scaling.setAll(p.size * Math.min(1, (1 - p.age / p.life) * 5));
+      mesh.rotation.set(p.angle + p.age * 9, p.angle + p.age * 5, p.age * 7);
+    });
     this.simulation.particles.forEach((p, index) => {
       const sprite = this.sprites[index];
       const age = Math.max(0, p.age - (1 - alpha) / 60);
@@ -62,6 +81,9 @@ export class MovementEffects {
       sprite.color.a = Math.min(1, t / 0.12) * (1 - t) ** 1.4 * 0.65;
     });
   }
-  reset() { this.simulation.reset(); this.sprites.forEach(sprite => { sprite.isVisible = false; }); }
-  dispose() { this.manager.dispose(); }
+  reset() {
+    this.simulation.reset(); this.sprites.forEach(sprite => { sprite.isVisible = false; });
+    this.debrisMeshes.forEach(mesh => mesh.setEnabled(false));
+  }
+  dispose() { this.manager.dispose(); this.debrisMeshes.forEach(mesh => mesh.dispose()); this.debrisMaterial.dispose(); }
 }

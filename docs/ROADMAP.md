@@ -30,7 +30,7 @@ Kabul koşulları:
 
 WASD, palet bazlı dönüş, hızlanma/frenleme, geri sürüş, eğim, süspansiyon, temel ses ve toz. Üçüncü şahıs kamera sürüşle birlikte ayarlanır.
 
-[Hareket efektleri](MOVEMENT_EFFECTS.md) içindeki palet temas, hızlı sürüş ve dönüş tozu uygulandı; fren pufu bekliyor. P1 temel temas/dönüş/fren tozu → P2 yüzey parçaları ve iniş pufu → isteğe bağlı P3 egzoz sırası önerilir. Bu belge teslimi M2'yi tamamlamaz. S1 ses çekirdeği, motor, iki palet ve rüzgâr uygulandı; S2 süspansiyon/fren/taret sesleri bekliyor. İnsan dinlemesi ve ses açık/kapalı performans kaydı açık. [Ses sistemi planı](SOUND_DESIGN.md).
+[Hareket efektleri](MOVEMENT_EFFECTS.md) içindeki palet temas, hızlı sürüş, dönüş tozu, fren pufu, iniş pufu ve küçük taşlar uygulandı. P1/P2 efekt kodu ve otomatik kontroller mevcut; doğal arazide insan görsel kabulü ve efekt açık/kapalı performans ölçümü bekliyor. İsteğe bağlı P3 egzoz bekliyor. Bu uygulama M2 kabulünü tamamlamaz. S1 ses çekirdeği, motor, iki palet ve rüzgâr uygulandı; S2 süspansiyon/fren/taret sesleri bekliyor. İnsan dinlemesi ve ses açık/kapalı performans kaydı açık. [Ses sistemi planı](SOUND_DESIGN.md).
 
 Kabul koşulları:
 
@@ -58,6 +58,10 @@ Kabul koşulları:
 - Aynı mühimmatla açı ve zırh bölgesi değiştiğinde anlaşılır sonuçlar oluşur.
 - Palet, motor ve kule hasarı ilgili hareket kabiliyetini etkiler; sıfırlama tekrar denemeye izin verir.
 - Ateş ve isabet efektleri çalışırken sürüş performansı yeniden ölçülür.
+
+### 2026-10-24 — Fren, iniş ve küçük taş efektleri
+
+Fren basılıyken tek puf, palet başına darbeye bağlı iniş pufu ve sınırlı balistik taş havuzu eklendi. `effects:test`, `npm test`, `drive:test`, `tank:test`, `map:test`, `turret:test`, `audio:test`, `combat:test`, `map:check` ve `map:build` geçti. Kontrollü tarayıcı efekt sahnesi ile oyun sürüş/fren/aç-kapat/R kontrolü uygulama hatası vermedi. [Kanıt ve sınırlar](VALIDATION.md). Doğal arazide insan kabulü ve gerçek GPU performansı açık; M1/M2 tamamlanmış sayılmaz.
 
 ## Kapsam kontrolü
 

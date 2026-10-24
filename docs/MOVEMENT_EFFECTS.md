@@ -1,6 +1,15 @@
 # Tank hareket efektleri — uygulama planı
 
-Tarih: 2026-10-23. **Durum: palet temas tozu, hızlı sürüş izi ve dönüş tozu uygulandı. Fren, parçalar, iniş ve egzoz uygulanmadı.** Kullanıcının isteği hareket sırasında çıkan parçacık efektlerini planlamak. Aşağıdaki eşikler, sayılar ve teknik tercihler prototip başlangıç değerleridir; onaylanmış kullanıcı kararı veya ölçülmüş performans sonucu değildir.
+Tarih: 2026-10-24. **Durum: palet temas tozu, hızlı sürüş izi, dönüş tozu, fren pufu, iniş pufu ve küçük taş parçaları uygulandı. Egzoz bekliyor.** Aşağıdaki planın başlangıç önerileri ile tarihli uygulama kayıtlarını ayırt edin; ölçülmüş performans sonucu değildir.
+
+## 2026-10-24 — Fren, iniş ve taş uygulaması
+
+- Fren etkin, hız >1 m/sn ve 0,08 sn filtreli yavaşlama >1,5 m/sn² olduğunda 0,22 sn puf üretimi başlar. Fren bırakılana kadar yeniden tetiklenmez; iki tetik arasında en az 0,4 sn vardır. İleri ve geri aynı kuralı kullanır.
+- Her palet en az 0,1 sn yüksüz kaldıktan sonra >1 m/sn normal yaklaşma hızıyla yük aldığında tek iniş olayı oluşur. Altı temas birleşir; sadece inen taraf üretir. Darbe şiddeti boyutu ve dışa yayılmayı artırır; taraf başına 0,3 sn bekleme vardır. Normal yaklaşma hızı mevcut süspansiyon sorgusunda, kuvvet uygulanmadan önce kaydedilir.
+- Toprak/otlu arazi üzerinde >2 m/sn yerel harekette seyrek 1–4 cm köşeli taşlar çıkar; yerinde dönüş dahildir. 24 görsel mesh, toplam en çok 18 doğum/sn, 0,25–0,7 sn ömür ve yerçekimi kullanılır. Kaya/ağaç/bilinmeyen yüzey taş üretmez. Geçici temas düzleminin altına inince söner; zıplama veya gerçek parça çarpışması yoktur.
+- Sürekli toz ve puflar aynı 320 havuzu / toplam 120 doğum/sn sınırını paylaşır. Taşlar ayrı sınırlı havuzdadır. Yeni Havok gövdesi, süspansiyon sorgusu, dış varlık veya bağımlılık yoktur. Taş geometrisi ve materyali bu projede prosedürel üretilmiştir.
+- Mevcut **Toz efektleri** kontrolü taşları da kapatır. R, görünürlük değişimi ve kapatma; puf, hava/hız geçmişi, üretim kesirleri ve taşları temizler. Kapanışta mesh ve materyal de bırakılır.
+- `effects:test`: ileri/geri tek fren pufu, frensiz yavaşlama, kapalı efekt, tek taraf inişi, kısa temas kaybı/zayıf darbe, yüzey kapıları, balistik ömür, 30/60/120 FPS eşitliği, 10 dakika simülasyon havuz sınırı, gerçek Havok inişi ve üç kaynak temizleme çevrimi geçti. Tarayıcı örnekleri kontrollü temas verisiyle ayrı düz test sahnesindedir; doğal arazide insan kabulü ve gerçek GPU performans karşılaştırması açık. Ayrıntı: [doğrulama kaydı](VALIDATION.md).
 
 ## Hedef görünüm
 
