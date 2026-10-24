@@ -2,7 +2,9 @@
 
 Tarih: 2026-10-24
 
-Durum: **Plan hazır; modelleme ve oyun uygulaması bu görev kapsamında yapılmadı.**
+Durum: **Blender varlığı MG 02 olarak sıfırdan teslim edildi; oyun uygulaması ayrı görev.**
+
+2026-10-24 kullanıcı talimatı önceki taslağı düzenleme/korunacak parçaları kullanma önerisinin yerine geçer: mevcut makineli dosyası değiştirilmedi. [Yeni Blender teslimi ve kanıtlar](../assets/weapons/iron_dust_mg_02/README.md).
 
 ## Amaç ve kapsam
 
@@ -17,7 +19,7 @@ Bu plan M1/M2 kabulünü veya M3 savaş teslimini tamamlandı saymaz. Dünya →
 - Oyuncu bu görüşteyken tankı sürmeye devam edebilecek.
 - Silah yalnızca ön tarafı kapsayan sınırlı bir açı içinde dönecek.
 - İzli mermi atacak.
-- Mevcut istek plan hazırlamaktır; model veya oyun kodunu değiştirme talebi değildir.
+- Son talep: Blender MCP ile sıfırdan yeni model hazırla; mevcut makineli tüfek dosyasını düzenleme. Oyun uygulaması bu teslimin dışında.
 
 ## Tasarım önerileri — henüz kesin karar değil
 
@@ -128,4 +130,8 @@ Tarayıcıda silahın doğru yüklendiği, POV'da sürüşün devam ettiği, kam
 
 ## Sonraki adım
 
-Modelleme istendiğinde mevcut makineli tüfek taslağını inceleyip tank üzerinde basit hacim ve POV yerleşimini doğrula. İlk aşamada ayrıntı eklemek yerine konum, oran ve hareket açıklığını çöz.
+Blender teslimi hazır. Sonraki ayrı görev oyun entegrasyonudur; ikinci silah seçimi, sürerken POV ve tracer oyun içinde doğrulanacak. Dinamik kapak açılma kontrolü mevcut tankta kapak rig’i bulunmadığından açık; ayrıntılı sınırlar yeni varlığın README dosyasında.
+
+## 2026-10-24 — Sıfırdan Blender teslimi
+
+`iron_dust_mg_02` ayrı kaynak/GLB olarak üretildi. 2.396 üçgen, 10 mesh, 6 materyal ve 17 düğüm. Temiz GLB yeniden aktarımı, kaynak/ithal hareket grupları ve geri tepmeden bağımsız kamera doğrulandı. 897 örnek duruşta tankla yüzey kesişmesi yok; dört montaj noktası tavana oturur. Ön/yan/üç çeyrek/detay, tank üzerinde ve POV sınır renderları hazır. Eski MG 01 ile tank klasörlerindeki 19 dosyanın SHA-256 değerleri değişmedi. Yukarıdaki kontrol listesi ilk planın tarihsel tarifidir; güncel tamamlanan kontroller ve açık kapak/oyun kontrolleri [teslim kaydında](../assets/weapons/iron_dust_mg_02/README.md).

@@ -1,0 +1,100 @@
+{
+  "method": "SHA-256 before/after; original tank and MG01 are read-only inputs",
+  "files": [
+    {
+      "path": "assets/weapons/iron_dust_mg_01/iron_dust_mg_01.glb",
+      "before": "4754b445b287a0df476505ddd8a744d559549790df88eb4ae3df7e25c406c2de",
+      "after": "4754b445b287a0df476505ddd8a744d559549790df88eb4ae3df7e25c406c2de"
+    },
+    {
+      "path": "assets/weapons/iron_dust_mg_01/iron_dust_mg_01.blend",
+      "before": "afd2fd986e026aa205f4028135f6457af8876e3bc4bf6506776f13ce6529d394",
+      "after": "afd2fd986e026aa205f4028135f6457af8876e3bc4bf6506776f13ce6529d394"
+    },
+    {
+      "path": "assets/weapons/iron_dust_mg_01/previews/hero.png",
+      "before": "4fcf3bcfb3316bf30fdd1a062b1b037c9ff5212b5f95e7f923d9a16e0a8b8822",
+      "after": "4fcf3bcfb3316bf30fdd1a062b1b037c9ff5212b5f95e7f923d9a16e0a8b8822"
+    },
+    {
+      "path": "assets/weapons/iron_dust_mg_01/previews/detail.png",
+      "before": "b05ab80efa25d160ac46bb107d66406e607cc4f5e03a4e5966467edf429a473f",
+      "after": "b05ab80efa25d160ac46bb107d66406e607cc4f5e03a4e5966467edf429a473f"
+    },
+    {
+      "path": "assets/weapons/iron_dust_mg_01/previews/side.png",
+      "before": "59c2a48f980d1b0f08cba52d6c92c9262297313841c7b7e6fb115037c6a7c7d4",
+      "after": "59c2a48f980d1b0f08cba52d6c92c9262297313841c7b7e6fb115037c6a7c7d4"
+    },
+    {
+      "path": "assets/weapons/iron_dust_mg_01/previews/pov.png",
+      "before": "faa42c73aae7d0533bf241e8292b7ea493def8ee02d085eb949e37a93e7b054b",
+      "after": "faa42c73aae7d0533bf241e8292b7ea493def8ee02d085eb949e37a93e7b054b"
+    },
+    {
+      "path": "assets/weapons/iron_dust_mg_01/previews/mounted_third_person.png",
+      "before": "1b6a85e224d56656ed9f0d56d1eb5f0a55b8441c8793378a52768d2c446432a6",
+      "after": "1b6a85e224d56656ed9f0d56d1eb5f0a55b8441c8793378a52768d2c446432a6"
+    },
+    {
+      "path": "assets/weapons/iron_dust_mg_01/previews/mounted_pov.png",
+      "before": "8fae7ea491eff3c69bad55e499221d26af87dcfe572f9a03bbd40601e228a00a",
+      "after": "8fae7ea491eff3c69bad55e499221d26af87dcfe572f9a03bbd40601e228a00a"
+    },
+    {
+      "path": "assets/tanks/iron_dust_01/model_stats.json",
+      "before": "98f1cb01bfb1a46937b075f9d978f31f9a973ab63f6d7c0acd20f2f6585ff9b9",
+      "after": "98f1cb01bfb1a46937b075f9d978f31f9a973ab63f6d7c0acd20f2f6585ff9b9"
+    },
+    {
+      "path": "assets/tanks/iron_dust_01/iron_dust_01.glb",
+      "before": "9ff635b494b5ba3f8528bd585a31583f43a89f065ba6bb30288a82bd46d2fb4d",
+      "after": "9ff635b494b5ba3f8528bd585a31583f43a89f065ba6bb30288a82bd46d2fb4d"
+    },
+    {
+      "path": "assets/tanks/iron_dust_01/validation.json",
+      "before": "b44cbb05099b22702df5c78fb118aa0a5b306db7e0a2e0d0146273ec96891ed0",
+      "after": "b44cbb05099b22702df5c78fb118aa0a5b306db7e0a2e0d0146273ec96891ed0"
+    },
+    {
+      "path": "assets/tanks/iron_dust_01/glb_inspection.json",
+      "before": "1e4b8709dea3754332e85f0dac4cfe3059b2fd2e96b4cdd2aef21e63be96f437",
+      "after": "1e4b8709dea3754332e85f0dac4cfe3059b2fd2e96b4cdd2aef21e63be96f437"
+    },
+    {
+      "path": "assets/tanks/iron_dust_01/README.md",
+      "before": "c3ed59c90b928a1d0ac0b85a35789573d73421b61206433838721c8b980d0a7f",
+      "after": "c3ed59c90b928a1d0ac0b85a35789573d73421b61206433838721c8b980d0a7f"
+    },
+    {
+      "path": "assets/tanks/iron_dust_01/iron_dust_01.blend1",
+      "before": "cf846ca4530d0bf37fe350b5eb7b8bc7fca84ba2022727f5892b52a68812c623",
+      "after": "cf846ca4530d0bf37fe350b5eb7b8bc7fca84ba2022727f5892b52a68812c623"
+    },
+    {
+      "path": "assets/tanks/iron_dust_01/iron_dust_01.blend",
+      "before": "d59e9dcaf5f884497c4bbe5c886bd29e12d08719201a238fc37ff203c93bac44",
+      "after": "d59e9dcaf5f884497c4bbe5c886bd29e12d08719201a238fc37ff203c93bac44"
+    },
+    {
+      "path": "assets/tanks/iron_dust_01/previews/three_quarter.png",
+      "before": "8ad3034db9d6fe4aabd76fdcc71c070bc16569d0d315279a3829952972ca81b6",
+      "after": "8ad3034db9d6fe4aabd76fdcc71c070bc16569d0d315279a3829952972ca81b6"
+    },
+    {
+      "path": "assets/tanks/iron_dust_01/previews/front.png",
+      "before": "d28e78ddc030e8853f1d1c95d054b7972e7b66675fd29835b1b288c9b02c0341",
+      "after": "d28e78ddc030e8853f1d1c95d054b7972e7b66675fd29835b1b288c9b02c0341"
+    },
+    {
+      "path": "assets/tanks/iron_dust_01/previews/side.png",
+      "before": "a2132c668ff9a770950981fed0a38989c4a27bb154563fd089e698462efd8028",
+      "after": "a2132c668ff9a770950981fed0a38989c4a27bb154563fd089e698462efd8028"
+    },
+    {
+      "path": "assets/tanks/iron_dust_01/previews/in_world.png",
+      "before": "bdff6a10d210984ef03ed51f6fbcb747aa3ef22a4f36e563a2f644b0a84a0727",
+      "after": "bdff6a10d210984ef03ed51f6fbcb747aa3ef22a4f36e563a2f644b0a84a0727"
+    }
+  ]
+}

@@ -1,0 +1,620 @@
+{
+  "blender": "5.2.1 LTS",
+  "glb_triangles": 2396,
+  "glb_meshes": 10,
+  "glb_materials": 6,
+  "glb_nodes": 17,
+  "bounds_blender_m": {
+    "min": [
+      -0.4479999840259552,
+      -1.350000023841858,
+      0.0
+    ],
+    "max": [
+      0.2750000059604645,
+      0.2750000059604645,
+      0.7674999833106995
+    ],
+    "dimensions": [
+      0.7229999899864197,
+      1.6250000298023224,
+      0.7674999833106995
+    ]
+  },
+  "roundtrip": {
+    "same_node_ids": true,
+    "same_parenting": true,
+    "same_material_slot_counts": true,
+    "max_matrix_error": 1.1920928955078125e-07,
+    "source_motion": true,
+    "imported_motion": true
+  },
+  "clearance": {
+    "method": "world-space triangle BVH surface overlap; finite sampling, no continuous or hatch-opening guarantee",
+    "samples": 897,
+    "foot_gap_m": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "collision_count": 0,
+    "collisions": [],
+    "mg_yaw_deg": [
+      -60,
+      60
+    ],
+    "mg_elevation_deg": [
+      -10,
+      45
+    ],
+    "turret_yaw_deg": [
+      0,
+      330
+    ],
+    "main_gun_elevation_deg": [
+      -8,
+      20
+    ]
+  },
+  "pov": {
+    "horizontal_fov_deg": 68,
+    "camera_point_blender_pitch_local_m": [
+      0.18,
+      -0.357,
+      0.19
+    ],
+    "muzzle_point_blender_pitch_local_m": [
+      0,
+      -1.351,
+      0
+    ],
+    "center_ray_clear": true
+  },
+  "mount_local_to_turret_blender_m": [
+    0.5,
+    -0.85,
+    0.94
+  ],
+  "source_nodes": {
+    "MGMountRoot": {
+      "parent": null,
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": []
+    },
+    "MGBase": {
+      "parent": "MGMountRoot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.03500000014901161
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": [
+        "MG02_Olive"
+      ]
+    },
+    "MGBaseDetails": {
+      "parent": "MGMountRoot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -0.15000000596046448
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.14000000059604645
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.07699999958276749
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": [
+        "MG02_BareSteel",
+        "MG02_Graphite"
+      ]
+    },
+    "MGYawPivot": {
+      "parent": "MGMountRoot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.15000000596046448
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": []
+    },
+    "MGCradleDetails": {
+      "parent": "MGYawPivot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.17500001192092896
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": [
+        "MG02_Olive",
+        "MG02_BareSteel",
+        "MG02_Graphite"
+      ]
+    },
+    "MGSupport": {
+      "parent": "MGYawPivot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.07500000298023224
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.27000001072883606
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": [
+        "MG02_Olive"
+      ]
+    },
+    "MGPitchPivot": {
+      "parent": "MGYawPivot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": []
+    },
+    "MGReceiver": {
+      "parent": "MGPitchPivot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.05999999865889549
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.5249999761581421
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": [
+        "MG02_Graphite"
+      ]
+    },
+    "MGFeed": {
+      "parent": "MGPitchPivot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.07000000029802322
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.621999979019165
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": [
+        "MG02_Olive",
+        "MG02_Rubber",
+        "MG02_BareSteel",
+        "MG02_Graphite",
+        "MG02_StenciledSand",
+        "MG02_OpticGlass"
+      ]
+    },
+    "MGAmmoBox": {
+      "parent": "MGPitchPivot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -0.3100000023841858
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.02500000037252903
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.48500001430511475
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": [
+        "MG02_Olive"
+      ]
+    },
+    "MGRecoilRoot": {
+      "parent": "MGPitchPivot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": []
+    },
+    "MGBarrel": {
+      "parent": "MGRecoilRoot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -4.371138828673793e-08,
+          -1.0,
+          -0.7699999809265137
+        ],
+        [
+          0.0,
+          1.0,
+          -4.371138828673793e-08,
+          0.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": [
+        "MG02_Graphite"
+      ]
+    },
+    "MGBarrelDetails": {
+      "parent": "MGRecoilRoot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": [
+        "MG02_Graphite",
+        "MG02_Rubber"
+      ]
+    },
+    "MGMuzzlePoint": {
+      "parent": "MGRecoilRoot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -1.3509999513626099
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": []
+    },
+    "MGCameraHousing": {
+      "parent": "MGPitchPivot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.18000000715255737
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.18000000715255737
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.6899999976158142
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": [
+        "MG02_Olive"
+      ]
+    },
+    "MGCameraPoint": {
+      "parent": "MGPitchPivot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.18000000715255737
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.3569999933242798
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.6899999976158142
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": []
+    },
+    "MGEjectionPoint": {
+      "parent": "MGPitchPivot",
+      "world": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.10999999940395355
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.03999999910593033
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.4749999940395355
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "materials": []
+    }
+  }
+}

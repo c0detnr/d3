@@ -128,3 +128,7 @@ Kamera ve girdi uygulandı: normal serbest bakış, sağ tuşta sağ yan yakın 
 ### 2026-10-24 — Nişan yenileme A4
 
 Namlu dumanı, gövdeye küçük sabit adımlı darbe, niyet açısını değiştirmeyen kamera darbesi, toprak/beton/metal görsel tepkileri ve mevcut AudioSystem üzerinden sınırlı prosedürel atış/dolum/isabet sesleri uygulandı. `combat:test`, `audio:test`, `map:build` geçti. Beton tepkisi test düzeninde kontrol edildi; dünyaya yeni yapı eklenmedi. İnsan dinlemesi ve atış hissi kabulü açık.
+
+### 2026-10-24 — MG 02 Blender varlığı
+
+Kullanıcı isteğiyle mevcut makineli dosyasına dokunmadan sıfırdan `iron_dust_mg_02` üretildi. 2.396 üçgen; ayrı yaw/yükseliş/geri tepme ve kamera/namlu referansları. GLB yeniden aktarımı ve 897 örnek duruşta tankla yüzey açıklığı doğrulandı; önizlemeler hazır. [Blender teslimi ve açık kontroller](../assets/weapons/iron_dust_mg_02/README.md). Dinamik kapak açılma doğrulaması ve oyun entegrasyonu açık; M1/M2/M3 kabulü tamamlanmadı.
