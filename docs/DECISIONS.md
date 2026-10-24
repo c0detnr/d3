@@ -146,5 +146,5 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 ## 2026-10-24 — Atış hissi yenilemesi
 
 - **Kullanıcı kararı:** Mevcut geri tepme, ses ve duman başarılı kabul edilmez; yeniden tasarlanır. Kamera küçük ölçüde sallanabilir. Uygulama açıkça onaylandı.
-- **Uygulanan prototip ayarları:** 65 ms geri hareket + 720 ms sekmesiz dönüş; yönlü 4200 N·s gövde darbesi; nişan niyetini değiştirmeyen kısa kamera hareketi; ayrı gaz/parlama ve zemine bağlı basınç tozu; üç stereo prosedürel top sesi varyasyonu. Balistik ve hasar kapsamı genişletilmedi.
+- **Uygulanan prototip ayarları:** 65 ms geri hareket + 720 ms sekmesiz dönüş; yönlü 16000 N·s gövde darbesi; nişan niyetini değiştirmeyen kısa kamera hareketi; ayrı gaz/parlama ve zemine bağlı basınç tozu; üç stereo prosedürel top sesi varyasyonu. Balistik ve hasar kapsamı genişletilmedi.
 - **Açık:** İnsan dinlemesi ve kullanıcının atış hissi kabulü. Geometriye bağlı yankı simülasyonu yok; ses kaydı eklenmedi. [Ayrıntılar](SHOT_FEEDBACK.md).
