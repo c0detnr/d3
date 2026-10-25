@@ -70,6 +70,52 @@ try {
       return turret.angles;
     });
     assert.deepEqual(results[0], results[1]); assert.deepEqual(results[1], results[2]);
+    // Manual controls preserve physical rates, local angles and render-rate independence.
+    const manualResults = [30, 60, 120].map(fps => {
+      turret.reset(); const clock = new FixedStep(); let delta = 5 * Math.PI / 180;
+      for (let frame = 0; frame < fps; frame++) clock.advance(1 / fps, dt => {
+        turret.fixedUpdateManual(1, delta, dt); delta = 0;
+      });
+      return turret.angles;
+    });
+    assert.deepEqual(manualResults[0], manualResults[1]); assert.deepEqual(manualResults[1], manualResults[2]);
+    near(manualResults[0].yaw, -IRON_DUST_01.turretYawSpeed * (1 - IRON_DUST_01.turretResponseTime * (1 - Math.exp(-1 / IRON_DUST_01.turretResponseTime))));
+    near(manualResults[0].elevation, 5 * Math.PI / 180);
+    for (let i = 0; i < 120; i++) turret.fixedUpdateManual(0, 0, 1 / 60);
+    const manualHeld = turret.angles;
+    tank.anchor.rotationQuaternion = Quaternion.RotationYawPitchRoll(-1, 0.1, 0.12);
+    tank.anchor.computeWorldMatrix(true);
+    turret.fixedUpdateManual(0, 0, 1 / 60);
+    near(turret.angles.yaw, manualHeld.yaw); near(turret.angles.elevation, manualHeld.elevation);
+    turret.reset(); const straight = turret.getMuzzleRay().direction;
+    turret.fixedUpdateManual(-1, 10, 1 / 60);
+    assert.ok(turret.angles.yaw > 0 && turret.angles.yaw < IRON_DUST_01.turretYawSpeed / 60);
+    assert.ok(turret.angles.elevation > 0 && turret.angles.elevation < IRON_DUST_01.gunPitchSpeed / 60);
+    assert.ok(turret.limited);
+    for (let i = 0; i < 180; i++) turret.fixedUpdateManual(0, 0, 1 / 60);
+    near(turret.angles.elevation, IRON_DUST_01.gunMaxElevation);
+    turret.fixedUpdateManual(0, -100, 1 / 60);
+    for (let i = 0; i < 180; i++) turret.fixedUpdateManual(0, 0, 1 / 60);
+    near(turret.angles.elevation, IRON_DUST_01.gunMinElevation);
+    // Reversing at a limit responds immediately, with no queued overshoot to unwind.
+    turret.fixedUpdateManual(0, 0.15 * Math.PI / 180, 1 / 60);
+    assert.ok(turret.angles.elevation > IRON_DUST_01.gunMinElevation);
+    for (let i = 0; i < 120; i++) turret.fixedUpdateManual(0, 0, 1 / 60);
+    near(turret.angles.elevation, IRON_DUST_01.gunMinElevation + 0.15 * Math.PI / 180);
+    turret.reset(); near(Vector3.Dot(straight, turret.getMuzzleRay().direction), 1);
+    tank.anchor.rotationQuaternion = Quaternion.Identity(); tank.anchor.computeWorldMatrix(true);
+    for (const hullYaw of [0, 1.2, -2]) {
+      tank.anchor.rotationQuaternion = Quaternion.RotationYawPitchRoll(hullYaw, 0, 0);
+      tank.anchor.computeWorldMatrix(true);
+      turret.reset();
+      const right = Vector3.Cross(Vector3.Up(), turret.getMuzzleRay().direction).normalize();
+      for (const turn of [-1, 1]) {
+        turret.reset(); turret.fixedUpdateManual(turn, 0, 0.5);
+        assert.ok(Vector3.Dot(right, turret.getMuzzleRay().direction) * turn > 0.1,
+          'Q turns the actual GLB muzzle left; E turns it right relative to the hull');
+      }
+    }
+    tank.anchor.rotationQuaternion = Quaternion.Identity(); tank.anchor.computeWorldMatrix(true);
     turret.reset(); near(turret.angles.yaw, 0); near(turret.angles.elevation, 0);
     // Smooth start, release, reversal, mechanical bounds and a fine wheel increment.
     turret.reset();

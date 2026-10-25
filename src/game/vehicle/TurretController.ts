@@ -69,6 +69,10 @@ export class TurretController {
       this.definition.gunPitchSpeed, this.definition.gunResponseTime, dt);
     this.apply(this.current.yaw, this.current.elevation);
   }
+  /** Local manual controls, advanced only by the fixed physics step. */
+  fixedUpdateManual(turn: number, elevationDelta: number, dt: number) {
+    this.fixedUpdateSmoothManual(turn, elevationDelta, dt);
+  }
   /** Smoothed local commands; angles stay relative to the hull. */
   fixedUpdateSmoothManual(turn: number, elevationDelta: number, dt: number) {
     this.previous = { ...this.current };

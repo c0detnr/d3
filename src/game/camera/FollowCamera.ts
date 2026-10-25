@@ -24,17 +24,12 @@ export class FollowCamera {
     this.scene = scene; this.canvas = canvas;
     this.camera = new FreeCamera('tank-follow', Vector3.Zero(), scene);
     this.camera.minZ = 0.15; this.camera.fov = 0.8; this.camera.inputs.clear();
-    canvas.addEventListener('wheel', this.wheel, { passive: false });
   }
   look(x: number, y: number) {
     if (this.overviewMode) return;
     this.yaw += x * AIM_CAMERA.sensitivity;
     this.pitch = Math.max(-1.15, Math.min(1.15, this.pitch - y * AIM_CAMERA.sensitivity));
   }
-  private wheel = (e: WheelEvent) => {
-    e.preventDefault();
-    if (!this.aiming) this.desiredRadius = Math.max(7, Math.min(32, this.desiredRadius + e.deltaY * 0.015));
-  };
   follow() { this.overviewMode = false; this.yaw = 0; this.pitch = -0.09; this.aiming = false; this.blend = 0; this.shotMotion.reset(); this.desiredRadius = 15; this.positioned = false; }
   overview() { this.overviewMode = true; this.aiming = false; this.camera.position.set(0, 120, -130); this.camera.setTarget(Vector3.Zero()); }
   impulse(direction = this.direction) {
@@ -97,5 +92,5 @@ export class FollowCamera {
     this.camera.setTarget(safe.add(view.scale(800)));
     this.camera.rotation.z = motion.roll;
   }
-  dispose() { this.canvas.removeEventListener('wheel', this.wheel); this.camera.dispose(); }
+  dispose() { this.camera.dispose(); }
 }

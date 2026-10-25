@@ -136,15 +136,15 @@ Başlangıç hedefi, belirlenecek referans masaüstü cihazda 1920×1080 çözü
 - Chromium headless (SwiftShader), 1280 × 720, yerel Vite: varsayılan takip görünümü ve orman zemini yakın görünümünde toprak taneleri, taşlar, ince çatlaklar, kuru bitki artıkları ve mikro rölyef görüldü. Düz üçgen gölgeleri yerine düzgün zemin normalleri okundu. Konsolda uygulama hatası görülmedi.
 - [Görsel kanıt](previews/terrain-surface.png). Bu, yazılım renderer ile alınmış görsel kalite kontrolüdür; FPS veya performans ölçümü değildir. İnsan görsel kabulü, doku ölçek/yoğunluk ayarı, farklı zemin türleri ve gerçek GPU performansı açık.
 
-### 2026-10-24 — Gövde ve namlu geri tepmesi düzeltmesi
-
-Namlu, termal kılıf, siyah namlu ucu ve namlu ağzı referansı birlikte geri çekilir. Atış darbesi 16000 N·s ile namlu yükseliş pivotundan uygulanır; mevcut fiziksel süspansiyon öne/arkaya veya yana salınımı sönümler. `node --experimental-strip-types scripts/check-cannon-recoil.ts` gerçek GLB/Havok ile üç namlu yönü, parça bağlılığı, sıfırlama, darbe yönü, süspansiyon salınımı, üç saniyede durulma ve 30/60/120 FPS eşitliğini kontrol eder. M1/M2/M3 son kabulü açık kalır.
-
 ## 2026-10-24 — MG02 entegrasyonu
 
 - `npm run mg:test`: gerçek tank/MG02 GLB ile montaj, ileri yön, sağ/yukarı fare yönü, açı sınırları, eğimli gövde ve kule takibi; recoil sırasında sabit POV, 30/60/120 FPS'de 10 saniyede 100 atış; yakın ince engelde süpürülmüş isabet ve üç kur/temizle çevrimi geçti. Ayrı girdi testi basılı ateş, bırakma, mod temizliği, Esc/blur/gizli sekme ve dispose senaryolarını doğruladı.
 - `npm run turret:test`, combat input kontrolü, `npm run map:check` ve `npm run map:build` geçti. İlk test çalışmasında Node strip-only parametre property reddi düzeltildi. Aynı çalışma alanında süren ayrı ana top recoil değişikliği nedeniyle ilk tam combat koşusu eski 0.42 m anlık recoil beklentisinde durdu; MG testleri bundan bağımsız geçti. Ayrı recoil işi testlerini güncelledikten sonra tam `npm run combat:test` yeniden çalıştırıldı ve geçti. Commit için ayrılan, diğer devam eden değişiklikleri içermeyen snapshot da map:check, mg:test, combat:test ve turret:test kontrollerinden geçti.
 - Derlenmiş sürüm Chromium/headless SwiftShader, 1440×900: 2 ile gerçek namlu görünen POV, fareyle nişan, basılı sol tuşta 0→4 atış sayacı, WASD sürüş (2 km/sa), 1 ile normal tank dönüşü gözlendi; pageerror yok. Bu bir performans veya insan sürüş hissi kabulü değildir. [POV kanıtı](previews/machine-gun-pov.png).
+
+### 2026-10-24 — Gövde ve namlu geri tepmesi düzeltmesi
+
+Namlu, termal kılıf, siyah namlu ucu ve namlu ağzı referansı birlikte geri çekilir. Atış darbesi 16000 N·s ile namlu yükseliş pivotundan uygulanır; mevcut fiziksel süspansiyon öne/arkaya veya yana salınımı sönümler. `node --experimental-strip-types scripts/check-cannon-recoil.ts` gerçek GLB/Havok ile üç namlu yönü, parça bağlılığı, sıfırlama, darbe yönü, süspansiyon salınımı, üç saniyede durulma ve 30/60/120 FPS eşitliğini kontrol eder. M1/M2/M3 son kabulü açık kalır.
 
 ## 2026-10-24 — Top atışı geri bildirimi
 

@@ -246,7 +246,6 @@ async function start() {
     ambient.intensity = 0.6 + stormFlash * 0.4;
     sun.intensity = 1.05 + stormFlash * 0.25;
     followCamera.aiming = !mgMode && (combatInput.aiming || touch.aiming);
-    if (!mgMode && !mobile) aim.acquire(vehicle);
     const alpha = clock.advance(dt, step => {
       const command = input.resolve(observation?.keys() ?? Object.fromEntries(Object.entries(keys.keys).map(([key, value]) => [key, value || touch.keys[key as keyof typeof touch.keys]])) as typeof keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
       vehicle!.beforeStep(step, command);
@@ -257,9 +256,7 @@ async function start() {
       visual!.fixedUpdate(vehicle!, step);
       // Joint calculations use the current physics pose; render interpolation follows below.
       visual!.syncHull(vehicle!, 1);
-      if (mobile) turret!.fixedUpdateSmoothManual(followCamera.isOverview || mgMode ? 0 : touch.turn,
-        mgMode ? 0 : touch.elevation * step * 15 * Math.PI / 180, step);
-      else turret!.fixedUpdate(!mgMode && combatInput.aiming ? aim.target : null, step);
+      turret!.fixedUpdateManual(followCamera.isOverview || mgMode ? 0 : (combatInput.turretTurn + touch.turn), mgMode ? (combatInput.consumeElevation(), 0) : (combatInput.consumeElevation() + touch.elevation * step * 15 * Math.PI / 180), step);
       if (mgMode) machineGun!.look(touch.turn * step * 220, -touch.elevation * step * 160);
       const wasReady = weapon!.ready;
       weapon!.fixedUpdate(step);
