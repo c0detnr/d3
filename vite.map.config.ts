@@ -4,6 +4,6 @@ export default defineConfig({
   build: {
     outDir: 'dist-map',
     assetsInlineLimit: 0,
-    rollupOptions: { input: ['index.html', 'map-preview.html'] },
+    rollupOptions: { input: ['index.html', 'map-preview.html', 'lan-duel.html'] },
   },
 });

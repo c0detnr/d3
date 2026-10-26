@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IRON DUST · LAN Düellosu</title>
+  </head>
+  <body>
+    <canvas id="duel" tabindex="0" aria-label="LAN tank düellosu"></canvas>
+    <header class="panel scoreboard">
+      <h1>IRON DUST <small>LAN DÜELLOSU</small></h1>
+      <p id="connection" role="status">Sahne yükleniyor…</p>
+      <div class="health"><label>Tank 1 <progress id="hp-0" max="100" value="100"></progress> <span id="hp-text-0">100 / 100</span></label><label>Tank 2 <progress id="hp-1" max="100" value="100"></progress> <span id="hp-text-1">100 / 100</span></label></div>
+      <p id="result" aria-live="polite">İki oyuncu bağlanıp hazır olduğunda maç başlar.</p>
+      <button id="ready" type="button" disabled>Hazırım</button>
+      <span id="ready-state">Hazır: — / —</span>
+      <p id="error" role="alert" hidden></p>
+    </header>
+    <div class="reticle" aria-hidden="true">+</div>
+    <div class="panel weapon"><span id="reload">Ana top · bekleniyor</span><progress id="reload-progress" max="5" value="0"></progress><span>100 can · 25 hasar / doğrudan isabet · 5 sn dolum</span></div>
+    <footer class="panel controls">
+      <p><b>W / S</b> ileri / geri · <b>A / D</b> yön · <b>Boşluk</b> fren · <b>Q / E</b> kule · <b>Tekerlek</b> namlu yükselişi · <b>Sol tık</b> tek atış</p>
+      <p><b>Sol tuşla sürükle</b> kamerayı çevir (sürükleme ateş etmez) · <b>Sağ tuş</b> yakın bakış · Yalnız masaüstü, ana top. Bu modda ses yoktur.</p>
+      <a href="/map-preview.html">← Tek oyunculu sürüşe dön</a>
+    </footer>
+    <script type="module" src="/src/lanDuel.ts"></script>
+  </body>
+</html>
