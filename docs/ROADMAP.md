@@ -6,6 +6,10 @@ Durum: **M1 devam ediyor: doğal arazi, orman çevresi ve gerçek tankın bağı
 
 Leopard 2A6 esintili, kum beji ikinci tank için [B0–B9 planı](SECOND_TANK_BLENDER_PLAN.md) hazırlandı. Önce özgün model ve hareketli GLB, sonra mevcut haritada tank seçimi/sürüş, kule/namlu ve top atışı; son adım tarayıcıda oynanabilirlik kabulüdür. Modelleme ve entegrasyon başlamadı. Hız, zırh ve hasar dengesi bu teslimin koşulu değildir; M1/M2/M3 genel kabul durumları değişmez.
 
+## İlk AI tank düellosu — planlandı
+
+[Çatışma ve hasar planı](COMBAT_DUEL_PLAN.md): mevcut haritada seçilen tank ile diğer modelden hareketli AI rakip; eşit 100 can, 25 top hasarı, 5 s dolum. MG tanklara hasar vermez. Serbest sürüş ayrı korunur; sonuç/beraberlik, kısa imha efekti ve bütüncül yeniden dene akışı vardır. Sıra: C1 iki tank → C2 can/hasar → C3 AI → C4 oyun döngüsü → C5 doğrulama. Uygulama başlamadı. Zırh/modül hasarı ve taktik AI bu teslimde yoktur; uzun vadeli M3 ve M1/M2 açık kabul durumları değişmez.
+
 ## Uygulamaya geçiş hazırlığı
 
 - Kullanıcı kodlamaya başlamayı istediğinde mevcut aşama kaydını güncelle.

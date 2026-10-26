@@ -20,6 +20,14 @@
 | Kapsam dışı | Multiplayer, mağaza, onlarca araç, dev haritalar, tüm yapıların fiziksel yıkımı |
 | Bu görev | Gerekli başlangıç dosyalarını planla ve oluştur; uygulama koduna başlanmadı |
 
+## 2026-10-26 — İlk AI tank düellosu
+
+- **Kesin kullanıcı kararları:** Tek hareketli AI rakip, basit can, yalnız top hasarı; iki tankta eşit 100 can / 25 hasar / 5 s dolum ve sınırsız mühimmat. Ön/yan/arka zırh, açı ve mesafe hasarı değiştirmez. MG hasarsız kalır.
+- **Oyun akışı:** Serbest sürüş korunur; ayrı düello düğmesi. AI görünce takip eder, uygun mesafede yavaşlayıp nişan alır/ateş eder; engelin arkasından görmez, anında kusursuz nişan almaz. Kendi canı sürekli, rakip canı görüşte görünür. İmha kazandın/kaybettin, aynı-adım çift imha berabere sonucudur. Kısa efekt ve duran enkaz; yeniden dene veya aktif düelloda R/kurtarma iki tarafı tamamen sıfırlar.
+- **Gerekçe:** Kullanıcı önce oynanabilir hareketli düello istedi; zırh/modül derinliği yerine basit can seçti. Eski M3 zırh/modül hedefleri iptal edilmedi; ayrı sonraki kapsam olarak kalır.
+- **Teknik öneri / açık ayarlar:** Mevcut fizik/top sınıflarını yeniden kullanma, sade gövde/kule hasar hacimleri, son görülen konuma takip ve sınırlı kurtulma manevrası. AI tepki/mesafe/tolerans değerleri ve başlangıç koordinatları prototiple ayarlanacak; kesin kullanıcı değerleri değildir.
+- **Durum:** Yalnız plan; uygulama başlamadı, oyun testleri çalıştırılmadı. M1/M2/M3 kabulü değişmez. [Plan ve kabul senaryoları](COMBAT_DUEL_PLAN.md); README belge haritası ve ROADMAP güncellendi.
+
 ## Planlama tercihleri / öneriler
 
 - M2 sonunda sürüş teslimi; M3 sonunda savaş mekaniklerini içeren vertical slice. Önceki sürüş isteği ile son MVP sırasını birlikte koruyan planlama ayrımıdır.

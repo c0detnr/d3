@@ -34,6 +34,7 @@ Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağ�
 | [Oynanabilir ikinci tank planı](docs/SECOND_TANK_BLENDER_PLAN.md) | Leopard 2A6 esintili kum beji tank; modelden haritada sürüş, nişan ve top atışına kadar teslim; üretim başlamadı |
 | [Makineli tüfek Blender planı](docs/MACHINE_GUN_ASSET_PLAN.md) | POV kameralı ikinci silahın yerleşimi, hareket grupları, modelleme sırası ve teslim kontrolleri |
 | [Teknik mimari](docs/ARCHITECTURE.md) | Seçilen yığın, sistem sınırları ve fizik yaklaşımı |
+| [İlk tank düellosu planı](docs/COMBAT_DUEL_PLAN.md) | Hareketli AI, yalnız top hasarı, 100 can / 25 hasar, sonuç ve yeniden dene; henüz uygulanmadı |
 | [Yol haritası](docs/ROADMAP.md) | M1 dünya → M2 sürüş → M3 savaş |
 | [Doğrulama](docs/VALIDATION.md) | Kabul senaryoları ve performans ölçümü |
 | [Kararlar](docs/DECISIONS.md) | Kesin kararlar, öneriler ve açık konular |
