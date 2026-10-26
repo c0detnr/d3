@@ -2,6 +2,10 @@
 
 Durum: **M1 devam ediyor: doğal arazi, orman çevresi ve gerçek tankın bağımsız önizlemesi mevcut. M2 ilk sürüş prototipi uygulandı; son kabul açık. M3.1 ateş ve balistik çekirdeği uygulandı; hasar, modül hasarı ve tarayıcı kabulü açık.**
 
+## İkinci oynanabilir tank — planlandı
+
+Leopard 2A6 esintili, kum beji ikinci tank için [B0–B9 planı](SECOND_TANK_BLENDER_PLAN.md) hazırlandı. Önce özgün model ve hareketli GLB, sonra mevcut haritada tank seçimi/sürüş, kule/namlu ve top atışı; son adım tarayıcıda oynanabilirlik kabulüdür. Modelleme ve entegrasyon başlamadı. Hız, zırh ve hasar dengesi bu teslimin koşulu değildir; M1/M2/M3 genel kabul durumları değişmez.
+
 ## Uygulamaya geçiş hazırlığı
 
 - Kullanıcı kodlamaya başlamayı istediğinde mevcut aşama kaydını güncelle.

@@ -165,3 +165,12 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 **Uygulama kararı:** Mevcut Babylon/Havok oyununu yerel HTTPS origin üzerinde çalıştıran, varlıkları içinde taşıyan Android WebView kabuğu; yatay tam ekran, çevrimdışı kurulum ve debug imzalı ilk APK. Sürüş/fizik yeniden yazılmaz.
 
 **Açık:** Fiziksel telefon performansı, uzun sürüş/ısınma/pil kabulü ve mağaza yayını için sürüm imzası. [Android notları](ANDROID.md).
+
+## 2026-10-26 — Oynanabilir ikinci tank planı
+
+- **Kullanıcı kararı:** Leopard 2A6 esintili, kum beji ikinci tankın hedefi oyunda sürülüp nişan alınabilmesi ve topunun ateşlenmesidir. Hız ve benzeri teknik ayarlar şu an öncelikli değildir. Mevcut tank korunur, yeni model ayrı varlık olarak ele alınır.
+- **Tasarım planı:** Uzun namlu, kama kule zırhı, yedi yol tekeri/yan, ayrı kule/yükseliş/geri tepme grupları; önce oran taslağı değerlendirmesi, ardından detay ve GLB doğrulaması.
+- **Öneriler:** Yaklaşık ölçüler, 18–24 bin görünür üçgen, materyal bütçesi ve hareket test aralıkları son oyun değerleri değildir.
+- **Teslim sırası:** Model ve GLB → oyun içi tank seçimi ve sürüş → kule/top → tarayıcıda oynanabilirlik kabulü. MG ve kabin bu teslimin şartı değildir.
+- **Açık:** Oyun içi ad, fizik/hasar değerleri ve 14 temas noktası ile geri tepme kökünün oyun entegrasyonu. Üretim başlamadı; M1/M2/M3 kabulü değişmedi.
+- **Plan:** [Oynanabilir ikinci tank](SECOND_TANK_BLENDER_PLAN.md).

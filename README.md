@@ -31,6 +31,7 @@ Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağ�
 | [Kamera, nişan ve atış yenileme planı](docs/AIM_AND_FIRE_REWORK.md) | Sağ tuşla sağ yan yakın kamera, bağımsız serbest bakış ve görünür balistik; henüz uygulanmadı |
 | [Ses sistemi planı](docs/SOUND_DESIGN.md) | Prosedürel motor/palet/rüzgâr sesleri, savaş sesleri, mimari ve doğrulama |
 | [Tank modelleme standardı](docs/TANK_ASSET.md) | Blender parça hiyerarşisi, hareket hazırlığı, üçgen hedefi ve teslim önerisi |
+| [Oynanabilir ikinci tank planı](docs/SECOND_TANK_BLENDER_PLAN.md) | Leopard 2A6 esintili kum beji tank; modelden haritada sürüş, nişan ve top atışına kadar teslim; üretim başlamadı |
 | [Makineli tüfek Blender planı](docs/MACHINE_GUN_ASSET_PLAN.md) | POV kameralı ikinci silahın yerleşimi, hareket grupları, modelleme sırası ve teslim kontrolleri |
 | [Teknik mimari](docs/ARCHITECTURE.md) | Seçilen yığın, sistem sınırları ve fizik yaklaşımı |
 | [Yol haritası](docs/ROADMAP.md) | M1 dünya → M2 sürüş → M3 savaş |
