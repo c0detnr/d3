@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.map.json",
+  "compilerOptions": { "types": ["vite/client", "node"] },
+  "include": ["src/lanDuel.ts", "src/game/network/**/*.ts", "scripts/lan-server.ts", "scripts/check-network-simulation.ts", "scripts/check-lan-server.ts"]
+}

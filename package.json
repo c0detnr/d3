@@ -25,7 +25,10 @@
     "combat:test": "node --experimental-strip-types scripts/check-combat.ts && node --experimental-strip-types scripts/check-combat-input.ts && node --experimental-strip-types scripts/check-camera.ts",
     "mg:test": "node --experimental-strip-types scripts/check-machine-gun.ts && node --experimental-strip-types scripts/check-machine-gun-input.ts",
     "android:build": "bash scripts/build-android.sh",
-    "touch:test": "node --experimental-strip-types scripts/check-touch-input.ts"
+    "touch:test": "node --experimental-strip-types scripts/check-touch-input.ts",
+    "lan:start": "npm run map:build && node --experimental-strip-types scripts/lan-server.ts",
+    "lan:check": "tsc -p tsconfig.lan.json",
+    "lan:test": "node --experimental-strip-types scripts/check-network-simulation.ts && node --experimental-strip-types scripts/check-lan-server.ts"
   },
   "dependencies": {
     "@babylonjs/core": "9.32.0",
@@ -33,6 +36,7 @@
     "@babylonjs/loaders": "9.32.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "ws": "8.22.0",
     "zustand": "5.0.16"
   },
   "devDependencies": {
@@ -40,6 +44,7 @@
     "@types/node": "26.6.5",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@types/ws": "8.18.2",
     "@vitejs/plugin-react": "6.1.2",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
