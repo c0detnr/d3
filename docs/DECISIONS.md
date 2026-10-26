@@ -28,6 +28,8 @@
 - **Teknik öneri / açık ayarlar:** Mevcut fizik/top sınıflarını yeniden kullanma, sade gövde/kule hasar hacimleri, son görülen konuma takip ve sınırlı kurtulma manevrası. AI tepki/mesafe/tolerans değerleri ve başlangıç koordinatları prototiple ayarlanacak; kesin kullanıcı değerleri değildir.
 - **Durum:** Yalnız plan; uygulama başlamadı, oyun testleri çalıştırılmadı. M1/M2/M3 kabulü değişmez. [Plan ve kabul senaryoları](COMBAT_DUEL_PLAN.md); README belge haritası ve ROADMAP güncellendi.
 
+**Sonraki uygulama durumu (2026-10-26):** C1 iki tank test modu ve tek Havok adımı uygulandı; gerçek GLB/Havok kontrolleri geçti. Can, hasar, AI ve sonuç akışı henüz uygulanmadı.
+
 ## Planlama tercihleri / öneriler
 
 - M2 sonunda sürüş teslimi; M3 sonunda savaş mekaniklerini içeren vertical slice. Önceki sürüş isteği ile son MVP sırasını birlikte koruyan planlama ayrımıdır.
@@ -182,3 +184,5 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Teslim sırası:** Model ve GLB → oyun içi tank seçimi ve sürüş → kule/top → tarayıcıda oynanabilirlik kabulü. MG ve kabin bu teslimin şartı değildir.
 - **Açık:** Oyun içi ad, fizik/hasar değerleri ve 14 temas noktası ile geri tepme kökünün oyun entegrasyonu. Üretim başlamadı; M1/M2/M3 kabulü değişmedi.
 - **Plan:** [Oynanabilir ikinci tank](SECOND_TANK_BLENDER_PLAN.md).
+
+**Sonraki üretim durumu (2026-10-26):** Özgün kaynak ve GLB üretildi; tank seçimi, sürüş, kule ve top otomatik kontrolleri geçti. İnsan tarayıcı kabulü ve araç dengelemesi açık.

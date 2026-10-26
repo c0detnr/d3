@@ -252,3 +252,24 @@ Belge kontrolleri tamamlandı; yalnız ilgili belgeleri commit edip origin/main'
 
 ## Next Step
 A1 uygulanıyor; mevcut hareket efektleri, sürüş ve varlıklar korunacak.
+
+## İkinci tank Blender MCP planı — 2026-10-26
+
+Bu görev yalnız üretim planını kaydeder; önceki uygulama görevlerinin durumunu değiştirmez.
+
+- Mevcut model standardı ve oyun entegrasyonu sınırlarını incele: complete.
+- B0–B6 üretim planını ve karar ayrımını yaz: complete.
+- Belge bağlantıları ve diff kontrolü: complete.
+- Git teslimi: yerel commit ve push adımı.
+
+## Next Step
+
+Plan kaydı tamamlandı; Git tesliminden sonra sonraki kullanıcı talimatında B0 bağlantı/sahne kontrolüyle üretime geçilebilir. Model üretimine başlanmadı; sonraki üretim adımı B0 bağlantı/sahne kontrolüdür.
+
+### Bu görevde karşılaşılan hatalar
+
+- İlk Blender MCP çağrısı localhost:9876 bağlantı hatası verdi; kullanıcı Blender'ı açınca yeniden denendi.
+- İlk belge patch'i DECISIONS.md bağlamı eşleşmediği için uygulanmadı; gerçek satır bağlamıyla düzeltildi.
+
+- İkinci canlı Blender çağrısı yanıt vermediği için sonlandırıldı; bağlantı doğrulanamadı.
+- İlk diff kontrolünde iki dosya sonundaki fazladan boş satır düzeltildi; son kontrol geçti.

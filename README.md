@@ -8,7 +8,7 @@ Temel ilke: **Grafikler sade olacak; tank onlarca tonluk zırhlı bir araç gibi
 
 ## Güncel durum
 
-Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağımsız harita önizlemesi mevcut. İlk sürüş prototipi mevcut; son tarayıcı kabulü ve sürüş hissi değerlendirmesi açık. Blender tank dosyaları `assets/tanks/iron_dust_01/` altında; önizleme gerçek GLB modelini metre ölçeğinde, zemine hizalı yükler.
+Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağımsız harita önizlemesi mevcut. İlk sürüş prototipi mevcut; son tarayıcı kabulü ve sürüş hissi değerlendirmesi açık. İki özgün tankın Blender kaynakları ve GLB dosyaları `assets/tanks/` altında; önizlemede tank seçimi yapılabilir. `?duel=1` iki tankı aynı fizik dünyasında açan C1 testidir; rakip henüz hareket etmez veya ateş etmez.
 
 İlk teslim tek tankla küçük bir haritada serbest sürüş olacak. Sonraki teslim sabit hedeflerle atış ve temel hasarı ekleyerek savaş mekaniklerini içeren vertical slice oluşturacak. M3.1 çekirdeği uygulandı: gerçek namlu ağzından AP atışı, süpürülmüş isabet, mesafe/açıya bağlı delme, sekme, üç sabit zırhlı hedef, nişancı görüşü ve görsel geri bildirim. Hasar, modül hasarı, HE, düşman AI ve savaş sesleri henüz yok; tarayıcı kabulü açık.
 
@@ -31,10 +31,10 @@ Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağ�
 | [Kamera, nişan ve atış yenileme planı](docs/AIM_AND_FIRE_REWORK.md) | Sağ tuşla sağ yan yakın kamera, bağımsız serbest bakış ve görünür balistik; henüz uygulanmadı |
 | [Ses sistemi planı](docs/SOUND_DESIGN.md) | Prosedürel motor/palet/rüzgâr sesleri, savaş sesleri, mimari ve doğrulama |
 | [Tank modelleme standardı](docs/TANK_ASSET.md) | Blender parça hiyerarşisi, hareket hazırlığı, üçgen hedefi ve teslim önerisi |
-| [Oynanabilir ikinci tank planı](docs/SECOND_TANK_BLENDER_PLAN.md) | Leopard 2A6 esintili kum beji tank; modelden haritada sürüş, nişan ve top atışına kadar teslim; üretim başlamadı |
+| [Oynanabilir ikinci tank planı](docs/SECOND_TANK_BLENDER_PLAN.md) | Kum beji tankın kaynak/GLB teslimi ve otomatik oyun kontrolleri mevcut; insan oynanabilirlik kabulü açık |
 | [Makineli tüfek Blender planı](docs/MACHINE_GUN_ASSET_PLAN.md) | POV kameralı ikinci silahın yerleşimi, hareket grupları, modelleme sırası ve teslim kontrolleri |
 | [Teknik mimari](docs/ARCHITECTURE.md) | Seçilen yığın, sistem sınırları ve fizik yaklaşımı |
-| [İlk tank düellosu planı](docs/COMBAT_DUEL_PLAN.md) | Hareketli AI, yalnız top hasarı, 100 can / 25 hasar, sonuç ve yeniden dene; henüz uygulanmadı |
+| [İlk tank düellosu planı](docs/COMBAT_DUEL_PLAN.md) | C1 iki araç testi uygulandı; can, hasar, AI ve maç sonucu sonraki adımlar |
 | [Yol haritası](docs/ROADMAP.md) | M1 dünya → M2 sürüş → M3 savaş |
 | [Doğrulama](docs/VALIDATION.md) | Kabul senaryoları ve performans ölçümü |
 | [Kararlar](docs/DECISIONS.md) | Kesin kararlar, öneriler ve açık konular |
@@ -50,6 +50,8 @@ Kurulu paket sürümleri `package.json` ve kilit dosyasında sabittir. Genel oyu
 ## Doğal arazi önizlemesi
 
 `npm start` veya `npm run dev` ile başlatılır. Terminalde yazan yerel adresi tarayıcıda aç; ana sayfa test haritasına yönlendirir. Varsayılan port 5173 doluysa Vite bir sonraki boş portu kullanır. `npm run map:dev` doğrudan harita sayfasını açar.
+
+Harita sayfasındaki tank seçimi veya `?tank=02` ikinci tankı açar. `?duel=1` C1 iki tank testini açar; rakip yalnızca fiziksel, park hâlindeki araçtır. Düello hasarı ve AI henüz yoktur.
 
 320 × 320 m ayrıntılı arazi çevresinde ufka devam eden seyrek geometrili tepeler bulunur. Düz ve açık başlangıç alanından kıvrılan toprak patika ormana ilerler; çamlar, geniş yapraklı ağaçlar, kayalar ve kuru ot kümeleri çevreyi oluşturur. Akşam ışığı yerine kaotik fırtına atmosferi kullanılır: sürüklenen ve çalkalanan prosedürel bulut katmanları, sıcak ufuk parıltısı, ara ara uzak şimşek çakmaları, gölgeler ve uzaklık sisi. Gökyüzü kaynağı `src/game/world/SkyAtmosphere.ts`; bulutlar ve şimşek aydınlatması GPU shader'ında üretilir. Arazi, kayalar ve yakın ağaç gövdeleri statik Havok çarpışmasına sahiptir; uzaktaki orman görsel arka plandır. Arazi yüzeyi kodla üretilen albedo, normal ve ince detay dokularıyla kaplanır; 22 m'de bir dikişsiz tekrarlanan doku toprak rengi kümeleri, taş taneleri, ince çatlaklar ve kuru yaprak/dal artıkları içerir. Metre esaslıdır; farklı zemin tutuşları ve oynanabilir alan sınırları henüz uygulanmadı.
 

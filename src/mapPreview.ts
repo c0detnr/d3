@@ -1,3 +1,5 @@
+import { DuelTank } from './game/combat/DuelTank.ts';
+import { terrainHeight } from './game/world/terrain.ts';
 import { TouchControls } from './game/input/TouchControls.ts';
 import './mapPreview.css';
 import { MachineGun, MG } from './game/combat/MachineGun.ts';
@@ -32,6 +34,27 @@ import { CombatInput } from './game/input/CombatInput.ts';
 import { IRON_DUST_01_WEAPON, SHOT_FEEDBACK } from './game/combat/WeaponDefinition.ts';
 import { createChaoticSky } from './game/world/SkyAtmosphere.ts';
 import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
+import secondTankUrl from '../assets/tanks/iron_dust_02/iron_dust_02.glb?url';
+
+const twoTankTest = new URLSearchParams(location.search).has('duel');
+const secondTank = new URLSearchParams(location.search).get('tank') === '02';
+const duelToggle = document.createElement('a');
+const duelUrl = new URL(location.href);
+if (twoTankTest) duelUrl.searchParams.delete('duel');
+else duelUrl.searchParams.set('duel', '1');
+duelToggle.href = duelUrl.href;
+duelToggle.textContent = twoTankTest ? 'Serbest sürüşe dön' : 'İki tank testi (C1)';
+duelToggle.className = 'duel-toggle';
+document.body.append(duelToggle);
+const tankChoice = document.querySelector<HTMLSelectElement>('#tank-choice')!;
+tankChoice.value = secondTank ? '02' : '01';
+const changeTank = () => {
+  const url = new URL(location.href);
+  url.searchParams.set('tank', tankChoice.value);
+  location.assign(url);
+};
+tankChoice.addEventListener('change', changeTank);
+if (secondTank) document.querySelector<HTMLButtonElement>('[data-action="weapon"]')!.hidden = true;
 
 const canvas = document.querySelector<HTMLCanvasElement>('#map')!;
 const status = document.querySelector<HTMLElement>('#status')!;
@@ -47,6 +70,7 @@ const followCamera = new FollowCamera(scene, canvas);
 followCamera.camera.maxZ = 1600;
 const clock = new FixedStep();
 const input = new DriveInput();
+let opponent: DuelTank | undefined;
 let vehicle: TankVehicle | undefined;
 let visual: TankVisual | undefined;
 let movementEffects: MovementEffects | undefined;
@@ -108,6 +132,7 @@ function updateCombatHud() {
   document.querySelector<HTMLProgressElement>('#reload-progress')!.value = mgMode ? 1 : weapon.reloadFraction;
 }
 function reset() {
+  opponent?.reset();
   touch.clear(); keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); movementEffects?.reset();
   vehicleAudio?.reset(); combatAudio?.reset(); turret?.reset(); weapon?.reset(); projectiles?.reset(); combatEffects?.reset();
   machineGun?.reset(); mgProjectiles?.reset(); selectWeapon(false);
@@ -194,7 +219,7 @@ async function start() {
   ground = createTestGround(scene);
   ground.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh));
   status.textContent = 'Harita hazır, tank modeli yükleniyor…';
-  tank = await loadTankModel(scene, tankUrl, ground.spawn);
+  tank = await loadTankModel(scene, secondTank ? secondTankUrl : tankUrl, ground.spawn);
   if (disposed) { tank.dispose(); return; }
   tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
   const rig = extractTankRig(tank);
@@ -203,9 +228,11 @@ async function start() {
   movementEffects = new MovementEffects(scene, vehicle);
   turret = new TurretController(tank, vehicle.definition);
   weapon = new WeaponSystem(turret, IRON_DUST_01_WEAPON);
-  machineGun = await MachineGun.load(scene, mgUrl, turret.yawPivot);
-  if (disposed) { machineGun.dispose(); return; }
-  machineGun.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
+  if (!secondTank) {
+    machineGun = await MachineGun.load(scene, mgUrl, turret.yawPivot);
+    if (disposed) { machineGun.dispose(); return; }
+    machineGun.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
+  }
   mgProjectiles = new ProjectileSystem(scene, (from, to) => {
     const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body });
     return hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
@@ -233,6 +260,14 @@ async function start() {
     followCamera.camera.setTarget(new Vector3(0, -12, -152));
   }
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('driveTest')) observation = new DrivingObservation(engine, reset);
+  if (twoTankTest) {
+    status.textContent = 'İkinci tank yükleniyor…';
+    const spawn = ground.spawn.add(new Vector3(6, 0, 0));
+    spawn.y = terrainHeight(spawn.x, spawn.z);
+    opponent = await DuelTank.load(scene, secondTank ? tankUrl : secondTankUrl, spawn);
+    if (disposed) { opponent.dispose(); opponent = undefined; return; }
+    opponent.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
+  }
   status.hidden = true;
   lastTime = performance.now();
   let hudElapsed = 0;
@@ -250,8 +285,10 @@ async function start() {
       const command = input.resolve(observation?.keys() ?? Object.fromEntries(Object.entries(keys.keys).map(([key, value]) => [key, value || touch.keys[key as keyof typeof touch.keys]])) as typeof keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
       vehicle!.beforeStep(step, command);
       movementEffects!.fixedUpdate(vehicle!, step);
+      opponent?.beforeStep(step);
       scene.getPhysicsEngine()!._step(step);
       vehicle!.afterStep();
+      opponent?.afterStep(step);
       observation?.step();
       visual!.fixedUpdate(vehicle!, step);
       // Joint calculations use the current physics pose; render interpolation follows below.
@@ -278,7 +315,7 @@ async function start() {
           lastCombatResult = 'DOLUM SÜRÜYOR'; combatResultTime = 1;
         }
       }
-      machineGun!.fixedUpdate(step, mgMode && !followCamera.isOverview && (combatInput.fireHeld || touch.fireHeld), (origin, direction) => {
+      machineGun?.fixedUpdate(step, mgMode && !followCamera.isOverview && (combatInput.fireHeld || touch.fireHeld), (origin, direction) => {
         mgProjectiles!.spawn(origin, direction, MG.speed);
         combatEffects!.machineGunFlash(origin, direction);
         if (!audio.muted) combatAudio?.machineGunShot();
@@ -299,6 +336,7 @@ async function start() {
       });
       combatEffects!.fixedUpdate(step);
     });
+    opponent?.render(alpha);
     visual.render(vehicle, alpha);
     movementEffects!.render(alpha);
     turret!.render(alpha);
@@ -334,6 +372,8 @@ function dispose() {
   if (disposed) return;
   disposed = true;
   window.removeEventListener('pagehide', dispose);
+  tankChoice.removeEventListener('change', changeTank);
+  duelToggle.remove();
   engine.stopRenderLoop();
   window.removeEventListener('resize', resize);
   window.removeEventListener('keydown', weaponKey);
@@ -352,6 +392,7 @@ function dispose() {
   audio.dispose();
   aim.dispose(); turret?.dispose(); visual?.dispose(); vehicle?.dispose(); followCamera.dispose();
   mgProjectiles?.dispose(); machineGun?.dispose();
+  opponent?.dispose();
   tank?.dispose();
   ground?.dispose();
   sky.dispose();

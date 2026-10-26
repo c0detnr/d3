@@ -20,7 +20,14 @@ export function extractTankRig(tank: TankModel) {
       // Effective contact radius includes the track envelope below the road wheel.
       radius: origin.y, side: origin.x < 0 ? -1 : 1 };
   });
-  if (wheels.length !== 12) throw new Error('Tank requires twelve suspension points.');
+  const expected = nodes.find(node => node.metadata?.gltf?.extras?.asset_node_id === 'TankRoot')?.metadata?.gltf?.extras?.road_wheels ?? 12;
+  if (![12, 14].includes(expected) || wheels.length !== expected) throw new Error('Tank suspension point count does not match asset.');
+  const left = wheels.filter(wheel => wheel.side < 0).sort((a, b) => a.origin.z - b.origin.z);
+  const right = wheels.filter(wheel => wheel.side > 0).sort((a, b) => a.origin.z - b.origin.z);
+  if (left.length !== expected / 2 || right.length !== expected / 2 || left.some((wheel, i) =>
+    Math.abs(wheel.origin.z - right[i].origin.z) > 0.001 || Math.abs(wheel.origin.x + right[i].origin.x) > 0.001)) {
+    throw new Error('Tank suspension points must form matching left/right pairs.');
+  }
   return { visualOffset: tank.anchor.position.subtract(tank.groundPosition), center, size: max.subtract(min), wheels };
 }
 export type TankRig = ReturnType<typeof extractTankRig>;

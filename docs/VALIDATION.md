@@ -1,5 +1,11 @@
 # Doğrulama planı
 
+## 2026-10-26 — İkinci tank ve C1 iki araç
+
+- `npm run map:check`, `npm run tank:test`, `npm run turret:test`, `npm run drive:test` ve `npm run map:build` geçti. İkinci GLB için 14 eşleşmiş temas, gizli çarpışma, 19.992 görünür üçgen, palet UV'si, üç yönde nişan/atış/geri tepme ve üç temizlik çevrimi kontrol edildi. `drive:test` iki GLB için gerçek Havok sürüşünü çalıştırdı.
+- `node --experimental-strip-types scripts/check-duel-tanks.ts` geçti: iki model her iki rolde aynı sabit fizik adımını paylaştı; çarpışma, sıfırlama, üç kaynak kur/temizle çevrimi, 30/60/120 FPS eşitliği ve gerçek harita başlangıç zemini/görüş hattı kontrol edildi. İlk rakip başlangıcı eğimli zeminde kaydı; açık düz alana taşındı ve test tekrar geçti.
+- Derleme büyük paket uyarısı verdi. Bu turda yeni tarayıcı görsel/etkileşim kabulü veya referans FPS ölçümü yapılmadı. C1 rakibi park hâlindedir; can, hasar ve AI yoktur. İkinci tankın insan sürüş/nişan/atış kabulü açıktır.
+
 ## 2026-10-23 — Ana adres 404 düzeltmesi
 
 - Neden: kökte `index.html` yoktu; `/` 404, `/map-preview.html` 200 dönüyordu.

@@ -32,8 +32,8 @@ export class TurretController {
     };
     this.yawPivot = find('TurretPivot'); this.pitchPivot = find('GunPitchPivot');
     this.barrel = find('Barrel'); this.muzzle = find('MuzzlePoint');
-    // All four are siblings in the asset; sleeves and the muzzle cap must travel with the tube.
-    this.recoilParts = [this.barrel, find('ThermalSleeve'), find('MuzzleShroud'), this.muzzle];
+    const recoilRoot = nodes.find(node => node.metadata?.gltf?.extras?.asset_node_id === 'GunRecoilRoot');
+    this.recoilParts = recoilRoot ? [recoilRoot] : [this.barrel, find('ThermalSleeve'), find('MuzzleShroud'), this.muzzle];
     this.yawRest = this.yawPivot.rotationQuaternion?.clone() ?? Quaternion.FromEulerVector(this.yawPivot.rotation);
     this.pitchRest = this.pitchPivot.rotationQuaternion?.clone() ?? Quaternion.FromEulerVector(this.pitchPivot.rotation);
   }

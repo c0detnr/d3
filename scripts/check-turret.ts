@@ -8,7 +8,8 @@ import { FixedStep } from '../src/game/core/fixedStep.ts';
 
 const engine = new NullEngine();
 const scene = new Scene(engine);
-const bytes = new Uint8Array(await readFile(new URL('../assets/tanks/iron_dust_01/iron_dust_01.glb', import.meta.url)));
+const tankId = process.argv[2] === '02' ? '02' : '01';
+const bytes = new Uint8Array(await readFile(new URL(`../assets/tanks/iron_dust_${tankId}/iron_dust_${tankId}.glb`, import.meta.url)));
 const near = (a: number, b: number, epsilon = 1e-6) => assert.ok(Math.abs(a - b) < epsilon, `${a} != ${b}`);
 try {
   for (let cycle = 0; cycle < 3; cycle++) {

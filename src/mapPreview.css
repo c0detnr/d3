@@ -32,3 +32,9 @@
  .fire-button.reloading{opacity:.48}#aim-status{display:none}#combat-hud{bottom:auto;top:max(14px,env(safe-area-inset-top));padding:8px 12px;font-size:9px;max-width:52vw;gap:8px}#hit-result{display:none}#reload-progress{width:42px}
 }
 @media (pointer:coarse) and (orientation:portrait){#rotate-hint{display:block;position:fixed;top:35%;left:50%;transform:translateX(-50%);background:#19201bee;padding:16px 20px;border:1px solid #bdab8b;color:#eee8db;z-index:9;white-space:nowrap}#combat-hud{top:74px;max-width:95vw}.touch-stick{--size:112px}.aim-stick{right:100px}.brake-button{bottom:178px;left:40px}}
+
+.duel-toggle{position:fixed;top:calc(max(12px,env(safe-area-inset-top)) + 54px);left:max(12px,env(safe-area-inset-left));z-index:20;padding:12px;color:#eee6d6;background:#232b2c;border:1px solid #62685f;border-radius:4px;font:12px system-ui;text-decoration:none}
+
+#tank-selector{position:fixed;top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));z-index:20;display:flex;align-items:center;gap:8px;color:#d5c7ab;font:11px system-ui;letter-spacing:.08em;background:#13191de8;padding:8px 10px;border:1px solid #5b625d;border-radius:4px}
+#tank-choice{color:#eee6d6;background:#232b2c;border:1px solid #62685f;padding:6px;font:12px system-ui}
+[hidden]{display:none!important}

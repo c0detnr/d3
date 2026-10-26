@@ -19,7 +19,8 @@ physics.setTimeStep(1 / 60);
 const ground = MeshBuilder.CreateBox('driving-test-floor', { width: 1500, depth: 1500, height: 1 }, scene);
 ground.position.y = -0.5;
 const floor = new PhysicsAggregate(ground, PhysicsShapeType.BOX, { mass: 0, friction: 0.85, restitution: 0 }, scene);
-const tank = await loadTankModel(scene, new Uint8Array(await readFile(new URL('../assets/tanks/iron_dust_01/iron_dust_01.glb', import.meta.url))), Vector3.Zero());
+const tankId = process.argv[2] === '02' ? '02' : '01';
+const tank = await loadTankModel(scene, new Uint8Array(await readFile(new URL(`../assets/tanks/iron_dust_${tankId}/iron_dust_${tankId}.glb`, import.meta.url))), Vector3.Zero());
 const rig = extractTankRig(tank);
 const vehicle = new TankVehicle(scene, rig, Vector3.Zero());
 const input = new DriveInput();
@@ -39,7 +40,7 @@ try {
   const restingY = vehicle.node.position.y;
   run(2);
   assert.ok(Math.abs(vehicle.node.position.y - restingY) < 0.002 && vehicle.body.getLinearVelocity().length() < 0.1, 'Zeminde sakinleşmeli');
-  assert.equal(vehicle.contacts.filter(c => c.grounded).length, 12);
+  assert.equal(vehicle.contacts.filter(c => c.grounded).length, tankId === '02' ? 14 : 12);
   assert.ok(Math.abs(vehicle.contacts[0].compression - vehicle.definition.staticCompression) < 0.025);
   reset(new Vector3(0, 20, 0)); run(0.5, { ...idle, forward: true, right: true });
   assert.equal(vehicle.driveForce, 0, 'Havada çekiş olmamalı');
@@ -155,7 +156,7 @@ try {
   assert.equal(vehicle.body.getLinearVelocity().length(), 0); assert.equal(vehicle.body.getAngularVelocity().length(), 0);
   results.reset = 'passed';
   console.log(JSON.stringify(results, null, 2));
-  await writeFile(new URL('../docs/driving-results.json', import.meta.url), JSON.stringify(results, null, 2) + '\n');
+  await writeFile(new URL(tankId === '02' ? '../assets/tanks/iron_dust_02/driving-results.json' : '../docs/driving-results.json', import.meta.url), JSON.stringify(results, null, 2) + '\n');
 } finally {
   vehicle.dispose(); tank.dispose(); floor.dispose(); ground.dispose();
   assert.equal(physics.getBodies().length, 0, 'Fizik kaynakları temizlenmeli');

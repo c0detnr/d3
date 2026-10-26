@@ -106,3 +106,10 @@
 - WeaponDefinition mevcut değerleri 900 m/s ve 6,5 s. Kullanıcı okunur uçuş/düşüşü ve 5 s başlangıç dolumunu kabul etti; kesin balistik değerler seçilmedi.
 - Mevcut ArmorModel/ArmorTarget delme/sekme içeriyor; hasar yeniden tasarımı istenmedi. Yeni atış yolu bunlara bağımlı olmayacak; ilgisiz kod topluca silinmeyecek.
 - Kullanıcının bu turdaki teslim isteği plan dosyası; uygulama kodu ve varlıklar değiştirilmez.
+
+## İkinci tank planı — 2026-10-26
+
+- `tankRig.ts` 12 yol tekeri/temas noktası zorunlu tutuyor; yedi teker/yan yeni model ayrı entegrasyon gerektirir.
+- `TurretController.ts` dört namlu parçasını ayrı kaydırıyor; önerilen GunRecoilRoot için çift geri tepme önlenecek şekilde uyarlama gerekir.
+- `TankVisual.ts` ilk tankın palet mesh adlarını kullanıyor. Yeni UV/palet sözleşmesi otomatik uyumlu kabul edilmez.
+- Blender MCP araçları mevcut; ilk canlı çağrı bağlantı hatası verdi. Plan için model veya mevcut sahne değiştirilmedi.

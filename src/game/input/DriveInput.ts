@@ -32,7 +32,7 @@ export function bindDriveKeys(target: Window, resetVehicle: () => void) {
   };
   const clear = () => Object.assign(keys, releasedKeys());
   const down = (event: KeyboardEvent) => {
-    if ((event.target as HTMLElement)?.closest('input, textarea, [contenteditable="true"]')) return;
+    if ((event.target as HTMLElement)?.closest('input, textarea, select, button, [contenteditable="true"]')) return;
     if (mapping[event.code]) { event.preventDefault(); keys[mapping[event.code]] = true; }
     if (event.code === 'KeyR' && !event.repeat) { clear(); resetVehicle(); }
   };

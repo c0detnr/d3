@@ -1,0 +1,54 @@
+{
+  "source_motion": {
+    "turret_hull_failures": [],
+    "suspension_skirt_failures": [],
+    "poses": 525,
+    "requested_minus8_clearance_failures": 0,
+    "failed_poses": [],
+    "safe_min_elevation_deg": -8,
+    "safe_range_clearance_failures": [],
+    "max_wheel_center_error_m": 0,
+    "max_muzzle_recoil_error_m": 0,
+    "muzzle_forward": [
+      0.0,
+      -1.0,
+      0.0
+    ]
+  },
+  "roundtrip_motion": {
+    "turret_hull_failures": [],
+    "suspension_skirt_failures": [],
+    "poses": 525,
+    "requested_minus8_clearance_failures": 0,
+    "failed_poses": [],
+    "safe_min_elevation_deg": -8,
+    "safe_range_clearance_failures": [],
+    "max_wheel_center_error_m": 0,
+    "max_muzzle_recoil_error_m": 0,
+    "muzzle_forward": [
+      0.0,
+      -1.0,
+      0.0
+    ]
+  },
+  "roundtrip_nodes": 195,
+  "max_position_error_m": 4.76837158203125e-07,
+  "max_rotation_error_deg": 0,
+  "max_scale_error": 1.6858739404357614e-07,
+  "nonmanifold_meshes": [],
+  "negative_scale_meshes": [],
+  "collision_triangles": 12,
+  "visible_triangles": 19992,
+  "materials": [
+    "ID02_ArmorShade",
+    "ID02_BareMetal",
+    "ID02_Dust",
+    "ID02_Graphite",
+    "ID02_Optics",
+    "ID02_Recess",
+    "ID02_Rubber",
+    "ID02_Sand"
+  ],
+  "dynamic_hatch_opening_tested": false,
+  "method": "Blender MCP isolated localhost:9877 via stdio client; BVH triangle surface overlaps; joint/attachment interfaces excluded"
+}

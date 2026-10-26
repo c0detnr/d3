@@ -134,3 +134,10 @@
 - Mevcut AudioContext/master/limiter üzerinde en fazla 12 kısa ses; dolum bitiş olayı fizik zamanından gelir. Sıfırlama, gizli sekme, odak kaybı ve sessizde eski sesler bırakılır.
 - İlk efekt testinde SpriteManager oluşturulmadan önce `scene.spriteManagers` alanı undefined idi; başlangıç sayımı düzeltildi. Son `combat:test`, `audio:test`, `map:build` geçti. Üç efekt/ses kur/kapat ve havuz sınırı kontrol edildi.
 - CUA tarayıcı envanteri ve Chrome açma denemesi `Unable to load browser request-header policy` hatası verdi. Bu, oyun yükleme sonucu değildir; insan ses/atış hissi henüz değerlendirilmedi.
+
+## 2026-10-26 — İkinci tank Blender MCP üretim planı
+
+- `docs/SECOND_TANK_BLENDER_PLAN.md` hazırlandı: tasarım, önerilen ölçü/bütçe, B0–B6 üretim, gerçek ebeveynlik/pivotlar, kaynak ve GLB yeniden aktarım kontrolleri, teslim listesi.
+- README belge haritası ve karar kaydı güncellendi. Mevcut tank, kabin ve MG korunacak; oyun entegrasyonu ayrı görev.
+- Canlı Blender MCP ilk denemesi localhost:9876 bağlantı hatası verdi; kullanıcı Blender'ı açtıktan sonra yeniden denendi. Çağrı yanıt vermediği için sonlandırıldı; canlı bağlantı doğrulanamadı.
+- Model, render, hareket/GLB testi veya oyun kodu değişikliği yapılmadı. 39 yerel bağlantı ve B0–B6 kapsam kontrolü geçti; diff boşluk hataları düzeltildi. Oyun testleri belge değişikliği için çalıştırılmadı.

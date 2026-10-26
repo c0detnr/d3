@@ -20,21 +20,24 @@ export class TankVisual {
     for (const prefix of ['LeftTrack', 'RightTrack']) {
       const mat = new ShaderMaterial(`${prefix}-temporary-tread`, tank.anchor.getScene(), {
         vertexSource: `precision highp float;
-          attribute vec3 position; attribute vec3 normal;
+          attribute vec3 position; attribute vec3 normal; attribute vec2 uv;
           uniform mat4 worldViewProjection; uniform mat4 world;
-          varying vec3 localPoint; varying vec3 worldNormal;
-          void main(){ localPoint=position; worldNormal=normalize(mat3(world)*normal);
+          varying vec3 localPoint; varying vec3 worldNormal; varying vec2 trackUV;
+          void main(){ trackUV=uv; localPoint=position; worldNormal=normalize(mat3(world)*normal);
             gl_Position=worldViewProjection*vec4(position,1.0); }`,
         fragmentSource: `precision highp float;
-          varying vec3 localPoint; varying vec3 worldNormal; uniform float travel;
-          void main(){ float stripe=step(0.2,fract((localPoint.z+localPoint.y-travel)*4.0));
+          varying vec3 localPoint; varying vec3 worldNormal; varying vec2 trackUV; uniform float travel; uniform float useTrackUV;
+          void main(){ float stripe=step(0.2,fract(mix((localPoint.z+localPoint.y-travel)*4.0,trackUV.y-travel/0.22,useTrackUV)));
             vec3 color=mix(vec3(0.12,0.14,0.15),vec3(0.23,0.25,0.24),stripe);
             float light=0.55+0.6*max(0.0,dot(normalize(worldNormal),normalize(vec3(0.5,1.0,-0.4))));
             gl_FragColor=vec4(color*light,1.0); }`,
-      }, { attributes: ['position', 'normal'], uniforms: ['worldViewProjection', 'world', 'travel'] });
+      }, { attributes: ['position', 'normal', 'uv'], uniforms: ['worldViewProjection', 'world', 'travel', 'useTrackUV'] });
       mat.setFloat('travel', 0);
       this.materials.push(mat);
-      for (const mesh of tank.assets.meshes) if (mesh.name.startsWith(`${prefix}_Track_Graphite`)) mesh.material = mat;
+      const side = prefix.replace('Track', '');
+      const belt = tank.assets.meshes.find(mesh => mesh.metadata?.gltf?.extras?.asset_node_id === `${side}_TrackBelt`);
+      mat.setFloat('useTrackUV', belt ? 1 : 0);
+      for (const mesh of tank.assets.meshes) if (mesh === belt || mesh.name.startsWith(`${prefix}_Track_Graphite`)) mesh.material = mat;
     }
   }
   fixedUpdate(vehicle: TankVehicle, dt: number) {

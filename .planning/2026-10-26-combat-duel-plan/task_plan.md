@@ -1,24 +1,23 @@
-# Tank çatışma planı
+# Tank combat C1 uygulaması
 
 ## Goal
-Kullanıcıyla kararlaştırılan ilk AI düellosunu uygulanabilir belgeye dönüştür. Oyun kodu değiştirme.
+Onaylı düello planını C1’den uygulamaya başla. Mevcut ikinci tank değişikliklerini koru; can/AI henüz ekleme.
 
 ## Phases
-
-### Phase 1: Ürün kapsamı
+### Phase 1: Kapsam ve dosya sahipliği
 **Status:** complete
-Hareketli AI, basit can, yalnız top hasarı, eşit savaş değerleri ve sonuç/yeniden dene seçildi. 100 can, 25 hasar, 5 s dolum teyit edildi.
+Kullanıcı mevcut çalışma üzerine ilerlemeyi onayladı. C1: iki model, tek dünya/adım, oyuncu kamerası, iki taraflı reset/dispose.
 
-### Phase 2: Plan ve kabul senaryoları
+### Phase 2: İki araç entegrasyonu
 **Status:** complete
-COMBAT_DUEL_PLAN hazır. README/ROADMAP/DECISIONS bağlantıları ve kesin kararlar güncellendi; kullanıcı değişiklikleri korunuyor.
+Varsayılan serbest sürüş korunur; isteğe bağlı iki tank C1 test modu eklenir.
 
-### Phase 3: Belge doğrulama ve teslim
+### Phase 3: Doğrulama ve teslim
 **Status:** complete
-Belge farkı, whitespace, bağlantı/ana kapsam denetimi ve spec-graph doğrulandı. Oyun testleri çalıştırılmadı; yalnız belgeler commit/push için ayrılır.
+Gerçek GLB/Havok testleri, regresyon, belge güncellemesi, yalnız görev farkını commit/push.
 
 ## Next Step
-Planı kullanıcıya teslim et; uygulama talebi gelmeden oyun kodu değiştirme.
+C1 tamamlandı. Sonraki ayrı adım C2 can ve top hasarıdır.
 
 ## Errors Encountered
-- Geçici task-spec şablonunda Request başlığı varsayıldı; edit eşleşmedi. Dosya okundu, gerçek Purpose/Open items başlıkları kullanılarak düzeltildi.
+İlk gerçek harita başlangıcı eğimli zeminde rakibi kaydırdı; düz başlangıç alanına taşındı ve test geçti.

@@ -2,13 +2,13 @@
 
 Durum: **M1 devam ediyor: doğal arazi, orman çevresi ve gerçek tankın bağımsız önizlemesi mevcut. M2 ilk sürüş prototipi uygulandı; son kabul açık. M3.1 ateş ve balistik çekirdeği uygulandı; hasar, modül hasarı ve tarayıcı kabulü açık.**
 
-## İkinci oynanabilir tank — planlandı
+## İkinci oynanabilir tank — otomatik kontroller geçti
 
-Leopard 2A6 esintili, kum beji ikinci tank için [B0–B9 planı](SECOND_TANK_BLENDER_PLAN.md) hazırlandı. Önce özgün model ve hareketli GLB, sonra mevcut haritada tank seçimi/sürüş, kule/namlu ve top atışı; son adım tarayıcıda oynanabilirlik kabulüdür. Modelleme ve entegrasyon başlamadı. Hız, zırh ve hasar dengesi bu teslimin koşulu değildir; M1/M2/M3 genel kabul durumları değişmez.
+Leopard 2A6 esintili, kum beji ikinci tank için [B0–B9 planı](SECOND_TANK_BLENDER_PLAN.md) hazırlandı. Özgün Blender kaynağı ve GLB üretildi; 14 temas noktası, palet UV'si, kule, geri tepme ve tank seçimi entegre edildi. `tank:test`, `turret:test`, `drive:test` ve `map:build` geçti. Tarayıcıda insan sürüş/nişan/atış kabulü açık. Hız, zırh ve hasar dengesi bu teslimin koşulu değildir; M1/M2/M3 genel kabul durumları değişmez.
 
-## İlk AI tank düellosu — planlandı
+## İlk AI tank düellosu — C1 test modu mevcut
 
-[Çatışma ve hasar planı](COMBAT_DUEL_PLAN.md): mevcut haritada seçilen tank ile diğer modelden hareketli AI rakip; eşit 100 can, 25 top hasarı, 5 s dolum. MG tanklara hasar vermez. Serbest sürüş ayrı korunur; sonuç/beraberlik, kısa imha efekti ve bütüncül yeniden dene akışı vardır. Sıra: C1 iki tank → C2 can/hasar → C3 AI → C4 oyun döngüsü → C5 doğrulama. Uygulama başlamadı. Zırh/modül hasarı ve taktik AI bu teslimde yoktur; uzun vadeli M3 ve M1/M2 açık kabul durumları değişmez.
+[Çatışma ve hasar planı](COMBAT_DUEL_PLAN.md): C1'de seçilen tank ve diğer model aynı Havok dünyasında tek sabit adımla çalışır; rakip park hâlindedir. Serbest sürüş ve `?duel=1` test modu ayrıdır. Gerçek GLB/Havok kontrolünde iki rol, çarpışma, sıfırlama, kaynak temizliği, harita başlangıcı ve 30/60/120 FPS eşitliği geçti. C2 can/hasar, C3 AI, C4 oyun döngüsü ve C5 son kabul açık. Uzun vadeli M3 ve M1/M2 kabul durumları değişmez.
 
 ## Uygulamaya geçiş hazırlığı
 
