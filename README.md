@@ -8,6 +8,8 @@ Temel ilke: **Grafikler sade olacak; tank onlarca tonluk zırhlı bir araç gibi
 
 ## Güncel durum
 
+**Sürüm: 0.1.0** · Git etiketi: `v0.1.0` · [Sürüm kapsamı ve nasıl sürümlenir?](docs/VERSIONING.md)
+
 Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağımsız harita önizlemesi mevcut. İlk sürüş prototipi mevcut; son tarayıcı kabulü ve sürüş hissi değerlendirmesi açık. İki özgün tankın Blender kaynakları ve GLB dosyaları `assets/tanks/` altında; önizlemede tank seçimi yapılabilir. `?duel=1` iki tankı aynı fizik dünyasında açan C1 testidir; rakip henüz hareket etmez veya ateş etmez.
 
 İlk teslim tek tankla küçük bir haritada serbest sürüş olacak. Sonraki teslim sabit hedeflerle atış ve temel hasarı ekleyerek savaş mekaniklerini içeren vertical slice oluşturacak. M3.1 çekirdeği uygulandı: gerçek namlu ağzından AP atışı, süpürülmüş isabet, mesafe/açıya bağlı delme, sekme, üç sabit zırhlı hedef, nişancı görüşü ve görsel geri bildirim. Hasar, modül hasarı, HE, düşman AI ve savaş sesleri henüz yok; tarayıcı kabulü açık.

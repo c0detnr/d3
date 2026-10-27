@@ -169,3 +169,7 @@ Kullanıcı isteğiyle masaüstü kapsamına Android APK ve mobil tarayıcı ekl
 ### 2026-10-24 — Kabin iç gövdesi ve ana konsol v01
 
 CABIN bölüm 1 Blender MCP ile üretildi: [kaynak, GLB ve önizlemeler](../assets/cockpit/iron_dust_cockpit_01/README.md). Kalın zırh kabuğu, konsol, ayrı 0,95 × 0,52 m ekran ve boş kumanda montaj yüzeyleri; 16.732 üçgen. Sağ mekanizma hacmi açıklığı, beş ekran görüş ışını, GLB sayımı ve yeniden içe aktarım kontrol edildi. Oyun kodu değişmedi; dış tank içine montaj, tarayıcı görünümü ve kullanıcı görsel kabulü açık. M1/M2/M3 tamamlandı sayılmaz.
+
+### 2026-10-27 — 0.1.0 sürüm kaydı
+
+Mevcut geliştirme durumu `v0.1.0` etiketi için belgelendi. `npm test`, `map:build`, `lan:check` ve `lan:test` geçti; büyük paket uyarısı sürüyor. [Sürüm kapsamı ve tekrar uygulanabilir adımlar](VERSIONING.md). Yeni tarayıcı/telefon kabulü veya APK derlemesi yapılmadı; M1/M2/M3 kabul durumları korunur.
