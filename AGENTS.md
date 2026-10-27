@@ -43,6 +43,9 @@ Kullanıcı 2026-10-23 tarihinde proje altyapısının kurulmasını istedi; uyg
 - Her kilometre taşından sonra ROADMAP durumunu ve doğrulama kanıtını güncelle.
 - Çalıştırılmamış kontrolleri başarılı gösterme. Komutlar ancak gerçekten tanımlandığında README'ye eklenmeli.
 - Fizik ve nişan gibi hesaplamaları anlamlı otomatik kontrollerle; sürüş hissi, kamera ve görsel kaliteyi tarayıcıda doğrula.
+- Test yazmayı varsayılan bir görev olarak görme; test kapsamını değişikliğin hata riskine göre belirle. Metin, stil, basit arayüz ve düşük riskli küçük değişiklikler için yeni test yazma; ilgili mevcut kontrolü çalıştır veya sonucu doğrudan doğrula.
+- Yeni testleri hesaplama, durum geçişi, veri kaybı riski veya tekrar oluşabilecek somut bir hata gibi anlamlı davranışlarla sınırla. Uygulamanın iç yapısını tekrar eden testlerden ve aynı davranışı gereksiz varyasyonlarla sınamaktan kaçın.
+- İlgili kontroller geçtiğinde, yeni bir şüphe veya hata yoksa doğrulamayı genişletme. Küçük bir hata düzeltmesinde, hatanın tekrarını yakalayan en küçük yeterli kontrolü tercih et.
 - Performans sonucu verirken cihaz, tarayıcı, çözünürlük ve kalite ayarını belirt.
 - Kullanıcı değişikliklerini koru. Son raporda ne değiştiğini, neyin kontrol edildiğini ve açık kalan konuları belirt.
 
