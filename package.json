@@ -22,6 +22,7 @@
     "effects:test": "node --experimental-strip-types scripts/check-movement-effects.ts",
     "audio:test": "node --experimental-strip-types scripts/check-audio.ts",
     "drive:test": "node --experimental-strip-types scripts/check-driving.ts && node --experimental-strip-types scripts/check-driving.ts 02",
+    "damage:test": "node --experimental-strip-types scripts/check-damage.ts",
     "combat:test": "node --experimental-strip-types scripts/check-combat.ts && node --experimental-strip-types scripts/check-combat-input.ts && node --experimental-strip-types scripts/check-camera.ts",
     "mg:test": "node --experimental-strip-types scripts/check-machine-gun.ts && node --experimental-strip-types scripts/check-machine-gun-input.ts",
     "android:build": "bash scripts/build-android.sh",

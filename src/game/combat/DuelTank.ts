@@ -5,12 +5,14 @@ import { TankVehicle } from '../vehicle/TankVehicle.ts';
 import { TankVisual } from '../vehicle/TankVisual.ts';
 import { TurretController } from '../vehicle/TurretController.ts';
 import { WeaponSystem } from './WeaponSystem.ts';
+import { freshDamage, driveDisabled } from './DamageModel.ts';
 import type { DriveCommand } from '../input/DriveInput.ts';
 
 const parked: DriveCommand = { throttle: 0, steer: 0, brake: 1 };
 
-/** C1 opponent: same vehicle systems as the player, without AI or firing yet. */
+/** Shared tank systems for the parked local target and server-controlled LAN vehicles. */
 export class DuelTank {
+  damage = freshDamage();
   readonly vehicle: TankVehicle;
   readonly visual: TankVisual;
   readonly turret: TurretController;
@@ -31,7 +33,7 @@ export class DuelTank {
     try { return new DuelTank(scene, tank, spawn); }
     catch (error) { tank.dispose(); throw error; }
   }
-  beforeStep(dt: number, command: DriveCommand = parked) { this.vehicle.beforeStep(dt, command); }
+  beforeStep(dt: number, command: DriveCommand = parked) { this.vehicle.beforeStep(dt, driveDisabled(this.damage) ? parked : command); }
   afterStep(dt: number) {
     this.vehicle.afterStep();
     this.visual.fixedUpdate(this.vehicle, dt);
@@ -45,6 +47,7 @@ export class DuelTank {
     this.weapon.render(alpha);
   }
   reset() {
+    this.damage = freshDamage();
     this.vehicle.reset(this.vehicle.spawn, Math.PI);
     this.visual.reset(); this.turret.reset(); this.weapon.reset();
     this.render(1);

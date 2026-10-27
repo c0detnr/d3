@@ -36,7 +36,7 @@ export class CombatAudio {
     source.onended = () => this.release(voice);
     source.start(now); source.stop(now + seconds + 0.02);
   }
-  shot() {
+  shot(distance = 0, stereo = 0) {
     if (this.disposed) return;
     if (this.voices.length >= this.capacity) this.release(this.voices[0]);
     const ctx = this.context, now = ctx.currentTime;
@@ -45,8 +45,8 @@ export class CombatAudio {
     source.buffer = buffer;
     const filter = ctx.createBiquadFilter();
     filter.type = 'highpass'; filter.frequency.value = 32; filter.Q.value = 0.7;
-    const gain = ctx.createGain(); gain.gain.value = 0.95;
-    const pan = ctx.createStereoPanner(); pan.pan.value = 0;
+    const gain = ctx.createGain(); gain.gain.value = 0.95 / (1 + Math.max(0, distance) / 60);
+    const pan = ctx.createStereoPanner(); pan.pan.value = Math.max(-1, Math.min(1, stereo));
     source.connect(filter); filter.connect(gain); gain.connect(pan); pan.connect(this.output);
     const voice = { source, filter, gain, pan }; this.voices.push(voice);
     source.onended = () => this.release(voice);
@@ -59,6 +59,20 @@ export class CombatAudio {
     const attenuation = 1 / (1 + Math.max(0, distance) / 45);
     this.tone(feedback.frequency, feedback.duration, 0.45 * attenuation, true, pan);
     if (surface === 'metal') this.tone(2200, 0.25, 0.12 * attenuation, false, pan);
+  }
+  armorHit(penetrated: boolean, distance: number, pan: number, destroyed = false) {
+    const level = 1 / (1 + Math.max(0, distance) / 45);
+    this.tone(penetrated ? 650 : 2800, penetrated ? 0.28 : 0.18, 0.55 * level, true, pan);
+    this.tone(penetrated ? 95 : 1900, penetrated ? 0.32 : 0.4, 0.22 * level, false, pan);
+    if (destroyed) { this.tone(220, 0.9, 0.65 * level, true, pan); this.tone(55, 0.8, 0.3 * level, false, pan); }
+  }
+  damageAmbience(hp: number, engineIntegrity: number, distance: number, pan: number) {
+    const level = 1 / (1 + Math.max(0, distance) / 24);
+    if (hp <= 25) this.tone(900, 0.44, (hp === 0 ? 0.12 : 0.06) * level, true, pan);
+    if (hp > 0 && engineIntegrity < 100) {
+      this.tone(85, 0.4, 0.045 * level, false, pan);
+      this.tone(180, 0.42, 0.055 * level, true, pan);
+    }
   }
   private release(voice: Voice) {
     const index = this.voices.indexOf(voice); if (index < 0) return;

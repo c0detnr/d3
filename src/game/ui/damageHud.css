@@ -1,0 +1,40 @@
+.damage-hud { position: fixed; inset: 0; pointer-events: none; z-index: 8; color: #e7e5d5; font: 12px/1.45 system-ui, sans-serif; --damage-pulse: 0; }
+.damage-pulse { position: absolute; inset: 0; opacity: var(--damage-pulse); box-shadow: inset 0 0 90px 12px #b84c22; }
+.vehicle-condition { position: absolute; bottom: 30px; left: 28px; display: flex; align-items: center; gap: 14px; width: 285px; padding: 12px 16px 12px 10px; background: linear-gradient(110deg, rgb(12 19 18 / 91%), rgb(12 19 18 / 65%)); border-left: 2px solid #91a18b; border-top: 1px solid #68736955; border-bottom: 1px solid #68736933; }
+.condition-diagram { width: 69px; height: 108px; flex-shrink: 0; fill: #44544b; stroke: #a0ae98; stroke-width: 1; }
+.condition-hull { fill: #26332e; stroke: #697c6c; }
+.diagram-guide { fill: none; stroke: #89937d66; }
+.diagram-barrel { fill: #7c8c75; stroke: #b8c6a0; }
+.diagram-detail { fill: none; stroke: #13201e; stroke-width: 2; pointer-events: none; }
+.condition-diagram .module-ok { fill: #4c6351; stroke: #a4b78d; }
+.condition-diagram .module-damaged { fill: #996527; stroke: #f0b85b; }
+.condition-diagram .module-disabled { fill: #9d3c28; stroke: #ff9772; stroke-width: 2.5; stroke-dasharray: 4 2; }
+.condition-data { flex: 1; min-width: 0; display: grid; gap: 5px; }
+.condition-caption { color: #a6b19f; letter-spacing: .18em; font-size: 9px; }
+.condition-value { font-size: 29px; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+.condition-value small { font-size: 12px; color: #939c8e; }
+.condition-health { display: block; width: 100%; height: 4px; border: none; background: #ffffff12; accent-color: #b1c19a; appearance: none; }
+.condition-health::-webkit-progress-bar { background: #ffffff12; }
+.condition-health::-webkit-progress-value { background: #b1c19a; transition: width .2s ease; }
+.condition-health::-moz-progress-bar { background: #b1c19a; }
+.condition-notice { color: #c0c6b5; font-size: 10px; min-height: 29px; }
+.damage-hud[data-condition="critical"] .vehicle-condition, .damage-hud[data-condition="destroyed"] .vehicle-condition { border-left-color: #f18251; }
+.damage-hud[data-condition="critical"] .condition-value, .damage-hud[data-condition="destroyed"] .condition-value { color: #f49a72; }
+.damage-hud[data-condition="critical"] .condition-health::-webkit-progress-value { background: #e78d52; }
+.damage-hud[data-condition="destroyed"] .condition-hull { fill: #55322a; stroke: #ba6b4c; }
+.damage-bearings { position: absolute; width: 240px; height: 240px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.damage-bearing { position: absolute; inset: 0; }
+.damage-bearing svg { width: 100%; height: 100%; overflow: visible; }
+.damage-bearing path { fill: none; stroke: #f5b462; stroke-width: 5; stroke-linecap: square; filter: drop-shadow(0 1px 3px #080a09); }
+.damage-bearing[data-severe="true"] path { stroke: #f4774b; stroke-width: 7; }
+.damage-confirm { position: absolute; left: 50%; top: calc(50% + 47px); transform: translateX(-50%); display: grid; justify-items: center; gap: 8px; opacity: 0; color: #ece5c4; font-size: 10px; letter-spacing: .13em; text-shadow: 0 2px 4px #000; white-space: nowrap; }
+.damage-hitmark { font: 23px/1 monospace; }
+.damage-confirm[data-kind="blocked"] { color: #c6c4b4; }
+.damage-confirm[data-kind="destroyed"] { color: #f6b46a; }
+body:has(#duel) .vehicle-condition { bottom: 128px; }
+@media (pointer: coarse) { .vehicle-condition { bottom: auto; top: 126px; left: 15px; width: 225px; padding: 6px; gap: 8px; } .condition-diagram { width: 46px; height: 76px; } .condition-value { font-size: 22px; } }
+@media (max-width: 850px) { body:has(#duel) .vehicle-condition { bottom: 165px; width: 240px; } }
+@media (prefers-reduced-motion: reduce) { .damage-pulse { display: none; } .condition-health::-webkit-progress-value { transition: none; } }
+
+/* Damage regions stay visible beside integrity; the tactical diagram below shows orientation. */
+.has-tactical-hud .vehicle-condition .condition-diagram { display: block; width: 45px; height: 76px; }

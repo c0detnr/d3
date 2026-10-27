@@ -151,6 +151,9 @@ for (let cycle = 0; cycle < 3; cycle++) {
   for (let i = 0; i < 100; i++) combat.shot();
   assert.equal(combat.activeVoices, combat.capacity, 'combat voices bounded');
   combat.reset(); assert.equal(combat.activeVoices, 0);
+  combat.damageAmbience(25, 0, 5, 1); combat.damageAmbience(0, 0, 5, -1);
+  combat.armorHit(false, 5, -1); combat.armorHit(true, 5, 1, true);
+  assert.ok(combat.activeVoices <= combat.capacity);
   combat.dispose(); combat.shot(); assert.equal(combat.activeVoices, 0);
 }
 const vehicleAudio = new VehicleAudio(graph.context, graph.output, IRON_DUST_AUDIO);

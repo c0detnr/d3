@@ -1,5 +1,6 @@
 import { Color3, Color4, Constants, PointLight, RawTexture, Sprite, SpriteManager, Texture, Vector3, type Scene } from '@babylonjs/core';
 import { IMPACT_FEEDBACK, type ImpactSurface } from './ImpactSurface.ts';
+import type { DamageState } from './DamageModel.ts';
 import { seededRandom } from '../world/terrain.ts';
 
 /** Original code-generated textures: sharp luminous core and irregular, translucent gas. */
@@ -132,6 +133,42 @@ export class CombatEffects {
       this.spawn(point.add(outward.scale(0.15)), outward.scale(0.6 + this.random()).add(new Vector3(0, 0.8, 0)),
         0.5 + this.random() * 0.45, 1.1 + this.random() * 1.2,
         new Color4(feedback.color[0], feedback.color[1], feedback.color[2], 0.5), 0, 'dust');
+    }
+  }
+  armorImpact(point: Vector3, normal: Vector3, penetrated: boolean) {
+    this.impact(point, normal, 'metal');
+    const outward = normal.normalizeToNew();
+    for (let i = 0; i < (penetrated ? 7 : 16); i++) {
+      const scatter = new Vector3(this.random() - 0.5, this.random() * 0.7, this.random() - 0.5);
+      const tangent = scatter.subtract(outward.scale(Vector3.Dot(scatter, outward)));
+      this.spawn(point.add(outward.scale(0.06)), outward.scale(penetrated ? 2 : 6).add(tangent.scale(penetrated ? 6 : 17)),
+        0.18 + this.random() * 0.3, 0.08 + this.random() * 0.09, new Color4(1, 0.7, 0.32, 1), -9.81, 'spark');
+    }
+    if (penetrated) for (let i = 0; i < 5; i++) this.spawn(point.add(outward.scale(0.12)),
+      outward.scale(0.8).add(new Vector3(0, 0.8, 0)), 1.1 + this.random() * 0.7, 0.4 + this.random() * 0.4,
+      new Color4(0.14, 0.15, 0.14, 0.65), 0.25, 'smoke');
+  }
+  destruction(point: Vector3) {
+    this.flashLight.position.copyFrom(point); this.flashAge = 0;
+    for (let i = 0; i < 16; i++) {
+      const velocity = new Vector3((this.random() - 0.5) * 10, 1 + this.random() * 8, (this.random() - 0.5) * 10);
+      this.spawn(point, velocity, 0.12 + this.random() * 0.24, 1 + this.random() * 1.8, new Color4(1, 0.48, 0.12, 0.85), 0, 'flash');
+    }
+    this.armorImpact(point, Vector3.Up(), true);
+  }
+  /** Called at a fixed 20 Hz per vehicle; emitters follow the current engine deck. */
+  damageTrail(point: Vector3, state: DamageState) {
+    if (state.hp > 50 && state.modules.engine === 100) return;
+    const destroyed = state.hp === 0;
+    const critical = state.hp <= 25;
+    const shade = destroyed || critical ? 0.075 : 0.22;
+    this.spawn(point.add(new Vector3((this.random() - 0.5) * 0.8, 0.15, (this.random() - 0.5) * 0.8)),
+      new Vector3(0.4, destroyed ? 2.6 : 1.3, 0.15), destroyed ? 4 : 2.5,
+      destroyed ? 1.1 : 0.55, new Color4(shade, shade, shade * 0.94, destroyed ? 0.7 : 0.48), 1.2, 'smoke');
+    if (destroyed || critical) {
+      const flame = point.add(new Vector3((this.random() - 0.5) * 0.7, 0, (this.random() - 0.5) * 0.7));
+      this.spawn(flame, new Vector3(0.1, 2.8, 0), 0.24 + this.random() * 0.3,
+        destroyed ? 1.1 : 0.5, new Color4(1, 0.32 + this.random() * 0.2, 0.04, 0.55), 0, 'flash');
     }
   }
   fixedUpdate(dt: number) {

@@ -230,6 +230,15 @@ function testEffects() {
       for (let i = 0; i < 120; i++) effects.fixedUpdate(1 / 60);
       effects.render(0); assert.ok(effects.particles.every(p => p.age >= p.life));
       assert.ok(scene.spriteManagers.filter(m => m.name.startsWith('combat-')).every(m => m.sprites.every(s => !s.isVisible)), 'expired interpolated particles never reappear');
+      const damaged = { hp: 0, modules: { engine: 0, turret: 100, leftTrack: 100, rightTrack: 100 } };
+      effects.armorImpact(Vector3.Zero(), Vector3.Right(), false);
+      effects.armorImpact(Vector3.Zero(), Vector3.Up(), true);
+      effects.destruction(Vector3.Zero());
+      for (let frame = 0; frame < 600; frame++) {
+        effects.damageTrail(Vector3.Zero(), damaged);
+        effects.fixedUpdate(0.05); effects.render(1);
+        assert.ok(effects.particles.length <= COMBAT_PARTICLE_CAPACITY, 'persistent wreck fire stays bounded');
+      }
       effects.reset(); effects.dispose();
       assert.equal(scene.spriteManagers.length, baseline.sprites);
       assert.equal(scene.textures.length, baseline.textures);
