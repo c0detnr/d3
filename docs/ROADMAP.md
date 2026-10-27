@@ -173,3 +173,7 @@ CABIN bölüm 1 Blender MCP ile üretildi: [kaynak, GLB ve önizlemeler](../asse
 ### 2026-10-27 — 0.1.0 sürüm kaydı
 
 Mevcut geliştirme durumu `v0.1.0` etiketi için belgelendi. `npm test`, `map:build`, `lan:check` ve `lan:test` geçti; büyük paket uyarısı sürüyor. [Sürüm kapsamı ve tekrar uygulanabilir adımlar](VERSIONING.md). Yeni tarayıcı/telefon kabulü veya APK derlemesi yapılmadı; M1/M2/M3 kabul durumları korunur.
+
+### 2026-10-27 — Taktik HUD
+
+Kullanıcının onayladığı konsept ana oyun ve mevcut LAN görünümüne uygulandı: pusula, gerçek gövde/kule yönü ve hız, ayrı bakış/namlu işaretleri, dolum ve silah seçimi. HUD hesap kontrolü, `map:build`, `lan:check`, `touch:test`, `combat:test`, `lan:test` geçti. Chrome'da iki tank, atış/dolum, MG seçimi, dar ekran ve LAN görünümü incelendi. [Kanıt ve sınırlar](TACTICAL_HUD.md). Fiziksel telefon/insan kabulü açık; M1/M2/M3 genel durumu değişmez.

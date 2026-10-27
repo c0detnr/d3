@@ -95,3 +95,7 @@ Sol tık tek 120 mm AP mermisi ateşler; 6,5 saniyelik dolum süresi HUD'da gör
 ## Android APK ve dokunmatik kontrol
 
 `npm run android:build` çevrimdışı kurulabilir `artifacts/iron-dust-android.apk` üretir. Android 8+ ve güncel WebView gerekir. Sol geliştirici paneli tüm platformlarda kaldırıldı; mobilde sürüş/nişan çubukları, ateş, fren, yakınlaştırma, MG/TOP, kurtar ve ses kontrolleri vardır. `npm run touch:test` çoklu dokunma ve girdi temizliğini kontrol eder. [Kurulum, kontroller ve derleme](docs/ANDROID.md).
+
+## Taktik oyun arayüzü
+
+İnce pusula, ayrı bakış/namlu işaretleri, dolum geri sayımı, gövde/kule yönü ve km/sa hızı, ana top/MG seçimi ana sahne ve LAN görünümünde mevcut. [HUD davranışı, gerçek oyun görüntüsü ve kontroller](docs/TACTICAL_HUD.md). Fiziksel telefon ve insan görsel kabulü açık.

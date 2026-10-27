@@ -2,6 +2,7 @@ import { DuelTank } from './game/combat/DuelTank.ts';
 import { terrainHeight } from './game/world/terrain.ts';
 import { TouchControls } from './game/input/TouchControls.ts';
 import './mapPreview.css';
+import { TacticalHud } from './game/ui/TacticalHud.ts';
 import { MachineGun, MG } from './game/combat/MachineGun.ts';
 import mgUrl from '../assets/weapons/iron_dust_mg_02/iron_dust_mg_02.glb?url';
 import { MovementEffects } from './game/effects/MovementEffects.ts';
@@ -117,12 +118,21 @@ const touch = new TouchControls(document.querySelector<HTMLElement>('#touch-cont
     document.querySelector('[data-action="sound"]')!.setAttribute('aria-pressed', String(!soundEnabled));
     void toggleSound(); },
 });
+const tacticalHud = new TacticalHud(!secondTank, useMG => selectWeapon(useMG));
 const ammoState = document.querySelector<HTMLElement>('#ammo-state')!;
 const rangeReadout = document.querySelector<HTMLElement>('#range-readout')!;
 const hitResult = document.querySelector<HTMLElement>('#hit-result')!;
 function updateCombatHud() {
   if (!weapon) return;
   touch.update(weapon.ready, mgMode);
+  if (vehicle && turret) {
+    const cameraForward = scene.activeCamera!.getForwardRay().direction;
+    const hullForward = vehicle.node.getDirection(Vector3.Forward());
+    tacticalHud.update({ cameraYaw: Math.atan2(cameraForward.x, cameraForward.z),
+      hullYaw: Math.atan2(hullForward.x, hullForward.z), turretYaw: turret.angles.yaw,
+      speed: vehicle.speed, reloadRemaining: weapon.reloadRemaining, reloadFraction: weapon.reloadFraction,
+      machineGun: mgMode, range: aim.rangeMeters, blocked: aim.marker.classList.contains('blocked') && !aim.marker.hidden });
+  }
   ammoState.textContent = mgMode ? `MAKİNELİ TÜFEK · ${machineGun?.shotsFired ?? 0} ATIM` : weapon.ready
     ? `SİLAH HAZIR · ${IRON_DUST_01_WEAPON.ammo.label}`
     : `DOLUM · ${weapon.reloadRemaining.toFixed(1)} s`;
@@ -377,6 +387,7 @@ function dispose() {
   engine.stopRenderLoop();
   window.removeEventListener('resize', resize);
   window.removeEventListener('keydown', weaponKey);
+  tacticalHud.dispose();
   touch.dispose();
   combatInput.dispose();
   window.removeEventListener('pointerdown', unlockOnGesture);

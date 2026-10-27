@@ -1,4 +1,5 @@
 import './lanDuel.css';
+import { TacticalHud } from './game/ui/TacticalHud.ts';
 import {
   Color3, DirectionalLight, Engine, FreeCamera, HavokPlugin, HemisphericLight,
   Matrix, MeshBuilder, Quaternion, Scene, ShadowGenerator, StandardMaterial, Vector3,
@@ -39,6 +40,7 @@ const shadows = new ShadowGenerator(2048, sun);
 shadows.usePercentageCloserFiltering = true;
 shadows.bias = 0.001; shadows.normalBias = 0.04;
 const effects = new CombatEffects(scene);
+const tacticalHud = new TacticalHud(false);
 type Model = Awaited<ReturnType<typeof loadTankModel>>;
 interface Visual {
   model: Model; turret: TurretController; yawRest: Quaternion; pitchRest: Quaternion; shots: number;
@@ -209,6 +211,16 @@ function render() {
     const own = visuals[slot ?? 0];
     if (own) {
       const muzzle = own.turret.getMuzzleRay();
+      if (slot !== undefined) {
+        const first = a.state.tanks[slot], second = b.state.tanks[slot];
+        const hullForward = own.model.anchor.getDirection(Vector3.Forward());
+        const seconds = (b.state.tick - a.state.tick) / 60;
+        const speed = seconds > 0 ? Vector3.Dot(Vector3.FromArray(second.position).subtract(Vector3.FromArray(first.position)), hullForward) / seconds : 0;
+        const forward = camera.getForwardRay().direction;
+        tacticalHud.update({ cameraYaw: Math.atan2(forward.x, forward.z),
+          hullYaw: Math.atan2(hullForward.x, hullForward.z), turretYaw: first.yaw + wrapAngle(second.yaw - first.yaw) * alpha,
+          speed, reloadRemaining: second.reload, reloadFraction: clamp(1 - second.reload / 5, 0, 1), machineGun: false });
+      }
       const targetPosition = zoom ? own.turret.pitchPivot.getAbsolutePosition().clone()
         : own.model.anchor.position.add(new Vector3(0, 2.7, 0));
       const direction = zoom ? muzzle.direction
@@ -302,7 +314,7 @@ function dispose() {
   clearInput(); disposed = true;
   listeners.abort(); if (timer) clearInterval(timer);
   if (socket) { socket.onmessage = null; socket.onerror = null; socket.onclose = null; socket.close(); }
-  engine.stopRenderLoop(); clearTracers(); effects.dispose();
+  engine.stopRenderLoop(); clearTracers(); effects.dispose(); tacticalHud.dispose();
   visuals.forEach(v => { v.turret.dispose(); v.model.dispose(); });
   shadows.dispose(); ground?.dispose(); sky.dispose(); projectileMaterial.dispose();
   scene.dispose(); engine.dispose();
