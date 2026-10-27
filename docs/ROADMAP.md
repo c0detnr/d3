@@ -177,3 +177,7 @@ Mevcut geliştirme durumu `v0.1.0` etiketi için belgelendi. `npm test`, `map:bu
 ### 2026-10-27 — Taktik HUD
 
 Kullanıcının onayladığı konsept ana oyun ve mevcut LAN görünümüne uygulandı: pusula, gerçek gövde/kule yönü ve hız, ayrı bakış/namlu işaretleri, dolum ve silah seçimi. HUD hesap kontrolü, `map:build`, `lan:check`, `touch:test`, `combat:test`, `lan:test` geçti. Chrome'da iki tank, atış/dolum, MG seçimi, dar ekran ve LAN görünümü incelendi. [Kanıt ve sınırlar](TACTICAL_HUD.md). Fiziksel telefon/insan kabulü açık; M1/M2/M3 genel durumu değişmez.
+
+### 2026-10-27 — Masaüstü fare kilidi
+
+Ana oyun ve LAN sayfasına tıklamayla Pointer Lock, Esc ile çıkış ve yeniden giriş eklendi. İlk tık ateş etmez; kilit/odak kaybında girdiler temizlenir. `check-pointer-lock.ts`, `combat:test`, `touch:test`, `npm test`, `lan:check` ve `map:build` geçti. Chrome'da ana oyun giriş/Esc/yeniden giriş gözlendi; LAN iki oyunculu insan denemesi yapılmadı. M1/M2/M3 genel kabulü değişmez.

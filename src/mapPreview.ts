@@ -1,3 +1,5 @@
+import './game/input/gamePointerLock.css';
+import { GamePointerLock } from './game/input/GamePointerLock.ts';
 import { DuelTank } from './game/combat/DuelTank.ts';
 import { terrainHeight } from './game/world/terrain.ts';
 import { TouchControls } from './game/input/TouchControls.ts';
@@ -88,8 +90,8 @@ let lastCombatResult = '';
 let combatResultTime = 0;
 const aim = new AimSystem(scene, followCamera, document.querySelector<HTMLElement>('#aim-bore')!,
   document.querySelector<HTMLElement>('#aim-status')!);
-const combatInput = new CombatInput(canvas, () => (mgMode || !!weapon?.ready) && !followCamera.isOverview && !paused,
-  () => !!vehicle && !followCamera.isOverview && !paused,
+const combatInput = new CombatInput(canvas, () => (mgMode || !!weapon?.ready) && !followCamera.isOverview && !paused && pointerLock.active,
+  () => !!vehicle && !followCamera.isOverview && !paused && pointerLock.active,
   (x, y) => { if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); }, () => { followCamera.aiming = false; });
 function selectWeapon(useMG: boolean) {
   if (!machineGun || !vehicle) return;
@@ -101,7 +103,7 @@ function selectWeapon(useMG: boolean) {
   updateCombatHud();
 }
 const weaponKey = (event: KeyboardEvent) => {
-  if (event.repeat || (event.target as HTMLElement)?.closest?.('input, textarea, select, button, [contenteditable="true"]')) return;
+  if (!pointerLock.active || event.repeat || (event.target as HTMLElement)?.closest?.('input, textarea, select, button, [contenteditable="true"]')) return;
   if (event.code === 'Digit1' || event.code === 'Digit2' || event.code === 'Numpad1' || event.code === 'Numpad2') {
     event.preventDefault(); selectWeapon(event.code.endsWith('2'));
   }
@@ -109,7 +111,10 @@ const weaponKey = (event: KeyboardEvent) => {
 window.addEventListener('keydown', weaponKey);
 let lastTime = performance.now();
 let paused = document.hidden;
-const keys = bindDriveKeys(window, () => reset());
+const keys = bindDriveKeys(window, () => reset(), () => pointerLock.active);
+const pointerLock = new GamePointerLock(canvas, () => {
+  combatInput.clear(); keys.clear(); input.reset();
+}, () => !!vehicle && !paused, !mobile);
 const touch = new TouchControls(document.querySelector<HTMLElement>('#touch-controls')!, canvas, {
   look: (x, y) => { if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); },
   fireReady: () => !!vehicle && !paused && (mgMode || !!weapon?.ready),
@@ -389,6 +394,7 @@ function dispose() {
   window.removeEventListener('keydown', weaponKey);
   tacticalHud.dispose();
   touch.dispose();
+  pointerLock.dispose();
   combatInput.dispose();
   window.removeEventListener('pointerdown', unlockOnGesture);
   window.removeEventListener('keydown', unlockOnGesture);

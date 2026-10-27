@@ -41,11 +41,13 @@ export class CombatInput {
   }
   private down = (e: PointerEvent) => {
     if (e.pointerType !== 'mouse') return;
+    if (!this.canAim()) return;
     e.preventDefault(); this.pointerId = e.pointerId;
     this.canvas.setPointerCapture?.(e.pointerId); this.buttons(e.buttons);
   };
   private move = (e: PointerEvent) => {
     if (e.pointerType !== 'mouse') return;
+    if (!this.canAim()) return;
     // A hover cannot create a shot after focus/capture loss.
     if (this.pointerId === e.pointerId) this.buttons(e.buttons);
     this.look(e.movementX, e.movementY);

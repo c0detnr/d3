@@ -1,3 +1,5 @@
+import './game/input/gamePointerLock.css';
+import { GamePointerLock } from './game/input/GamePointerLock.ts';
 import './lanDuel.css';
 import { TacticalHud } from './game/ui/TacticalHud.ts';
 import {
@@ -60,8 +62,6 @@ let focused = document.hasFocus();
 const keys = new Set<string>();
 let fire = false;
 let elevation = 0;
-let dragging = false;
-let dragDistance = 0;
 let zoom = false;
 let yaw = 0;
 let pitch = -0.15;
@@ -72,7 +72,9 @@ projectileMaterial.emissiveColor = new Color3(1, 0.75, 0.25);
 projectileMaterial.disableLighting = true;
 const tracerPoints = [Vector3.Zero(), Vector3.Zero()];
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
-const active = () => !disposed && !failed && focused && !document.hidden && latest?.phase === 'playing' && slot !== undefined;
+const canPlay = () => !disposed && !failed && focused && !document.hidden && latest?.phase === 'playing' && slot !== undefined;
+const pointerLock = new GamePointerLock(canvas, () => clearInput(), canPlay);
+const active = () => canPlay() && pointerLock.active;
 function send(value: object) {
   if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(value));
 }
@@ -90,7 +92,7 @@ function sendInput(neutral = false) {
   fire = false; elevation = 0;
 }
 function clearInput() {
-  keys.clear(); fire = false; elevation = 0; dragging = false; zoom = false;
+  keys.clear(); fire = false; elevation = 0; zoom = false;
   if (pointerId !== undefined && canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId);
   pointerId = undefined;
   if (slot !== undefined) sendInput(true);
@@ -263,23 +265,21 @@ canvas.addEventListener('pointerdown', event => {
   if (!active() || (event.button !== 0 && event.button !== 2)) return;
   canvas.focus();
   if (event.button === 2) zoom = true;
-  else { dragging = true; dragDistance = 0; }
+  else fire = true;
   pointerId = event.pointerId; canvas.setPointerCapture(event.pointerId);
 }, options);
 canvas.addEventListener('pointermove', event => {
-  if (!active() || !dragging) return;
-  dragDistance += Math.abs(event.movementX) + Math.abs(event.movementY);
+  if (!active()) return;
   yaw += event.movementX * 0.002;
   pitch = clamp(pitch - event.movementY * 0.002, -1.1, 0.4);
 }, options);
 canvas.addEventListener('pointerup', event => {
-  if (event.button === 0) { if (active() && dragging && dragDistance < 5) fire = true; dragging = false; }
   if (event.button === 2) zoom = false;
   if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
   pointerId = undefined;
 }, options);
 canvas.addEventListener('pointercancel', clearInput, options);
-canvas.addEventListener('lostpointercapture', () => { dragging = false; zoom = false; }, options);
+canvas.addEventListener('lostpointercapture', () => { zoom = false; }, options);
 canvas.addEventListener('wheel', event => {
   event.preventDefault(); if (active()) elevation = clamp(elevation - Math.sign(event.deltaY) * 0.025, -0.15, 0.15);
 }, { ...options, passive: false });
@@ -312,6 +312,7 @@ async function start() {
 function dispose() {
   if (disposed) return;
   clearInput(); disposed = true;
+  pointerLock.dispose();
   listeners.abort(); if (timer) clearInterval(timer);
   if (socket) { socket.onmessage = null; socket.onerror = null; socket.onclose = null; socket.close(); }
   engine.stopRenderLoop(); clearTracers(); effects.dispose(); tacticalHud.dispose();

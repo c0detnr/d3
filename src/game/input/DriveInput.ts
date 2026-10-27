@@ -25,13 +25,14 @@ export class DriveInput {
   }
 }
 
-export function bindDriveKeys(target: Window, resetVehicle: () => void) {
+export function bindDriveKeys(target: Window, resetVehicle: () => void, enabled: () => boolean = () => true) {
   const keys = releasedKeys();
   const mapping: Record<string, keyof DriveKeys> = {
     KeyW: 'forward', KeyS: 'reverse', KeyA: 'left', KeyD: 'right', Space: 'brake',
   };
   const clear = () => Object.assign(keys, releasedKeys());
   const down = (event: KeyboardEvent) => {
+    if (!enabled()) return;
     if ((event.target as HTMLElement)?.closest('input, textarea, select, button, [contenteditable="true"]')) return;
     if (mapping[event.code]) { event.preventDefault(); keys[mapping[event.code]] = true; }
     if (event.code === 'KeyR' && !event.repeat) { clear(); resetVehicle(); }

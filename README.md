@@ -99,3 +99,7 @@ Sol tık tek 120 mm AP mermisi ateşler; 6,5 saniyelik dolum süresi HUD'da gör
 ## Taktik oyun arayüzü
 
 İnce pusula, ayrı bakış/namlu işaretleri, dolum geri sayımı, gövde/kule yönü ve km/sa hızı, ana top/MG seçimi ana sahne ve LAN görünümünde mevcut. [HUD davranışı, gerçek oyun görüntüsü ve kontroller](docs/TACTICAL_HUD.md). Fiziksel telefon ve insan görsel kabulü açık.
+
+## Masaüstü fare kilidi
+
+Oyun alanına veya **OYUNA GİR** düğmesine tıkla: imleç gizlenir ve oyun alanına kilitlenir. Fareyi sürüklemeden kamerayı yönlendirebilirsin. İlk giriş tıklaması ateş etmez. **Esc** fareyi serbest bırakır; yeniden tıklayarak devam edebilirsin. Kilit kaybında sürüş, nişan ve ateş girdileri temizlenir. Ana oyun ve LAN sayfasında geçerlidir; dokunmatik kontroller değişmez. `combat:test` fare kilidi ve odak kontrollerini de çalıştırır.

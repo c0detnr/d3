@@ -1,0 +1,16 @@
+.game-pointer-prompt {
+  position: fixed;
+  z-index: 100;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  max-width: 90vw;
+  padding: 18px 24px;
+  border: 1px solid #a5b49b;
+  background: #172019ed;
+  color: #eef1df;
+  font: 600 14px system-ui, sans-serif;
+  letter-spacing: .05em;
+  cursor: pointer;
+}
+.game-pointer-prompt[hidden] { display: none; }
