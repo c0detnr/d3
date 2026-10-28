@@ -130,3 +130,5 @@ Kül Vadisi batı sırtında hazır ağaç grupları, doğudaki taş ocağında 
 ```bash
 ~/Unity/Hub/Editor/6000.6.7f1/Editor/Unity -batchmode -nographics -projectPath unity -runTests -testPlatform EditMode -testResults /tmp/editmode.xml
 ```
+
+Varlıkları `assets/` kaynağından Unity kopyasına eşitlemek için `python3 scripts/unity/sync_assets.py` (`unity/Assets/Imported/`; glTFast'ın çöktüğü boş glTF sahnelerini kopyadan ayıklar, kaynak GLB değişmez).

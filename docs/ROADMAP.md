@@ -263,4 +263,5 @@ Plan: [UNITY_MIGRATION_PLAN.md](UNITY_MIGRATION_PLAN.md). Kararlar: [DECISIONS.m
 | Aşama | Durum |
 |---|---|
 | U0 Karar ve altyapı | Tamamlandı: proje `-batchmode` ile açıldı, URP etkin, EditMode smoke testi 1/1 geçti (2026-10-28, Linux, 6000.6.7f1). Kalan: 6000.6.7f1 LTS statüsü doğrulaması |
-| U1–U7 | Başlamadı |
+| U1 Varlık aktarımı | Tamamlandı (kısmen): 2 tank, 2 MG, kabin, 3 yapı ve 10 doğa GLB'si hatasız içe aktarıldı; tank 01/02 için yol tekeri çiftleri (12/14), COL_Hull, kule/namlu düğümleri, metre ölçeği ve +Z namlu yönü EditMode testiyle doğrulandı (3/3, 2026-10-28). Görsel pivot/ölçek incelemesi editör penceresinde yapılmadı |
+| U2–U7 | Başlamadı |
