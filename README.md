@@ -122,3 +122,11 @@ Kül Vadisi merkezinde açık arazi siperleri, beton/kaya mevzileri ve seyrek ç
 Kül Vadisi batı sırtında hazır ağaç grupları, doğudaki taş ocağında iri kayalar ve dere kıyılarında bitki/çakıl kümeleri bulunur. [Doğa yerleşimi ve doğrulama](docs/CENTER_BATTLEFIELD.md#2026-10-28--hazır-doğa-setiyle-harita-zenginleştirme).
 
 İlk özgün [hasarlı beton mevzi](assets/environment/concrete_emplacement_01/README.md) Blender MCP ile üretildi; GLB/çarpışma doğrulandı, oyun yerleşimi henüz yapılmadı.
+
+## Unity geçişi (U0, öneri aşaması)
+
+`unity/` altında Unity `6000.6.7f1` projesi (URP, Input System, Test Framework, glTFast); web sürümü yerinde çalışır. [Plan](docs/UNITY_MIGRATION_PLAN.md), kararlar [DECISIONS.md](docs/DECISIONS.md). EditMode testleri:
+
+```bash
+~/Unity/Hub/Editor/6000.6.7f1/Editor/Unity -batchmode -nographics -projectPath unity -runTests -testPlatform EditMode -testResults /tmp/editmode.xml
+```

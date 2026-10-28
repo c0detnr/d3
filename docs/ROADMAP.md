@@ -255,3 +255,12 @@ Kenardaki 24 m'lik `rim` duvarı 5 m'lik yumuşak bir kenara indirildi (352–36
 ### 2026-10-28 — Kül Vadisi ışık ve sis
 
 Işık/sis değerleri tek ayar nesnesinde toplandı ([atmosphereSettings.ts](../src/game/world/atmosphereSettings.ts)); test zemini eski değerleri korur. Kül Vadisi: ~20° yükseklikte sıcak güneş (daha alçak, uzun gölge, faset yüz tonu farkı), soğuk mavi gökyüzü dolgusu ve koyu toprak tonlu zemin yansıması, daha açık ve ince sis (yoğunluk 0,0039 → 0,0028; yakın savaş alanı okunur). Sis rengi dağ katmanlarının pişirilmiş ufuk rengiyle aynı kaynaktan gelir. Kaynak eklenmedi; mevcut `dispose` yolu aynı. `tsc -p tsconfig.map.json` ve `check-kul-vadisi.ts` geçti. Tarayıcıda görsel inceleme yapılmadı; ton, sis mesafesi ve gölge kalitesi kabulü açık.
+
+## Unity geçişi — 2026-10-28
+
+Plan: [UNITY_MIGRATION_PLAN.md](UNITY_MIGRATION_PLAN.md). Kararlar: [DECISIONS.md](DECISIONS.md). Web sürümü Unity eşdeğerliğine kadar korunur.
+
+| Aşama | Durum |
+|---|---|
+| U0 Karar ve altyapı | Tamamlandı: proje `-batchmode` ile açıldı, URP etkin, EditMode smoke testi 1/1 geçti (2026-10-28, Linux, 6000.6.7f1). Kalan: 6000.6.7f1 LTS statüsü doğrulaması |
+| U1–U7 | Başlamadı |

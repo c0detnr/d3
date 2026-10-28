@@ -1,5 +1,13 @@
 # Kararlar ve açık konular
 
+## 2026-10-28 — Unity'ye sıfırdan geçiş
+
+- **Kesin kullanıcı kararları:** Geçişin amacı masaüstü kalite ve editör iş akışı. Unity projesi aynı depoda `unity/` altında; web sürümü yerinde kalır. Fizik yerleşik PhysX. Kullanıcı Unity Editor'ü kendisi kurdu: `6000.6.7f1`, Linux Standalone modülü (`~/Unity/Hub/Editor/6000.6.7f1`).
+- **Kullanıcı yanıtı belirsiz kalan:** Render hattı için URP önerisine açık onay alınmadı; yanıt yalnızca sürümü bildirdi. URP, U0'da şablon seçimiyle uygulanır ve geri alınabilir.
+- **Öneri (onaylanmadı):** Yeni Input System, UI Toolkit, web sürümünü Unity kabulüne kadar paralel sürdürmek. Bu üçü varsayılan olarak uygulanır, itiraz halinde değişir.
+- **Doğrulanacak:** `6000.6.7f1` bir LTS mi yoksa teknoloji akışı sürümü mü; paket uyumları resmi kaynaktan kontrol edilir. Sürüm `ProjectSettings/ProjectVersion.txt` ile kilitlenir.
+- **Durum:** [Plan](UNITY_MIGRATION_PLAN.md) öneri olarak kalır; U0 altyapı başladı.
+
 ## 2026-10-28 — Kül Vadisi 5’e 5 üs saldırısı
 
 - **Kesin kullanıcı kararları:** İki takımda beşer oyuncu; kuzey/güney ana üsler; ormanlık sırt, merkez fabrika ve taş ocağından oluşan üç koridor; yan geçitler. Koridor başına ve takım başına bir büyük dış savunma, üs girişinde ortak iç savunma; ayrı korunaklı doğma hangarları ve komuta merkezi.
