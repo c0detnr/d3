@@ -6,9 +6,9 @@ Durum: **M1 devam ediyor: doğal arazi, orman çevresi ve gerçek tankın bağı
 
 Leopard 2A6 esintili, kum beji ikinci tank için [B0–B9 planı](SECOND_TANK_BLENDER_PLAN.md) hazırlandı. Özgün Blender kaynağı ve GLB üretildi; 14 temas noktası, palet UV'si, kule, geri tepme ve tank seçimi entegre edildi. `tank:test`, `turret:test`, `drive:test` ve `map:build` geçti. Tarayıcıda insan sürüş/nişan/atış kabulü açık. Hız, zırh ve hasar dengesi bu teslimin koşulu değildir; M1/M2/M3 genel kabul durumları değişmez.
 
-## İlk AI tank düellosu — C1 test modu mevcut
+## İlk AI tank düellosu — Kolay mod prototipi
 
-[Çatışma ve hasar planı](COMBAT_DUEL_PLAN.md): C1'de seçilen tank ve diğer model aynı Havok dünyasında tek sabit adımla çalışır; rakip park hâlindedir. Serbest sürüş ve `?duel=1` test modu ayrıdır. Gerçek GLB/Havok kontrolünde iki rol, çarpışma, sıfırlama, kaynak temizliği, harita başlangıcı ve 30/60/120 FPS eşitliği geçti. C2 can/hasar, C3 AI, C4 oyun döngüsü ve C5 son kabul açık. Uzun vadeli M3 ve M1/M2 kabul durumları değişmez.
+[Çatışma ve hasar planı](COMBAT_DUEL_PLAN.md): İki tank aynı Havok dünyasında sabit adımla çalışır; `?duel=1` kolay modunda rakip görüşte yaklaşır, tepki süresiyle nişan alır ve yalnız açık görüşte top atar. Can, rakip AI topu ve R ile sıfırlama bağlandı. Bu ilk prototipte tam sonuç ekranı, engelden kurtulma davranışı ve tarayıcı/insan oynanış kabulü açık. Uzun vadeli M3 ve M1/M2 kabul durumları değişmez.
 
 ## Uygulamaya geçiş hazırlığı
 
@@ -174,9 +174,17 @@ CABIN bölüm 1 Blender MCP ile üretildi: [kaynak, GLB ve önizlemeler](../asse
 
 Mevcut geliştirme durumu `v0.1.0` etiketi için belgelendi. `npm test`, `map:build`, `lan:check` ve `lan:test` geçti; büyük paket uyarısı sürüyor. [Sürüm kapsamı ve tekrar uygulanabilir adımlar](VERSIONING.md). Yeni tarayıcı/telefon kabulü veya APK derlemesi yapılmadı; M1/M2/M3 kabul durumları korunur.
 
+## 2026-10-27 — Hasar geri bildirimi
+
+[Hasar/isabet sistemi](DAMAGE_FEEDBACK.md) yerel park edilmiş rakip ve mevcut LAN düellosuna bağlandı. 100 can/25 top hasarı korunur; iki aynı-bölge isabetinde modül arızası, metal efekt/ses, yön yayı, araç şeması, duman ve yangın mevcut. Yerel C2 hasar çekirdeği bu adımda eklendi; C3 AI/karşı ateş ve yerel maç döngüsü açık. LAN rövanşı modül ve olayları sıfırlar. Hasar, gerçek Havok LAN, balistik/efekt ve ses otomatik kontrolleri geçti. Tarayıcı kanıtı VALIDATION içindedir; genel M1/M2/M3 ve insan kabulü tamamlandı sayılmaz.
+
 ### 2026-10-27 — Taktik HUD
 
 Kullanıcının onayladığı konsept ana oyun ve mevcut LAN görünümüne uygulandı: pusula, gerçek gövde/kule yönü ve hız, ayrı bakış/namlu işaretleri, dolum ve silah seçimi. HUD hesap kontrolü, `map:build`, `lan:check`, `touch:test`, `combat:test`, `lan:test` geçti. Chrome'da iki tank, atış/dolum, MG seçimi, dar ekran ve LAN görünümü incelendi. [Kanıt ve sınırlar](TACTICAL_HUD.md). Fiziksel telefon/insan kabulü açık; M1/M2/M3 genel durumu değişmez.
+
+### 2026-10-27 — Space ile bakışa hizalama
+
+Space tek basışta mevcut kamera yönünü kule/namlu hedefi yapar; mevcut hız ve yükseliş sınırları korunur. Q/E veya tekerlek otomatik takibi iptal eder. Güçlü fren sol Shift'e taşındı. Yerel oyun ve yetkili LAN simülasyonunda iki model kontrol edildi. `turret:test`, `combat:test`, `map:build`, `lan:check`, ağ simülasyonu ve LAN sunucu kontrolü geçti. Tarayıcıda sahne açıldı; paralel fare kilidi çalışmasında otomasyon kilit alamadığı için etkileşimli kabul açık. M1/M2/M3 son kabulü değişmedi.
 
 ### 2026-10-27 — Masaüstü fare kilidi
 

@@ -197,6 +197,13 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 
 **Sonraki üretim durumu (2026-10-26):** Özgün kaynak ve GLB üretildi; tank seçimi, sürüş, kule ve top otomatik kontrolleri geçti. İnsan tarayıcı kabulü ve araç dengelemesi açık.
 
+## 2026-10-27 — Hasar ve isabet geri bildirimi
+
+- **Kullanıcı kararı:** metal darbe/kıvılcım, delme sonucunun okunması, modül geri bildirimi, kısa kamera darbesi, turuncu/kırmızı hasar yönü, küçük araç durum şeması ve imha sonrası duman/yangın uygulanır.
+- **Uygulanan prototip ayarları:** 25 top hasarı ve 100 can korunur. İsabet edilen modül 50 bütünlük kaybeder; ikinci isabetle arızalanır. Bölge sınırları ve ses/efekt yoğunlukları oyun ayarıdır; kullanıcı tarafından son denge olarak onaylanmış değildir.
+- **Sınır:** LAN'da zırh açısı top hasarını değiştirmez. Mevcut zırh hedeflerinde delme/sekme geri bildirimi; MG tank üzerinde hasarsız metal darbe üretir. Yerel kolay mod AI ve karşı ateş prototipi mevcut; HE ve fiziksel palet/kule parçalanması eklenmedi.
+- **Açık:** insan görsel/işitsel kabulü, modül dengesi ve Android performansı. [Sistem ve doğrulama](DAMAGE_FEEDBACK.md).
+
 ## 2026-10-28 — Kül Vadisi uygulama başlangıcı
 
 **Kesin:** Kullanıcı K0 + K1'e başlamayı onayladı. Mevcut test sahası korunarak `map=kul` seçimiyle ayrı harita kuruldu. Blender hangar çalışması korunur; bu adımda geçici yapı hacimleri kullanılır.

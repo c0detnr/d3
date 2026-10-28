@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
+import { bindDriveKeys } from '../src/game/input/DriveInput.ts';
 import { CombatInput } from '../src/game/input/CombatInput.ts';
 class Surface extends EventTarget {
   captures = new Set<number>(); hidden = false;
+  closest() { return false; }
   setPointerCapture(id: number) { this.captures.add(id); }
   hasPointerCapture(id: number) { return this.captures.has(id); }
   releasePointerCapture(id: number) { this.captures.delete(id); }
@@ -19,9 +21,12 @@ function wheel(canvas: EventTarget, deltaY: number, shiftKey = false, deltaMode 
   canvas.dispatchEvent(event); assert.ok(event.defaultPrevented, 'game wheel prevents page scroll');
 }
 for (let cycle = 0; cycle < 3; cycle++) {
-  const canvas = new Surface(); let ready = true, enabled = true, moves = 0, releases = 0;
+  const canvas = new Surface(); let ready = true, enabled = true, moves = 0, releases = 0, alignments = 0;
   const input = new CombatInput(canvas as unknown as HTMLCanvasElement, () => ready && enabled, () => enabled,
-    () => moves++, () => releases++);
+    () => moves++, () => releases++, () => alignments++);
+  key('keydown', 'Space'); assert.equal(alignments, 1, 'Space aligns once on press');
+  win.dispatchEvent(Object.assign(new Event('keydown'), { code: 'Space', repeat: true }));
+  assert.equal(alignments, 1, 'held Space does not retarget the view');
   key('keydown', 'KeyQ'); assert.equal(input.turretTurn, -1, 'Q turns left without zoom');
   key('keydown', 'KeyE'); assert.equal(input.turretTurn, 0, 'opposing keys cancel');
   key('keyup', 'KeyQ'); assert.equal(input.turretTurn, 1, 'E turns right');
@@ -57,6 +62,7 @@ for (let cycle = 0; cycle < 3; cycle++) {
   }
   input.clear(); enabled = false; pointer(canvas, 'pointerdown', 3);
   assert.equal(input.aiming, false); assert.equal(input.consumeFire(), false, 'overview blocks combat');
+  key('keydown', 'Space'); assert.equal(alignments, 1, 'overview blocks Space');
   key('keydown', 'KeyQ'); wheel(canvas, -100); assert.equal(input.turretTurn, 0); assert.equal(input.consumeElevation(), 0, 'overview blocks gun input');
   enabled = true;
   input.dispose(); key('keydown', 'KeyE'); canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: -100 }));
@@ -64,3 +70,9 @@ for (let cycle = 0; cycle < 3; cycle++) {
   const before = moves; pointer(canvas, 'pointermove', 0); assert.equal(moves, before);
 }
 console.log('Combat input: Q/E, wheel normal/zoom/fine/line-mode, UI gating, chords, single press, reload rejection, overview, cancel/focus/Esc and 3 disposal cycles passed.');
+
+const drive = bindDriveKeys(win as unknown as Window, () => {});
+key('keydown', 'Space'); assert.equal(drive.keys.brake, false, 'Space aim cannot brake');
+key('keydown', 'ShiftLeft'); assert.equal(drive.keys.brake, true, 'left Shift brakes');
+key('keyup', 'ShiftLeft'); assert.equal(drive.keys.brake, false, 'brake releases');
+drive.dispose();

@@ -28,7 +28,7 @@ export class DriveInput {
 export function bindDriveKeys(target: Window, resetVehicle: () => void, enabled: () => boolean = () => true) {
   const keys = releasedKeys();
   const mapping: Record<string, keyof DriveKeys> = {
-    KeyW: 'forward', KeyS: 'reverse', KeyA: 'left', KeyD: 'right', Space: 'brake',
+    KeyW: 'forward', KeyS: 'reverse', KeyA: 'left', KeyD: 'right', ShiftLeft: 'brake',
   };
   const clear = () => Object.assign(keys, releasedKeys());
   const down = (event: KeyboardEvent) => {

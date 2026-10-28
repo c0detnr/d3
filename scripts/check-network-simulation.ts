@@ -16,7 +16,8 @@ assert.ok(parseCommand(input(0)));
 assert.deepEqual(parseCommand({ type: 'ready' }), { type: 'ready' });
 for (const bad of [null, [], {}, { type: 'input' }, input(-1), input(0.5), input(Infinity),
   input(0, { throttle: NaN }), input(0, { throttle: 1.1 }), input(0, { steer: -2 }),
-  input(0, { brake: -1 }), input(0, { turn: 2 }), input(0, { elevation: 0.151 }), input(0, { fire: 1 })]) {
+  input(0, { aimDirection: [0, 0, 0] }), input(0, { aimDirection: [NaN, 0, 1] }),
+  input(0, { aimDirection: [0, 1] }), input(0, { aimDirection: [0, 0, 2] }), input(0, { brake: -1 }), input(0, { turn: 2 }), input(0, { elevation: 0.151 }), input(0, { fire: 1 })]) {
   assert.equal(parseCommand(bad), undefined, JSON.stringify(bad));
 }
 const wasmBinary = await readFile(new URL('../node_modules/@babylonjs/havok/lib/esm/HavokPhysics.wasm', import.meta.url));
@@ -66,6 +67,16 @@ try {
   const yaw = tank.turret.angles.yaw;
   run(120);
   assert.ok(Math.abs(tank.turret.angles.yaw - yaw) < 0.3, 'stale yaw stops instead of rotating forever');
+
+  // Both real tanks converge on a camera direction through authoritative inputs.
+  for (const slot of [0, 1] as const) {
+    const direction = new Vector3(1, 0.08, 1).normalize();
+    for (let i = 0; i < 600; i++) { send(slot, { aimDirection: direction.asArray() }); sim.step(); }
+    assert.ok(Vector3.Dot(fixture.tanks[slot].turret.getMuzzleRay().direction, direction) > 0.9999,
+      'LAN Space aim converges for both tank models');
+    send(slot); run(120);
+  }
+  tank.turret.reset();
 
   // Sustained Q/E must match standalone manual smoothing, not restart its response every tick.
   const referenceEngine = new NullEngine();
@@ -117,6 +128,15 @@ try {
     sim.step();
     assert.equal(sim.snapshot().tanks[targetSlot].hp, hp - 25, 'real turret-only shell applies 25 damage');
     assert.equal(fixture.shells[shooterSlot].active.length, 0, 'turret impact consumes the shell');
+    const event = sim.snapshot().impacts.at(-1)!;
+    assert.equal(event.shooter, shooterSlot); assert.equal(event.target, targetSlot);
+    assert.equal(event.surface, 'metal'); assert.equal(event.module, 'turret');
+    assert.equal(event.destroyed, false);
+    assert.ok(event.point.every(Number.isFinite) && event.normal.every(Number.isFinite));
+    const retained = sim.snapshot().impacts;
+    run(5); assert.deepEqual(sim.snapshot().impacts, retained, 'event tail persists across multiple snapshot intervals');
+    retained[0].point[0] = 9999;
+    assert.notEqual(sim.snapshot().impacts[0].point[0], 9999, 'snapshot cannot mutate authoritative event history');
 
     // Put the same turret beneath terrain so its triangle hit is behind the ground surface.
     const below = new Vector3(-34, -5, -42);
@@ -163,6 +183,9 @@ try {
     }
   }
   assert.equal(sim.snapshot().phase, 'finished'); assert.equal(sim.snapshot().winner, 0);
+  const impacts = sim.snapshot().impacts;
+  assert.equal(impacts.length, 4); assert.equal(impacts.at(-1)!.destroyed, true);
+  assert.equal(new Set(impacts.map(h => h.id)).size, 4, 'monotonic event IDs enable exact-once presentation');
   sim.command(0, { type: 'ready' }); assert.equal(sim.snapshot().phase, 'finished');
   sim.command(1, { type: 'ready' });
   assert.equal(sim.snapshot().phase, 'playing');
@@ -171,6 +194,20 @@ try {
     assert.equal(t.yaw, 0); assert.equal(t.elevation, 0);
   }
   assert.equal(sim.snapshot().projectiles.length, 0);
+  assert.equal(sim.snapshot().impacts.length, 0, 'rematch clears old events');
+  assert.ok(sim.snapshot().tanks.every(t => Object.values(t.modules).every(hp => hp === 100)));
+  const gated = fixture.tanks[0];
+  for (const module of ['leftTrack', 'rightTrack', 'engine'] as const) {
+    gated.damage.modules[module] = 0;
+    send(0, { throttle: 1, brake: 0 }); run(5);
+    assert.equal(gated.vehicle.driveForce, 0, `${module} failure disables actual traction`);
+    gated.damage.modules[module] = 100;
+  }
+  gated.damage.modules.turret = 0;
+  const heldYaw = gated.turret.angles.yaw;
+  for (let i = 0; i < 60; i++) { send(0, { turn: 1, elevation: 0.1 }); sim.step(); }
+  assert.equal(gated.turret.angles.yaw, heldYaw, 'disabled mechanism rejects authoritative turret input');
+  gated.damage.modules.turret = 100;
   send(0, { fire: true }); sim.step();
   const shots = sim.snapshot().tanks[0].shots;
   sim.command(0, input(seq - 1, { fire: true, throttle: 1 }));

@@ -49,6 +49,17 @@ try {
     advance(target, 12);
     const ray = turret.getMuzzleRay();
     assert.ok(Vector3.Dot(ray.direction, target.subtract(ray.origin).normalize()) > 0.99999, 'inclined hull uses world target');
+    // Cancelling an unfinished alignment must hold the current elevation.
+    turret.reset();
+    turret.fixedUpdate(new Vector3(100, 30, 100), 1 / 60);
+    const interruptedElevation = turret.angles.elevation;
+    for (let i = 0; i < 120; i++) turret.fixedUpdateManual(0, 0, 1 / 60);
+    near(turret.angles.elevation, interruptedElevation);
+    advance(target, 12);
+    // Switching back from automatic world aim must preserve the new elevation.
+    const automaticElevation = turret.angles.elevation;
+    for (let i = 0; i < 120; i++) turret.fixedUpdateManual(0, 0, 1 / 60);
+    near(turret.angles.elevation, automaticElevation);
     const held = turret.angles;
     for (let i = 0; i < 60; i++) turret.fixedUpdate(null, 1 / 60);
     assert.deepEqual(turret.angles, held, 'release immediately freezes local joint angles');

@@ -34,11 +34,11 @@ export class DuelTank {
     catch (error) { tank.dispose(); throw error; }
   }
   beforeStep(dt: number, command: DriveCommand = parked) { this.vehicle.beforeStep(dt, driveDisabled(this.damage) ? parked : command); }
-  afterStep(dt: number) {
+  afterStep(dt: number, turretTarget: Vector3 | null = null) {
     this.vehicle.afterStep();
     this.visual.fixedUpdate(this.vehicle, dt);
     this.visual.syncHull(this.vehicle, 1);
-    this.turret.fixedUpdate(null, dt);
+    this.turret.fixedUpdate(turretTarget, dt);
     this.weapon.fixedUpdate(dt);
   }
   render(alpha: number) {

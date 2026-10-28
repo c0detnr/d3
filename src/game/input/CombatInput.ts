@@ -15,10 +15,12 @@ export class CombatInput {
   private readonly canAim: () => boolean;
   private readonly look: (x: number, y: number) => void;
   private readonly released: () => void;
+  private readonly alignToView: () => void;
   constructor(canvas: HTMLCanvasElement, canFire: () => boolean, canAim: () => boolean,
-    look: (x: number, y: number) => void, released: () => void) {
+    look: (x: number, y: number) => void, released: () => void,
+    alignToView: () => void = () => {}) {
     this.canvas = canvas; this.canFire = canFire; this.canAim = canAim;
-    this.look = look; this.released = released;
+    this.look = look; this.released = released; this.alignToView = alignToView;
     canvas.addEventListener('pointerdown', this.down);
     canvas.addEventListener('pointermove', this.move);
     window.addEventListener('pointerup', this.up);
@@ -64,6 +66,10 @@ export class CombatInput {
     if (e.code === 'Escape') { this.clear(); return; }
     if ((e.target as HTMLElement)?.closest?.('input, textarea, select, button, [contenteditable="true"]')) return;
     if (!this.canAim()) return;
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (!e.repeat) this.alignToView();
+    }
     if (e.code === 'KeyQ' || e.code === 'KeyE') {
       e.preventDefault();
       if (e.code === 'KeyQ') this.turnLeft = true;

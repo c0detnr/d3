@@ -117,3 +117,7 @@ Açık ayarlar: AI tepki süresi, nişan toleransı, çatışma mesafesi ve baş
 ## 6. Bu belge görevinin doğrulama durumu
 
 Kaynak ve mevcut tasarım belgeleri incelendi. Oyun kodu veya modeller değiştirilmedi; oyun testleri ve tarayıcı düellosu çalıştırılmadı. Mevcut kullanıcı değişiklikleri bu teslimin dışında tutulur.
+
+## 2026-10-27 uygulama notu
+
+Kullanıcının hasar/efekt isteğiyle yerel C2 hasar çekirdeği ve palet/motor/kule hasarı uygulandı. Kolay mod prototipinde AI görüşte hedefe yaklaşır, kısa tepki gecikmesiyle gerçek taretini hedefe çevirir ve yalnız açık görüşte top atar; oyuncunun topu karşı hasar verir. R iki tankı ve uçan mermileri sıfırlar. AI takılma kurtarması, maç sonucu ekranı ve tarayıcı/insan kabulü hâlâ açık; LAN modu oyuncu kontrollü kalır. [Güncel hasar sistemi](DAMAGE_FEEDBACK.md).

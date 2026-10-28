@@ -67,6 +67,7 @@ export class TurretController {
     this.limited = Math.abs(desired - constrained) > 1e-5;
     this.current.elevation += this.pitchMotion.advanceTarget(constrained - this.current.elevation,
       this.definition.gunPitchSpeed, this.definition.gunResponseTime, dt);
+    this.smoothElevation = this.current.elevation;
     this.apply(this.current.yaw, this.current.elevation);
   }
   /** Local manual controls, advanced only by the fixed physics step. */

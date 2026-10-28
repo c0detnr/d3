@@ -10,13 +10,17 @@ Temel ilke: **Grafikler sade olacak; tank onlarca tonluk zırhlı bir araç gibi
 
 **Sürüm: 0.1.0** · Git etiketi: `v0.1.0` · [Sürüm kapsamı ve nasıl sürümlenir?](docs/VERSIONING.md)
 
-Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağımsız harita önizlemesi mevcut. İlk sürüş prototipi mevcut; son tarayıcı kabulü ve sürüş hissi değerlendirmesi açık. İki özgün tankın Blender kaynakları ve GLB dosyaları `assets/tanks/` altında; önizlemede tank seçimi yapılabilir. `?duel=1` iki tankı aynı fizik dünyasında açan C1 testidir; rakip henüz hareket etmez veya ateş etmez.
+Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağımsız harita önizlemesi mevcut. İlk sürüş prototipi mevcut; son tarayıcı kabulü ve sürüş hissi değerlendirmesi açık. İki özgün tankın Blender kaynakları ve GLB dosyaları `assets/tanks/` altında; önizlemede tank seçimi yapılabilir. `?duel=1` iki tankı aynı fizik dünyasında açan hasar testidir; kolay mod rakibi görüşte yaklaşır ve ateş eder.
 
-İlk teslim tek tankla küçük bir haritada serbest sürüş olacak. Sonraki teslim sabit hedeflerle atış ve temel hasarı ekleyerek savaş mekaniklerini içeren vertical slice oluşturacak. M3.1 çekirdeği uygulandı: gerçek namlu ağzından AP atışı, süpürülmüş isabet, mesafe/açıya bağlı delme, sekme, üç sabit zırhlı hedef, nişancı görüşü ve görsel geri bildirim. Hasar, modül hasarı, HE, düşman AI ve savaş sesleri henüz yok; tarayıcı kabulü açık.
+İlk teslim tek tankla küçük bir haritada serbest sürüş olacak. M3.1 çekirdeği uygulandı: gerçek namlu ağzından AP atışı, süpürülmüş isabet, mesafe/açıya bağlı delme, sekme, üç sabit zırhlı hedef, nişancı görüşü ve görsel geri bildirim. Yerel iki tank düellosuna hasar, modül arızaları, HUD ve kolay mod rakip AI eklendi; HE ve genel oynanış kabulü açık.
 
 İlk özgün tank Blender MCP ile üretildi: [Blender kaynağı](assets/tanks/iron_dust_01/iron_dust_01.blend) · [GLB](assets/tanks/iron_dust_01/iron_dust_01.glb) · [önizlemeler ve doğrulama](assets/tanks/iron_dust_01/README.md). Görünür geometri 14.512 üçgen; Babylon entegrasyonu ve ilk dinamik sürüş prototipi mevcut.
 
 İlk kabin iç gövdesi ve ana konsol Blender MCP ile üretildi: [kaynak, GLB ve iki önizleme](assets/cockpit/iron_dust_cockpit_01/README.md). 16.732 üçgen; oyun entegrasyonu ve dış tank hacmine montaj doğrulaması açık.
+
+## Hasar geri bildirimi
+
+`map-preview.html?duel=1` kolay mod yerel tank düellosunu açar: diğer tank görüşte yaklaşır, gecikmeli nişan alır ve topuyla karşılık verir. İki taraf 100 canla başlar; top isabeti 25 hasar verir. LAN düellosunda iki oyuncu da gerçek bölgesel hasar alır: metal darbe efektleri ve sesleri, hasar yönü, araç şeması, palet/motor/kule arızası, duman ve imha yangını mevcuttur. `npm run damage:test` bölge ve hasar kurallarını kontrol eder. [Kapsam ve kontroller](docs/DAMAGE_FEEDBACK.md).
 
 ## Belge haritası
 
@@ -28,6 +32,7 @@ Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağ�
 | [Oyun tasarımı](docs/GAME_DESIGN.md) | Kimlik, oyuncu deneyimi ve kapsam |
 | [Kül Vadisi harita ve model planı](docs/MAP_AND_MODEL_PLAN.md) | Onaylı 5’e 5 üs saldırısı, üç koridor, savunma zinciri ve Blender çevre planı; henüz uygulanmadı |
 | [Görsel yön](docs/ART_DIRECTION.md) | Palet, ışık, tank, çevre ve varlık standardı |
+| [Hasar ve isabet geri bildirimi](docs/DAMAGE_FEEDBACK.md) | Yerel hedef ve LAN hasarı, modüller, HUD, duman/yangın ve ses |
 | [Top atışı geri bildirimi](docs/SHOT_FEEDBACK.md) | Yeni namlu hareketi, küçük kamera sarsıntısı, gaz/toz ve stereo top sesi; insan kabulü açık |
 | [Hareket efektleri planı](docs/MOVEMENT_EFFECTS.md) | Palet/hız/dönüş tozu uygulaması; fren/iniş ve sonraki efektlerin planı |
 | [Kamera, nişan ve atış yenileme planı](docs/AIM_AND_FIRE_REWORK.md) | Sağ tuşla sağ yan yakın kamera, bağımsız serbest bakış ve görünür balistik; henüz uygulanmadı |
@@ -36,7 +41,7 @@ Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağ�
 | [Oynanabilir ikinci tank planı](docs/SECOND_TANK_BLENDER_PLAN.md) | Kum beji tankın kaynak/GLB teslimi ve otomatik oyun kontrolleri mevcut; insan oynanabilirlik kabulü açık |
 | [Makineli tüfek Blender planı](docs/MACHINE_GUN_ASSET_PLAN.md) | POV kameralı ikinci silahın yerleşimi, hareket grupları, modelleme sırası ve teslim kontrolleri |
 | [Teknik mimari](docs/ARCHITECTURE.md) | Seçilen yığın, sistem sınırları ve fizik yaklaşımı |
-| [İlk tank düellosu planı](docs/COMBAT_DUEL_PLAN.md) | C1 iki araç testi uygulandı; can, hasar, AI ve maç sonucu sonraki adımlar |
+| [İlk tank düellosu planı](docs/COMBAT_DUEL_PLAN.md) | Yerel hasar, kolay mod AI ve LAN hasar entegrasyonu; son oynanış kabulü açık |
 | [Yol haritası](docs/ROADMAP.md) | M1 dünya → M2 sürüş → M3 savaş |
 | [Doğrulama](docs/VALIDATION.md) | Kabul senaryoları ve performans ölçümü |
 | [Kararlar](docs/DECISIONS.md) | Kesin kararlar, öneriler ve açık konular |
@@ -53,11 +58,11 @@ Kurulu paket sürümleri `package.json` ve kilit dosyasında sabittir. Genel oyu
 
 `npm start` veya `npm run dev` ile başlatılır. Terminalde yazan yerel adresi tarayıcıda aç; ana sayfa test haritasına yönlendirir. Varsayılan port 5173 doluysa Vite bir sonraki boş portu kullanır. `npm run map:dev` doğrudan harita sayfasını açar.
 
-Harita sayfasındaki tank seçimi veya `?tank=02` ikinci tankı açar. `?duel=1` C1 iki tank testini açar; rakip yalnızca fiziksel, park hâlindeki araçtır. Düello hasarı ve AI henüz yoktur.
+Harita sayfasındaki tank seçimi veya `?tank=02` ikinci tankı açar. `?duel=1` kolay mod yerel düelloyu açar; rakip görüşte yaklaşır, nişan alır ve karşı ateş eder. İki tank da 100 canla başlar; her top isabeti 25 hasar verir.
 
 320 × 320 m ayrıntılı arazi çevresinde ufka devam eden seyrek geometrili tepeler bulunur. Düz ve açık başlangıç alanından kıvrılan toprak patika ormana ilerler; çamlar, geniş yapraklı ağaçlar, kayalar ve kuru ot kümeleri çevreyi oluşturur. Akşam ışığı yerine kaotik fırtına atmosferi kullanılır: sürüklenen ve çalkalanan prosedürel bulut katmanları, sıcak ufuk parıltısı, ara ara uzak şimşek çakmaları, gölgeler ve uzaklık sisi. Gökyüzü kaynağı `src/game/world/SkyAtmosphere.ts`; bulutlar ve şimşek aydınlatması GPU shader'ında üretilir. Arazi, kayalar ve yakın ağaç gövdeleri statik Havok çarpışmasına sahiptir; uzaktaki orman görsel arka plandır. Arazi yüzeyi kodla üretilen albedo, normal ve ince detay dokularıyla kaplanır; 22 m'de bir dikişsiz tekrarlanan doku toprak rengi kümeleri, taş taneleri, ince çatlaklar ve kuru yaprak/dal artıkları içerir. Metre esaslıdır; farklı zemin tutuşları ve oynanabilir alan sınırları henüz uygulanmadı.
 
-W ileri, S fren ve durduktan 0,25 saniye sonra geri; A/D palet farkıyla dönüş, Space güçlü fren, R tankı başlangıca döndürür. Fareyi sürükleyerek bakışı değiştir, tekerlekle mesafeyi ayarla. Sol tık ateşler; sağ tık basılı tutunca nişancı görüşü açılır ve sağ tık sürüklemesi nişanı yönlendirir. Hareketliyken kamera son fare hareketinden 1,5 saniye sonra arkaya toparlanır. **Alanı göster** genel görünüşe geçer; **Başlangıca dön** tankı ve hızları sıfırlar.
+W ileri, S fren ve durduktan 0,25 saniye sonra geri; A/D palet farkıyla dönüş, Space bakış yönüne otomatik kule/namlu hizalama, sol Shift güçlü fren, R tankı başlangıca döndürür. Fareyi sürükleyerek bakışı değiştir, tekerlekle mesafeyi ayarla. Sol tık ateşler; sağ tık basılı tutunca nişancı görüşü açılır ve sağ tık sürüklemesi nişanı yönlendirir. Hareketliyken kamera son fare hareketinden 1,5 saniye sonra arkaya toparlanır. **Alanı göster** genel görünüşe geçer; **Başlangıca dön** tankı ve hızları sıfırlar.
 
 - `npm test`: sabit zaman adımı, birikim sınırı, fren önceliği ve geri geçişi kontrolleri.
 - `npm run effects:test`: toz temas/yük/hava kapıları, hız/geri/dönüş, 30/60/120 FPS eşitliği, 10 dakika simülasyon havuz sınırı ve gerçek Havok ile kaynak temizliği.

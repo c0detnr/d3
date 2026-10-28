@@ -1,6 +1,11 @@
 import './game/input/gamePointerLock.css';
 import { GamePointerLock } from './game/input/GamePointerLock.ts';
+import { DamageHud } from './game/ui/DamageHud.ts';
+import { freshDamage, applyDamage, driveDisabled } from './game/combat/DamageModel.ts';
+import { pickTankHit, tankDamageRegion } from './game/combat/tankHit.ts';
+import { IRON_DUST_01_AMMO } from './game/combat/WeaponDefinition.ts';
 import { DuelTank } from './game/combat/DuelTank.ts';
+import { EasyDuelAI } from './game/combat/EasyDuelAI.ts';
 import { terrainHeight } from './game/world/terrain.ts';
 import { createKulVadisi } from './game/world/createKulVadisi.ts';
 import { kulTerrainHeight } from './game/world/kulVadisiLayout.ts';
@@ -53,7 +58,7 @@ const duelUrl = new URL(location.href);
 if (twoTankTest) duelUrl.searchParams.delete('duel');
 else duelUrl.searchParams.set('duel', '1');
 duelToggle.href = duelUrl.href;
-duelToggle.textContent = twoTankTest ? 'Serbest sürüşe dön' : 'İki tank testi (C1)';
+duelToggle.textContent = twoTankTest ? 'Serbest sürüşe dön' : 'Kolay mod · düello başlat';
 duelToggle.className = 'duel-toggle';
 document.body.append(duelToggle);
 const tankChoice = document.querySelector<HTMLSelectElement>('#tank-choice')!;
@@ -82,11 +87,14 @@ const mapControls = addMapControls(followCamera, kulVadisi, kulVadisi && kulTeam
 const clock = new FixedStep();
 const input = new DriveInput();
 let opponent: DuelTank | undefined;
+let opponentAI: EasyDuelAI | undefined;
+let opponentProjectiles: ProjectileSystem | undefined;
 let vehicle: TankVehicle | undefined;
 let visual: TankVisual | undefined;
 let movementEffects: MovementEffects | undefined;
 let observation: DrivingObservation | undefined;
 let turret: TurretController | undefined;
+let alignDirection: Vector3 | undefined;
 let weapon: WeaponSystem | undefined;
 let machineGun: MachineGun | undefined;
 let mgProjectiles: ProjectileSystem | undefined;
@@ -96,14 +104,20 @@ let combatRange: ArmorRange | undefined;
 let combatEffects: CombatEffects | undefined;
 let lastCombatResult = '';
 let combatResultTime = 0;
+const damageHud = new DamageHud();
+const damageHudState = freshDamage();
+damageHud.setState(damageHudState);
+let damageTrailTime = 0;
+let damageSoundTime = 0;
 const aim = new AimSystem(scene, followCamera, document.querySelector<HTMLElement>('#aim-bore')!,
   document.querySelector<HTMLElement>('#aim-status')!);
 const combatInput = new CombatInput(canvas, () => (mgMode || !!weapon?.ready) && !followCamera.isOverview && !paused && pointerLock.active && !freeCamera.active,
   () => !!vehicle && !followCamera.isOverview && !paused && pointerLock.active && !freeCamera.active,
-  (x, y) => { if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); }, () => { followCamera.aiming = false; });
+  (x, y) => { if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); }, () => { followCamera.aiming = false; },
+  () => { if (!mgMode) alignDirection = followCamera.camera.getForwardRay().direction.clone(); });
 function selectWeapon(useMG: boolean) {
   if (!machineGun || !vehicle || freeCamera.active) return;
-  combatInput.clear();
+  combatInput.clear(); alignDirection = undefined;
   if (followCamera.isOverview || !useMG) mapControls.follow();
   mgMode = useMG;
   scene.activeCamera = useMG ? machineGun.camera : followCamera.camera;
@@ -121,10 +135,10 @@ let lastTime = performance.now();
 let paused = document.hidden;
 const keys = bindDriveKeys(window, () => reset(), () => pointerLock.active && !freeCamera.active);
 const pointerLock = new GamePointerLock(canvas, () => {
-  combatInput.clear(); keys.clear(); input.reset();
+  combatInput.clear(); keys.clear(); input.reset(); alignDirection = undefined;
 }, () => !!vehicle && !paused, !mobile);
 const freeCamera = new FreeFlyCamera(scene, canvas, () => !!vehicle && !paused && pointerLock.active, () => {
-  combatInput.clear(); keys.clear(); input.reset();
+  combatInput.clear(); keys.clear(); input.reset(); alignDirection = undefined;
 });
 const touch = new TouchControls(document.querySelector<HTMLElement>('#touch-controls')!, canvas, {
   look: (x, y) => { if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); },
@@ -159,8 +173,10 @@ function updateCombatHud() {
 }
 function reset() {
   if (freeCamera.active) freeCamera.toggle();
-  opponent?.reset();
+  opponent?.reset(); opponentAI?.reset(); opponentProjectiles?.reset(); damageHudState.hp = 100;
+  Object.assign(damageHudState.modules, freshDamage().modules); damageHud.reset(); damageHud.setState(damageHudState); damageTrailTime = 0;
   touch.clear(); keys.clear(); input.reset(); clock.reset(); vehicle?.reset(undefined, kulVadisi && kulTeam === 'B' ? Math.PI : 0); visual?.reset(); movementEffects?.reset();
+  alignDirection = undefined;
   vehicleAudio?.reset(); combatAudio?.reset(); turret?.reset(); weapon?.reset(); projectiles?.reset(); combatEffects?.reset();
   machineGun?.reset(); mgProjectiles?.reset(); selectWeapon(false);
   combatInput.clear(); lastCombatResult = ''; combatResultTime = 0;
@@ -168,6 +184,7 @@ function reset() {
   lastTime = performance.now();
 }
 const visibility = () => {
+  alignDirection = undefined;
   paused = document.hidden; movementEffects?.reset(); keys.clear(); input.reset(); clock.reset(); lastTime = performance.now();
   combatInput.clear();
   if (document.hidden) { combatAudio?.reset(); void audio.suspend(); }
@@ -263,7 +280,8 @@ async function start() {
   }
   mgProjectiles = new ProjectileSystem(scene, (from, to) => {
     const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body });
-    return hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
+    const worldHit = hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
+    return opponent ? pickTankHit(scene, opponent, from, to, worldHit) : worldHit;
   }, 40, { gravity: -9.81, maxRange: 600, maxAge: 3, trailSeconds: 0.015, trailLength: 2.2, diameter: 0.035 });
   scene.activeCamera = followCamera.camera;
   if (!kulVadisi) {
@@ -273,10 +291,15 @@ async function start() {
   combatEffects = new CombatEffects(scene);
   projectiles = new ProjectileSystem(scene, (from, to) => {
     const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body });
-    return hit.hasHit
-      ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance }
-      : undefined;
+    const worldHit = hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
+    return opponent ? pickTankHit(scene, opponent, from, to, worldHit) : worldHit;
   });
+  opponentProjectiles = new ProjectileSystem(scene, (from, to) => {
+    const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: opponent!.vehicle.body });
+    const worldHit = hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
+    const playerTarget = { tank: tank!, vehicle: vehicle! };
+    return pickTankHit(scene, playerTarget, from, to, worldHit);
+  }, 4);
   audioSnapshot = {
     speed: 0, forwardSpeed: vehicle.definition.forwardSpeed, driveForce: 0,
     traction: vehicle.definition.traction, contacts: vehicle.contacts,
@@ -292,11 +315,12 @@ async function start() {
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('driveTest')) observation = new DrivingObservation(engine, reset);
   if (twoTankTest) {
     status.textContent = 'İkinci tank yükleniyor…';
-    const spawn = ground.spawn.add(new Vector3(6, 0, 0));
+    const spawn = ground.spawn.add(new Vector3(24, 0, 0));
     spawn.y = mapHeight(spawn.x, spawn.z);
     opponent = await DuelTank.load(scene, secondTank ? tankUrl : secondTankUrl, spawn);
     if (disposed) { opponent.dispose(); opponent = undefined; return; }
     opponent.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
+    opponentAI = new EasyDuelAI();
   }
   status.hidden = true;
   lastTime = performance.now();
@@ -312,23 +336,38 @@ async function start() {
     sun.intensity = 1.05 + stormFlash * 0.25;
     followCamera.aiming = !mgMode && (combatInput.aiming || touch.aiming);
     const alpha = clock.advance(dt, step => {
-      const command = freeCamera.active ? { throttle: 0, steer: 0, brake: 1 } : input.resolve(observation?.keys() ?? Object.fromEntries(Object.entries(keys.keys).map(([key, value]) => [key, value || touch.keys[key as keyof typeof touch.keys]])) as typeof keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
+      const command = freeCamera.active || driveDisabled(damageHudState) ? { throttle: 0, steer: 0, brake: 1 }
+        : input.resolve(observation?.keys() ?? Object.fromEntries(Object.entries(keys.keys).map(([key, value]) => [key, value || touch.keys[key as keyof typeof touch.keys]])) as typeof keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
       vehicle!.beforeStep(step, command);
       movementEffects!.fixedUpdate(vehicle!, step);
-      opponent?.beforeStep(step);
+      const aiState = opponentAI && opponent && vehicle ? (() => {
+        const from = opponent!.vehicle.node.position.add(new Vector3(0, 1.2, 0));
+        const to = vehicle!.node.position.add(new Vector3(0, 1.2, 0));
+        const sight = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: opponent!.vehicle.body });
+        const visible = !sight.hasHit || sight.body === vehicle!.body;
+        return opponentAI!.update(opponent!, { vehicle: vehicle! },
+          visible && damageHudState.hp > 0, step);
+      })() : undefined;
+      opponent?.beforeStep(step, opponent?.damage.hp === 0 || damageHudState.hp === 0 ? undefined : aiState?.drive);
       scene.getPhysicsEngine()!._step(step);
       vehicle!.afterStep();
-      opponent?.afterStep(step);
+      opponent?.afterStep(step, aiState?.target ?? null);
       observation?.step();
       visual!.fixedUpdate(vehicle!, step);
       // Joint calculations use the current physics pose; render interpolation follows below.
       visual!.syncHull(vehicle!, 1);
-      turret!.fixedUpdateManual(followCamera.isOverview || mgMode ? 0 : (combatInput.turretTurn + touch.turn), mgMode ? (combatInput.consumeElevation(), 0) : (combatInput.consumeElevation() + touch.elevation * step * 15 * Math.PI / 180), step);
+      const turn = combatInput.turretTurn + touch.turn;
+      const elevation = combatInput.consumeElevation() + touch.elevation * step * 15 * Math.PI / 180;
+      if (turn || elevation || mgMode || followCamera.isOverview) alignDirection = undefined;
+      if (alignDirection) {
+        turret!.yawPivot.computeWorldMatrix(true);
+        turret!.fixedUpdate(turret!.yawPivot.getAbsolutePosition().add(alignDirection.scale(10000)), step);
+      } else turret!.fixedUpdateManual(followCamera.isOverview || mgMode ? 0 : turn, mgMode ? 0 : elevation, step);
       if (mgMode) machineGun!.look(touch.turn * step * 220, -touch.elevation * step * 160);
       const wasReady = weapon!.ready;
       weapon!.fixedUpdate(step);
       if (!wasReady && weapon!.ready && !audio.muted) combatAudio?.reload();
-      if ((combatInput.consumeFire() || touch.consumeFire()) && !mgMode) {
+      if ((combatInput.consumeFire() || touch.consumeFire()) && !mgMode && damageHudState.hp > 0) {
         const shot = weapon!.fire();
         if (shot) {
           projectiles!.spawn(shot.origin, shot.direction, IRON_DUST_01_WEAPON.ammo.muzzleVelocity);
@@ -345,25 +384,84 @@ async function start() {
           lastCombatResult = 'DOLUM SÜRÜYOR'; combatResultTime = 1;
         }
       }
-      machineGun?.fixedUpdate(step, mgMode && !followCamera.isOverview && (combatInput.fireHeld || touch.fireHeld), (origin, direction) => {
+      if (opponent && opponentAI && opponentProjectiles && opponent.damage.hp > 0 && damageHudState.hp > 0) {
+        const ray = opponent.turret.getMuzzleRay();
+        const toPlayer = vehicle!.node.position.add(new Vector3(0, 1.15, 0)).subtract(ray.origin).normalize();
+        if (aiState?.target && opponentAI.canShoot && opponent.weapon.ready && Vector3.Dot(ray.direction, toPlayer) > 0.965) {
+          const shot = opponent.weapon.fire();
+          if (shot) {
+            opponentProjectiles.spawn(shot.origin, shot.direction, IRON_DUST_01_WEAPON.ammo.muzzleVelocity);
+            opponentAI.shotFired();
+            combatEffects!.muzzleFlash(shot.origin, shot.direction);
+            if (!audio.muted) combatAudio?.shot();
+          }
+        }
+      }
+      machineGun?.fixedUpdate(step, damageHudState.hp > 0 && mgMode && !followCamera.isOverview && (combatInput.fireHeld || touch.fireHeld), (origin, direction) => {
         mgProjectiles!.spawn(origin, direction, MG.speed);
         combatEffects!.machineGunFlash(origin, direction);
         if (!audio.muted) combatAudio?.machineGunShot();
         lastCombatResult = 'MG · ATEŞ'; combatResultTime = 0.4;
       });
       mgProjectiles!.fixedUpdate(step, hit => {
-        combatEffects!.impact(hit.point, hit.normal, impactSurface(hit.body));
+        if (opponent && hit.body === opponent.vehicle.body) {
+          combatEffects!.armorImpact(hit.point, hit.normal, false);
+          damageHud.outgoing(null, false, false, false);
+        } else combatEffects!.impact(hit.point, hit.normal, impactSurface(hit.body));
         lastCombatResult = 'MG · İSABET'; combatResultTime = 0.4;
       });
-      projectiles!.fixedUpdate(step, (hit) => {
-        const surface = impactSurface(hit.body);
-        combatEffects!.impact(hit.point, hit.normal, surface);
+      projectiles!.fixedUpdate(step, (hit, shell) => {
+        const tankHit = opponent && hit.body === opponent.vehicle.body;
+        const armor = tankHit ? undefined : combatRange?.resolve(IRON_DUST_01_AMMO, hit, shell.velocity, shell.traveled);
+        const surface = tankHit || armor ? 'metal' : impactSurface(hit.body);
+        const penetrated = tankHit || armor?.result.kind === 'penetrated';
         const offset = hit.point.subtract(followCamera.camera.position);
         const right = Vector3.Cross(Vector3.Up(), followCamera.direction).normalize();
-        if (!audio.muted) combatAudio?.impact(surface, offset.length(), Vector3.Dot(offset.normalizeToNew(), right));
-        lastCombatResult = `İSABET · ${{ soil: 'TOPRAK', concrete: 'BETON', metal: 'METAL' }[surface]}`;
+        const pan = Vector3.Dot(offset.normalizeToNew(), right);
+        if (tankHit || armor) {
+          combatEffects!.armorImpact(hit.point, hit.normal, !!penetrated);
+          const module = tankHit ? tankDamageRegion(opponent!, hit.point) : null;
+          const applied = tankHit && applyDamage(opponent!.damage, module);
+          const destroyed = !!applied && opponent!.damage.hp === 0;
+          const disabled = !!module && opponent!.damage.modules[module] === 0;
+          if (destroyed) combatEffects!.destruction(hit.point);
+          damageHud.outgoing(module, disabled, destroyed, !!penetrated);
+          if (!audio.muted) combatAudio?.armorHit(!!penetrated, offset.length(), pan, destroyed);
+          lastCombatResult = tankHit ? `HEDEF · ${opponent!.damage.hp} / 100` : armor!.result.kind === 'ricochet' ? 'SEKTİ' : penetrated ? 'ZIRH DELİNDİ' : 'ZIRH DELİNMEDİ';
+        } else {
+          combatEffects!.impact(hit.point, hit.normal, surface);
+          if (!audio.muted) combatAudio?.impact(surface, offset.length(), pan);
+          lastCombatResult = `İSABET · ${{ soil: 'TOPRAK', concrete: 'BETON', metal: 'METAL' }[surface]}`;
+        }
         combatResultTime = 4;
       });
+      opponentProjectiles?.fixedUpdate(step, hit => {
+        const module = tank && vehicle ? tankDamageRegion({ tank, vehicle }, hit.point) : null;
+        const applied = applyDamage(damageHudState, module);
+        const disabled = !!module && damageHudState.modules[module] === 0;
+        const destroyed = applied && damageHudState.hp === 0;
+        damageHud.setState(damageHudState);
+        damageHud.incoming(Math.atan2(hit.point.x - vehicle!.node.position.x, hit.point.z - vehicle!.node.position.z), module, disabled, destroyed);
+        combatEffects!.armorImpact(hit.point, hit.normal, true);
+        if (destroyed) combatEffects!.destruction(hit.point);
+        if (!audio.muted) combatAudio?.armorHit(true, Vector3.Distance(hit.point, followCamera.camera.position), 0, destroyed);
+        lastCombatResult = destroyed ? 'İMHA EDİLDİN · R İLE YENİDEN DENE' : `İSABET ALDIN · ${damageHudState.hp} / 100`;
+        combatResultTime = 4;
+      });
+      damageTrailTime += step; damageSoundTime += step;
+      if (damageTrailTime >= 0.05) {
+        damageTrailTime -= 0.05;
+        if (opponent) {
+          const deck = Vector3.TransformCoordinates(new Vector3(0, 1.95, -2), opponent.tank.anchor.computeWorldMatrix(true));
+          combatEffects!.damageTrail(deck, opponent.damage);
+          if (damageSoundTime >= 0.4 && !audio.muted && document.hasFocus()) {
+            const offset = deck.subtract(followCamera.camera.position);
+            combatAudio?.damageAmbience(opponent.damage.hp, opponent.damage.modules.engine, offset.length(),
+              Vector3.Dot(offset.normalizeToNew(), Vector3.Cross(Vector3.Up(), followCamera.direction).normalize()));
+          }
+        }
+      }
+      if (damageSoundTime >= 0.4) damageSoundTime = 0;
       combatEffects!.fixedUpdate(step);
     });
     opponent?.render(alpha);
@@ -372,11 +470,14 @@ async function start() {
     turret!.render(alpha);
     weapon!.render(alpha);
     projectiles!.render(alpha);
+    opponentProjectiles?.render(alpha);
     mgProjectiles!.render(alpha);
     combatEffects!.render(alpha);
     followCamera.update(vehicle, tank.anchor.position, Math.min(dt, 0.1), turret);
     if (mgMode) machineGun!.updateCamera();
     freeCamera.update(dt);
+    const cameraDirection = scene.activeCamera!.getForwardRay().direction;
+    damageHud.update(Math.min(dt, 0.1), Math.atan2(cameraDirection.x, cameraDirection.z));
     hudElapsed += dt;
     combatResultTime = Math.max(0, combatResultTime - dt);
     if (combatResultTime === 0 && lastCombatResult) lastCombatResult = '';
@@ -422,9 +523,10 @@ function dispose() {
   window.removeEventListener('blur', blur);
   observation?.dispose();
   movementEffects?.dispose();
-  projectiles?.dispose(); combatEffects?.dispose(); combatRange?.dispose();
+  projectiles?.dispose(); opponentProjectiles?.dispose(); combatEffects?.dispose(); combatRange?.dispose();
   combatAudio?.dispose(); vehicleAudio?.dispose();
   audio.dispose();
+  damageHud.dispose();
   aim.dispose(); turret?.dispose(); visual?.dispose(); vehicle?.dispose(); followCamera.dispose();
   mgProjectiles?.dispose(); machineGun?.dispose();
   opponent?.dispose();

@@ -1,5 +1,12 @@
 import './game/input/gamePointerLock.css';
 import { GamePointerLock } from './game/input/GamePointerLock.ts';
+import { DamageHud } from './game/ui/DamageHud.ts';
+import { MODULES } from './game/combat/DamageModel.ts';
+import { AudioSystem } from './game/audio/AudioSystem.ts';
+import { CombatAudio } from './game/audio/CombatAudio.ts';
+import { ShotCameraMotion } from './game/camera/ShotCameraMotion.ts';
+import { FixedStep } from './game/core/fixedStep.ts';
+import type { ImpactEvent } from './game/network/protocol.ts';
 import './lanDuel.css';
 import { TacticalHud } from './game/ui/TacticalHud.ts';
 import {
@@ -43,6 +50,44 @@ shadows.usePercentageCloserFiltering = true;
 shadows.bias = 0.001; shadows.normalBias = 0.04;
 const effects = new CombatEffects(scene);
 const tacticalHud = new TacticalHud(false);
+const damageHud = new DamageHud();
+const cameraMotion = new ShotCameraMotion();
+const effectClock = new FixedStep();
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const audio = new AudioSystem({ volume: 0.65 });
+let combatAudio: CombatAudio | undefined;
+let lastImpactId = 0;
+let trailTime = 0;
+let damageSoundTime = 0;
+const soundButton = $<HTMLButtonElement>('sound');
+async function unlockAudio() {
+  if (disposed || audio.muted) return;
+  if (await audio.unlock()) {
+    if (disposed) return;
+    if (!combatAudio && audio.graph) combatAudio = new CombatAudio(audio.graph.context, audio.graph.output);
+  }
+}
+function presentImpact(hit: ImpactEvent, state: DuelState) {
+  const point = Vector3.FromArray(hit.point), normal = Vector3.FromArray(hit.normal);
+  const offset = point.subtract(camera.position), distance = offset.length();
+  const pan = Vector3.Dot(offset.normalizeToNew(), camera.getDirection(Vector3.Right()));
+  if (hit.target === null) {
+    effects.impact(point, normal, hit.surface);
+    if (!audio.muted) combatAudio?.impact(hit.surface, distance, pan);
+    return;
+  }
+  const target = state.tanks[hit.target];
+  const disabled = hit.module !== null && target.modules[hit.module] === 0;
+  effects.armorImpact(point, normal, true);
+  if (hit.destroyed) effects.destruction(point);
+  if (!audio.muted) combatAudio?.armorHit(true, distance, pan, hit.destroyed);
+  if (hit.shooter === slot) damageHud.outgoing(hit.module, disabled, hit.destroyed);
+  if (hit.target === slot) {
+    const source = Vector3.FromArray(hit.source).subtract(point);
+    damageHud.incoming(Math.atan2(source.x, source.z), hit.module, disabled, target.hp <= 25 || disabled);
+    if (!reducedMotion.matches) cameraMotion.impulse(pan);
+  }
+}
 type Model = Awaited<ReturnType<typeof loadTankModel>>;
 interface Visual {
   model: Model; turret: TurretController; yawRest: Quaternion; pitchRest: Quaternion; shots: number;
@@ -62,6 +107,7 @@ let focused = document.hasFocus();
 const keys = new Set<string>();
 let fire = false;
 let elevation = 0;
+let alignDirection: number[] | undefined;
 let zoom = false;
 let yaw = 0;
 let pitch = -0.15;
@@ -83,16 +129,17 @@ function sendInput(neutral = false) {
   send({ type: 'input', sequence: ++sequence,
     throttle: enabled ? Number(keys.has('KeyW')) - Number(keys.has('KeyS')) : 0,
     steer: enabled ? Number(keys.has('KeyD')) - Number(keys.has('KeyA')) : 0,
-    brake: enabled && keys.has('Space') ? 1 : 0,
+    brake: enabled && keys.has('ShiftLeft') ? 1 : 0,
     turn: enabled ? Number(keys.has('KeyE')) - Number(keys.has('KeyQ')) : 0,
     elevation: enabled ? clamp(elevation, -0.15, 0.15) : 0,
     fire: enabled && fire,
+    aimDirection: enabled ? alignDirection : undefined,
   });
   // Never accumulate unsent fire/elevation or replay a background-tab backlog.
   fire = false; elevation = 0;
 }
 function clearInput() {
-  keys.clear(); fire = false; elevation = 0; zoom = false;
+  keys.clear(); fire = false; elevation = 0; alignDirection = undefined; zoom = false;
   if (pointerId !== undefined && canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId);
   pointerId = undefined;
   if (slot !== undefined) sendInput(true);
@@ -111,6 +158,7 @@ function updateHud(state: DuelState) {
   }
   $('ready-state').textContent = `Hazır: ${state.ready.map(value => value ? '✓' : '—').join(' / ')}`;
   const own = slot === undefined ? undefined : state.tanks[slot];
+  if (own) damageHud.setState(own);
   $('reload').textContent = own ? own.reload > 0 ? `DOLUM · ${own.reload.toFixed(1)} sn` : 'ANA TOP HAZIR' : 'Ana top · bekleniyor';
   $<HTMLProgressElement>('reload-progress').value = own ? clamp(5 - own.reload, 0, 5) : 0;
   readyButton.disabled = failed || slot === undefined || state.phase === 'playing' || state.phase === 'cancelled' || state.ready[slot] || readyPending;
@@ -128,7 +176,12 @@ function validState(value: unknown): value is DuelState {
   return s.type === 'state' && Number.isFinite(s.tick) && ['waiting', 'playing', 'finished', 'cancelled'].includes(s.phase)
     && (s.winner === null || s.winner === 0 || s.winner === 1) && pair(s.ready) && pair(s.connected)
     && Array.isArray(s.tanks) && s.tanks.length === 2 && s.tanks.every(t => t && vector(t.position, 3)
-      && vector(t.rotation, 4) && [t.yaw, t.elevation, t.hp, t.reload, t.shots].every(Number.isFinite))
+      && vector(t.rotation, 4) && t.modules && MODULES.every(module => Number.isFinite(t.modules[module]) && t.modules[module] >= 0 && t.modules[module] <= 100)
+      && t.hp >= 0 && t.hp <= 100 && [t.yaw, t.elevation, t.hp, t.reload, t.shots].every(Number.isFinite))
+    && Array.isArray(s.impacts) && s.impacts.length <= 32 && s.impacts.every(h => h && Number.isSafeInteger(h.id) && h.id > 0
+      && Number.isSafeInteger(h.tick) && h.tick >= 0 && h.tick <= s.tick && (h.shooter === 0 || h.shooter === 1)
+      && (h.target === null || h.target === 0 || h.target === 1) && vector(h.point, 3) && vector(h.normal, 3) && vector(h.source, 3)
+      && ['soil', 'concrete', 'metal'].includes(h.surface) && (h.module === null || MODULES.includes(h.module)) && typeof h.destroyed === 'boolean')
     && Array.isArray(s.projectiles) && s.projectiles.every(p => p && Number.isFinite(p.id) && vector(p.position, 3));
 }
 function connect() {
@@ -149,8 +202,9 @@ function connect() {
     } else if (validState(message)) {
       const now = performance.now();
       const reset = !!latest && (message.tick < latest.tick || (message.phase === 'playing' && latest.phase !== 'playing'));
-      if (reset) { frames = []; effects.reset(); clearTracers(); visuals.forEach(v => { v.shots = 0; }); }
+      if (reset) { frames = []; effects.reset(); damageHud.reset(); cameraMotion.reset(); combatAudio?.reset(); effectClock.reset(); trailTime = 0; lastImpactId = 0; clearTracers(); visuals.forEach(v => { v.shots = 0; }); }
       if (latest?.phase !== message.phase) clearInput();
+      if (!latest) lastImpactId = message.impacts.at(-1)?.id ?? 0;
       latest = message; readyPending = false;
       visuals.forEach(v => v.model.anchor.setEnabled(true));
       frames.push({ state: message, time: now });
@@ -179,6 +233,8 @@ function applyPose(visual: Visual, a: TankState, b: TankState, alpha: number) {
   const shots = alpha >= 1 ? b.shots : a.shots;
   if (shots > visual.shots) {
     const ray = visual.turret.getMuzzleRay(); effects.muzzleFlash(ray.origin, ray.direction);
+    const offset = ray.origin.subtract(camera.position);
+    if (!audio.muted) combatAudio?.shot(offset.length(), Vector3.Dot(offset.normalizeToNew(), camera.getDirection(Vector3.Right())));
   }
   visual.shots = shots;
 }
@@ -210,6 +266,12 @@ function render() {
       mesh.color = projectileMaterial.emissiveColor; mesh.isPickable = false;
       tracers.set(p.id, mesh);
     });
+    const displayedTick = a.state.tick + (b.state.tick - a.state.tick) * alpha;
+    for (const hit of latest?.impacts ?? []) {
+      if (hit.id <= lastImpactId || hit.tick > displayedTick) continue;
+      lastImpactId = hit.id;
+      presentImpact(hit, latest!);
+    }
     const own = visuals[slot ?? 0];
     if (own) {
       const muzzle = own.turret.getMuzzleRay();
@@ -235,6 +297,8 @@ function render() {
       if (hit?.hasHit) desired.copyFrom(hit.hitPointWorld).addInPlace(direction.scale(0.5));
       camera.position.copyFrom(desired); camera.setTarget(zoom ? muzzle.origin.add(muzzle.direction.scale(150)) : targetPosition);
       camera.fov = zoom ? 0.5 : 0.8;
+      const motion = cameraMotion.update(dt);
+      if (!reducedMotion.matches) { camera.rotation.x += motion.pitch; camera.rotation.y += motion.yaw; camera.rotation.z += motion.roll; }
       const bore = document.querySelector<HTMLElement>('.reticle')!;
       const point = muzzle.origin.add(muzzle.direction.scale(150));
       const projected = Vector3.Project(point, Matrix.Identity(), scene.getTransformMatrix(),
@@ -246,20 +310,46 @@ function render() {
       bore.style.top = `${rect.top + projected.y / engine.getRenderHeight() * rect.height}px`;
     }
   }
-  effects.fixedUpdate(dt); effects.render(1);
+  effectClock.advance(dt, step => {
+    trailTime += step; damageSoundTime += step;
+    if (trailTime >= 0.05 && latest) {
+      trailTime -= 0.05;
+      visuals.forEach((visual, index) => {
+        const deck = Vector3.TransformCoordinates(new Vector3(0, 1.95, -2), visual.model.anchor.computeWorldMatrix(true));
+        const state = latest!.tanks[index];
+        effects.damageTrail(deck, state);
+        if (damageSoundTime >= 0.4 && !audio.muted && focused) {
+          const offset = deck.subtract(camera.position);
+          combatAudio?.damageAmbience(state.hp, state.modules.engine, offset.length(), Vector3.Dot(offset.normalizeToNew(), camera.getDirection(Vector3.Right())));
+        }
+      });
+      if (damageSoundTime >= 0.4) damageSoundTime = 0;
+    }
+    effects.fixedUpdate(step);
+  });
+  effects.render(1);
+  const forward = camera.getForwardRay().direction;
+  damageHud.update(dt, Math.atan2(forward.x, forward.z));
   scene.render();
 }
 const listeners = new AbortController();
 const options = { signal: listeners.signal };
-const driveCodes = new Set(['KeyW', 'KeyS', 'KeyA', 'KeyD', 'Space', 'KeyQ', 'KeyE']);
+const driveCodes = new Set(['KeyW', 'KeyS', 'KeyA', 'KeyD', 'Space', 'ShiftLeft', 'KeyQ', 'KeyE']);
 window.addEventListener('keydown', event => {
   if (!driveCodes.has(event.code) || (event.target as HTMLElement)?.closest('button, a, input, textarea, select, [contenteditable]')) return;
-  event.preventDefault(); if (active()) keys.add(event.code);
+  event.preventDefault();
+  if (!active()) return;
+  if (event.code === 'Space') {
+    if (!event.repeat) alignDirection = camera.getForwardRay().direction.asArray();
+  } else {
+    keys.add(event.code);
+    if (event.code === 'KeyQ' || event.code === 'KeyE') alignDirection = undefined;
+  }
 }, options);
 window.addEventListener('keyup', event => { keys.delete(event.code); }, options);
-window.addEventListener('blur', () => { focused = false; clearInput(); }, options);
-window.addEventListener('focus', () => { focused = true; }, options);
-document.addEventListener('visibilitychange', () => { clearInput(); frames = []; lastTime = performance.now(); }, options);
+window.addEventListener('blur', () => { focused = false; clearInput(); combatAudio?.reset(); void audio.suspend(); }, options);
+window.addEventListener('focus', () => { focused = true; void audio.resume(); }, options);
+document.addEventListener('visibilitychange', () => { clearInput(); frames = []; lastTime = performance.now(); damageHud.reset(); cameraMotion.reset(); effects.reset(); effectClock.reset(); lastImpactId = latest?.impacts.at(-1)?.id ?? lastImpactId; combatAudio?.reset(); if (document.hidden) void audio.suspend(); else void audio.resume(); }, options);
 canvas.addEventListener('contextmenu', event => event.preventDefault(), options);
 canvas.addEventListener('pointerdown', event => {
   if (!active() || (event.button !== 0 && event.button !== 2)) return;
@@ -281,8 +371,17 @@ canvas.addEventListener('pointerup', event => {
 canvas.addEventListener('pointercancel', clearInput, options);
 canvas.addEventListener('lostpointercapture', () => { zoom = false; }, options);
 canvas.addEventListener('wheel', event => {
+  alignDirection = undefined;
   event.preventDefault(); if (active()) elevation = clamp(elevation - Math.sign(event.deltaY) * 0.025, -0.15, 0.15);
 }, { ...options, passive: false });
+window.addEventListener('pointerdown', () => { void unlockAudio(); }, options);
+window.addEventListener('keydown', () => { void unlockAudio(); }, options);
+soundButton.addEventListener('click', () => {
+  audio.setMuted(!audio.muted); combatAudio?.reset();
+  soundButton.textContent = audio.muted ? 'SES KAPALI' : 'SES AÇIK';
+  soundButton.setAttribute('aria-pressed', String(!audio.muted));
+  if (!audio.muted) void unlockAudio();
+}, options);
 readyButton.addEventListener('click', () => {
   if (readyButton.disabled || socket?.readyState !== WebSocket.OPEN) return;
   clearInput(); readyPending = true; readyButton.disabled = true; send({ type: 'ready' });
@@ -315,7 +414,7 @@ function dispose() {
   pointerLock.dispose();
   listeners.abort(); if (timer) clearInterval(timer);
   if (socket) { socket.onmessage = null; socket.onerror = null; socket.onclose = null; socket.close(); }
-  engine.stopRenderLoop(); clearTracers(); effects.dispose(); tacticalHud.dispose();
+  engine.stopRenderLoop(); clearTracers(); effects.dispose(); tacticalHud.dispose(); damageHud.dispose(); combatAudio?.dispose(); audio.dispose();
   visuals.forEach(v => { v.turret.dispose(); v.model.dispose(); });
   shadows.dispose(); ground?.dispose(); sky.dispose(); projectileMaterial.dispose();
   scene.dispose(); engine.dispose();

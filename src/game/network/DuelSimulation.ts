@@ -1,4 +1,8 @@
-import { HavokPlugin, NullEngine, Ray, Scene, Vector3, type PhysicsEngineV2 } from '@babylonjs/core';
+import { applyDamage } from '../combat/DamageModel.ts';
+import { pickTankHit, tankDamageRegion } from '../combat/tankHit.ts';
+import { impactSurface } from '../combat/ImpactSurface.ts';
+import type { ImpactEvent } from './protocol.ts';
+import { HavokPlugin, NullEngine, Scene, Vector3, type PhysicsEngineV2 } from '@babylonjs/core';
 import { DuelTank } from '../combat/DuelTank.ts';
 import { ProjectileSystem, type ProjectileState as Shell } from '../combat/ProjectileSystem.ts';
 import { SHOT_FEEDBACK } from '../combat/WeaponDefinition.ts';
@@ -21,13 +25,14 @@ export class DuelSimulation {
   private nextId = 1;
   private connected: [boolean, boolean] = [false, false];
   private ready: [boolean, boolean] = [false, false];
-  private hp: [number, number] = [100, 100];
+  private impacts: ImpactEvent[] = [];
+  private nextImpactId = 1;
   private phase: MatchPhase = 'waiting';
   private winner: Slot | null = null;
   private tick = 0;
   private accumulator = 0;
   private disposed = false;
-  private inputs = slots.map(() => ({ ...neutral, sequence: -1, lastTick: -Infinity, fire: false, elevation: 0 }));
+  private inputs = slots.map(() => ({ ...neutral, sequence: -1, lastTick: -Infinity, fire: false, elevation: 0, aimDirection: undefined as number[] | undefined }));
   private constructor(havok: any) {
     this.engine = new NullEngine();
     this.scene = new Scene(this.engine);
@@ -47,21 +52,7 @@ export class DuelSimulation {
           const hit = sim.physics.raycast(from, to, { ignoreBody: sim.tanks[slot].vehicle.body });
           const worldHit = hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(),
             body: hit.body, distance: hit.hitDistance } : undefined;
-          // Havok owns terrain and hull collision, but the articulated turret is visual-only.
-          // At most eight shells per player query triangles of only the other tank.
-          const opponent = sim.tanks[slot === 0 ? 1 : 0];
-          const meshes = new Set(opponent.tank.assets.meshes.filter(mesh =>
-            mesh.isVisible && mesh.isEnabled() && mesh.visibility > 0 && mesh.getTotalVertices() > 0));
-          for (const mesh of meshes) mesh.computeWorldMatrix(true);
-          const segment = to.subtract(from), distance = segment.length();
-          if (distance === 0) return worldHit;
-          const picked = sim.scene.pickWithRay(new Ray(from, segment.scale(1 / distance), distance),
-            mesh => meshes.has(mesh), false);
-          if (picked?.hit && picked.pickedPoint && (!worldHit || picked.distance < worldHit.distance)) {
-            return { point: picked.pickedPoint.clone(), normal: picked.getNormal(true) ?? Vector3.Up(),
-              body: opponent.vehicle.body, distance: picked.distance };
-          }
-          return worldHit;
+          return pickTankHit(sim.scene, sim.tanks[slot === 0 ? 1 : 0], from, to, worldHit);
         }));
       }
       sim.reset();
@@ -97,16 +88,16 @@ export class DuelSimulation {
     if (cmd.sequence <= input.sequence) return;
     input.sequence = cmd.sequence;
     if (this.phase !== 'playing') return;
-    Object.assign(input, { throttle: cmd.throttle, steer: cmd.steer, brake: cmd.brake, turn: cmd.turn, lastTick: this.tick });
+    Object.assign(input, { throttle: cmd.throttle, steer: cmd.steer, brake: cmd.brake, turn: cmd.turn, aimDirection: cmd.aimDirection, lastTick: this.tick });
     // One-shot fields are consumed once, never replayed by a held latest input.
     input.fire ||= cmd.fire;
     input.elevation = Math.max(-MAX_ELEVATION_DELTA, Math.min(MAX_ELEVATION_DELTA, input.elevation + cmd.elevation));
   }
   private clearInput(slot: Slot) {
-    Object.assign(this.inputs[slot], neutral, { fire: false, elevation: 0, lastTick: -Infinity });
+    Object.assign(this.inputs[slot], neutral, { fire: false, elevation: 0, aimDirection: undefined, lastTick: -Infinity });
   }
   private reset() {
-    this.hp = [100, 100]; this.winner = null;
+    this.impacts = []; this.winner = null;
     slots.forEach(slot => {
       this.clearInput(slot);
       const tank = this.tanks[slot]; tank.reset();
@@ -139,7 +130,12 @@ export class DuelSimulation {
       tank.visual.fixedUpdate(tank.vehicle, DT);
       tank.visual.syncHull(tank.vehicle, 1);
       tank.weapon.fixedUpdate(DT);
-      tank.turret.fixedUpdateManual(input.turn, input.elevation, DT);
+      if (input.aimDirection && !input.turn && !input.elevation && tank.damage.modules.turret > 0) {
+        tank.turret.yawPivot.computeWorldMatrix(true);
+        tank.turret.fixedUpdate(tank.turret.yawPivot.getAbsolutePosition()
+          .add(Vector3.FromArray(input.aimDirection).scale(10000)), DT);
+      } else tank.turret.fixedUpdateManual(tank.damage.modules.turret === 0 ? 0 : input.turn,
+        tank.damage.modules.turret === 0 ? 0 : input.elevation, DT);
       input.elevation = 0;
       if (input.fire) {
         const shot = tank.weapon.fire();
@@ -153,25 +149,34 @@ export class DuelSimulation {
       input.fire = false;
     }
     // Resolve all shells together, so simultaneous lethal shots can draw (winner null).
-    for (const slot of slots) this.shells[slot].fixedUpdate(DT, hit => {
+    for (const slot of slots) this.shells[slot].fixedUpdate(DT, (hit, shell) => {
       const other: Slot = slot === 0 ? 1 : 0;
-      if (hit.body === this.tanks[other].vehicle.body) this.hp[other] = Math.max(0, this.hp[other] - 25);
+      const target = hit.body === this.tanks[other].vehicle.body ? other : null;
+      const module = target === null ? null : tankDamageRegion(this.tanks[target], hit.point);
+      const applied = target !== null && applyDamage(this.tanks[target].damage, module);
+      this.impacts.push({ id: this.nextImpactId++, tick: this.tick, shooter: slot, target,
+        point: hit.point.asArray(), normal: hit.normal.asArray(), source: shell.previous.asArray(),
+        surface: target === null ? impactSurface(hit.body) : 'metal', module,
+        destroyed: !!applied && target !== null && this.tanks[target].damage.hp === 0 });
+      // Repeat a bounded event tail in snapshots so 20 Hz delivery cannot miss a 60 Hz hit.
+      this.impacts = this.impacts.slice(-32);
     });
     for (const [shell] of this.ids) if (!shell.alive) this.ids.delete(shell);
-    if (this.hp.some(hp => hp === 0)) {
+    if (this.tanks.some(tank => tank.damage.hp === 0)) {
       this.phase = 'finished';
-      this.winner = this.hp[0] === 0 ? (this.hp[1] === 0 ? null : 1) : 0;
+      this.winner = this.tanks[0].damage.hp === 0 ? (this.tanks[1].damage.hp === 0 ? null : 1) : 0;
       slots.forEach(slot => this.clearInput(slot));
       this.shells.forEach(shells => shells.reset()); this.ids.clear();
     }
   }
   snapshot(): ServerState {
-    const tanks = this.tanks.map((tank, slot): TankState => ({
+    const tanks = this.tanks.map((tank): TankState => ({
       position: tank.tank.anchor.position.asArray(), rotation: tank.tank.anchor.rotationQuaternion!.asArray(),
-      ...tank.turret.angles, hp: this.hp[slot], reload: tank.weapon.reloadRemaining, shots: tank.weapon.shotsFired,
+      ...tank.turret.angles, hp: tank.damage.hp, modules: { ...tank.damage.modules }, reload: tank.weapon.reloadRemaining, shots: tank.weapon.shotsFired,
     })) as [TankState, TankState];
     return { type: 'state', tick: this.tick, phase: this.phase, winner: this.winner,
       ready: [...this.ready], connected: [...this.connected], tanks,
+      impacts: this.impacts.map(hit => ({ ...hit, point: [...hit.point], normal: [...hit.normal], source: [...hit.source] })),
       projectiles: [...this.ids].map(([shell, id]) => ({ id, position: shell.position.asArray() })) };
   }
   dispose() {

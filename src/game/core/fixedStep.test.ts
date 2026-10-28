@@ -30,7 +30,7 @@ test('S brakes before stop; reverse dwell starts after stop and resets on releas
   input.reset();
   assert.equal(input.resolve(keys, 0, 1 / 60).brake, 1);
 });
-test('Space and W+S have braking priority, including simultaneous steering', () => {
+test('Brake and W+S have braking priority, including simultaneous steering', () => {
   const input = new DriveInput();
   for (const keys of [
     { ...releasedKeys(), forward: true, reverse: true, right: true },

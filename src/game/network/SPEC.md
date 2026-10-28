@@ -25,3 +25,7 @@ Tarayıcı ortak pozları görsel olarak yumuşatır; bağımsız maç fiziği h
 Mevcut araç, kule, silah, Havok ve arazi kodu kullanılır; Blender/GLB kaynakları değiştirilmez. HTTP sunucusu yalnız derlenmiş `dist-map/` dosyalarını sunar, kaynak depoyu sunmaz. `ws` MIT lisanslı bağlantı bağımlılığıdır. Havok lisans bildirimi dağıtımda korunur.
 
 İnternete açık barındırma, hesap/eşleştirme, Android multiplayer, bağlantısı kopan maça geri dönme, gecikme telafisi ve rekabetçi hile önleme kapsam dışıdır. Origin kontrolü kimlik doğrulama değildir; sunucu yalnız güvenilir LAN için tasarlanmıştır.
+
+## Hasar geri bildirimi — 2026-10-27
+
+Tank snapshot'ları palet/motor/kule bütünlüğünü içerir. Top hasarı 25, isabet edilen modül hasarı 50'dir. Palet/motor arızası çekişi, kule arızası nişan hareketini sunucuda keser. Sunucu en fazla 32 isabetlik, artan kimlikli olay kuyruğuyla temas noktası, normal, giriş yönü, atıcı/hedef ve imhayı yayınlar. İstemci aynı olayı iki kez oynatmaz; rövanş olayları ve modülleri sıfırlar. Görsel/ses efekti hasar hesaplamaz. Ayrıntılar: `docs/DAMAGE_FEEDBACK.md`.
