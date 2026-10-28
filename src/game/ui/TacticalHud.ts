@@ -44,7 +44,6 @@ export class TacticalHud {
         <span class="compass-pin" aria-hidden="true">▾</span><output class="compass-heading">000</output>
       </section>
       <section class="hud-center" aria-label="Nişan ve dolum">
-        <span class="hud-cross" aria-hidden="true"></span>
         <div class="hud-reload"><div><span class="hud-reload-text">HAZIR</span><span class="hud-reload-time"></span></div>
           <progress max="1" value="1" aria-label="Top dolumu"></progress></div>
         <output class="hud-range" aria-label="Namlu doğrultusunda mesafe"></output>

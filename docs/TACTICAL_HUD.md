@@ -3,7 +3,7 @@
 Kullanıcının görsel konsepti onaylamasıyla ana sürüş ve mevcut LAN sahnesine uygulandı. Özgün SVG çizimleri ve CSS; dış görsel varlık veya yeni bağımlılık yok.
 
 - Üstte kameranın baktığı dünya yönünü gösteren pusula. +Z kuzey kabul edilir; K/D/G/B yönleri ve 000–359 derece.
-- Merkezde sabit bakış artısı; mevcut dünya projeksiyonundan gelen namlu halkası ayrı kalır. Dolum süresi ve çubuğu gerçek WeaponSystem durumundan gelir. Yakın engel amber halka ve mesafe uyarısıyla belirtilir.
+- Nişangâh olarak mevcut dünya projeksiyonundan gelen namlu halkası kullanılır. Dolum süresi ve çubuğu gerçek WeaponSystem durumundan gelir. Yakın engel amber halka ve mesafe uyarısıyla belirtilir.
 - Sol altta kameraya göre dönen gövde/kule şeması, gerçek ileri/geri hızının mutlak km/sa değeri ve sürüş yönü.
 - Sağ altta ana top, dolum ve Tank 01 için tıklanabilir MG seçimi. Mevcut 1/2 tuşları korunur; Tank 02 ve LAN'da MG sunulmaz.
 - Hasar çalışmasının mevcut göstergeleri korunur; aynı aracı iki kez çizmemek için hasar paneli kompakt metin olarak üstte kalır.
@@ -19,3 +19,9 @@ HUD yalnız sunum katmanıdır. Ana sahnede mevcut 10 Hz telemetri akışı kull
 - [Gerçek oyun görüntüsü](previews/tactical-hud.jpg).
 - Devam eden hasar değişiklikleri hariç, HEAD + yalnız HUD dosyalarıyla ayrı ağaçta `map:build`, `lan:check` ve HUD hesap kontrolü de geçti.
 - Dar ekran kontrolü fiziksel telefon/coarse-pointer cihaz kabulü değildir. APK yeniden üretilmedi; performans ölçümü ve insan görsel kabulü açık. M1/M2/M3 genel kabulü değişmez.
+
+## 2026-10-28 — Sade nişangâh
+
+Kullanıcı tercihiyle yalnız mevcut yuvarlak namlu nişangâhı bırakıldı. Merkez artısı kaldırıldı; commit edilmemiş köşeli odak nişangâhı, ek mesafe yazısı ve yükseklik ölçümü ana oyun ve LAN sahnesinden çıkarıldı. Mevcut dolum ve HUD mesafe bilgisi korunur.
+
+`npm run map:build`, `npm run lan:check` ve `git diff --check` geçti. Büyük paket uyarısı sürüyor. Bu değişiklik için yeni tarayıcı görsel kontrolü yapılmadı.

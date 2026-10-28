@@ -9,10 +9,6 @@
 .compass-pin { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); color: #fff8e7; }
 .compass-heading { display: block; margin: 2px auto 0; width: 55px; font-size: 20px; font-weight: 300; }
 .hud-center { position: absolute; top: 50%; left: 50%; width: 164px; transform: translateX(-50%); text-align: center; }
-.hud-cross { display: block; position: absolute; width: 22px; height: 22px; left: 50%; top: 0; transform: translate(-50%, -50%); opacity: .8; }
-.hud-cross::before, .hud-cross::after { content: ''; position: absolute; background: #fff6e4; box-shadow: 0 1px 3px #000; }
-.hud-cross::before { width: 22px; height: 1px; top: 10px; left: 0; }
-.hud-cross::after { width: 1px; height: 22px; left: 10px; top: 0; }
 .hud-reload { margin-top: 39px; }
 .hud-reload > div { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 6px; }
 .hud-reload-time { color: #e6d3b3; }
