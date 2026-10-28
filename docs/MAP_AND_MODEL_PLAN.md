@@ -1,8 +1,8 @@
-# Kül Vadisi — Harita ve Blender model planı
+# Kül Vadisi — Harita geliştirme ve model üretim planı
 
 İlk konsept: 2026-10-24. Son güncelleme: 2026-10-28.
 
-**Durum:** 5’e 5 üs saldırısı için harita planı onaylandı ve belgelendi. Bu haritanın uygulaması, Blender çevre üretimi ve 5’e 5 maç sistemi bu görevde başlatılmadı.
+**Durum:** 5’e 5 üs saldırısı düzeni onaylı. Kullanıcı mevcut Babylon.js motorunun korunmasını, küçük parçaların kodla üretilmesini ve projeye eklediği Quaternius doğa paketinden yararlanılmasını istedi. Aşağıdaki üretim dağılımı ve K0–K7 sırası geliştirme önerisidir; harita uygulaması, Blender çevre üretimi ve 5’e 5 maç sistemi bu görevde başlatılmadı.
 
 ## Kesin kararlar ve önceki planla ilişki
 
@@ -121,51 +121,121 @@ Her bina yıkılabilir hedef olmayacak. Sert siper, yalnız görsel dekor ve ma�
 - Yol ve avlularda tankların karşılaşma, geri çekilme ve dönüş payı bulunmalı; ayrıntılı dekor hareketi istemeden tıkamamalı.
 - Yapı sayısı cephe ilerlemesini görünür kılmalı; maç sürekli hareketsiz binalara ateş etmekten oluşmamalı.
 
-## Arazi ile Blender varlıklarının ayrımı
+## Üç üretim kanalı
 
-Harita tek bir dev Blender modeli olarak üretilmeyecek. Tekrar kullanılabilen çevre parçaları oluşturulacak.
+**Kesin kullanıcı tercihi:** Babylon.js + Havok korunur; ikinci render motoru veya Three.js bağımlılığı eklenmez. Küçük parçalar Babylon.js içinde kodla oluşturulur. Kullanıcının sağladığı Quaternius paketi gereken doğa modellerinde kullanılabilir.
 
-**Arazi çalışması:** Toprak tepeler, taş ocağının sürülebilen basamakları, kuru dere yatağı, yollar ve başlangıç setleri. Önce tankın geçebileceği yüzeyler ve eğimler kurulacak; teknik üretim yöntemi uygulama öncesinde seçilecek.
+**Önerilen ayrım:** Modelin boyutundan çok silüet, tekrar ve oynanış işlevi belirleyici. Karakteristik yapılar Blender MCP ile; basit ve ölçüsü sık değişen parçalar kodla; uygun doğa varlıkları hazır paketten gelir. Bütün harita tek Blender sahnesi/GLB olarak teslim edilmez.
 
-**Blender çalışması:** Yapılar, beton siper parçaları, kayalar ve ocak duvarları, ağaçlar, demiryolu ve sanayi donanımları. Bunlar araziyi tamamlayacak; geçilebilir yüzeylerde boşluk, basamak veya görünmez engel yaratmayacak.
-
-## Blender model envanteri
-
-| Grup | Üretilecek modeller | İşlev / öncelik |
+| Kanal | İşler | Sınır |
 |---|---|---|
-| Bakım tesisi | Büyük bakım hangarı, küçük atölye, idari bina | Merkezde görüş ve çatışma düzeni; ilk paket |
-| Beton siperler | Düz duvar, köşe, kırık duvar, beton bariyer; daha sonra kapı direkleri | Tekrar kullanılabilen sert siper; ilk paket |
-| Kayalar | Üç farklı büyük kaya, uzun kaya sırtı, modüler ocak duvarı | Araziyi ve görüşü bölme; ilk paket |
-| Bitki örtüsü | İki çam çeşidi, bir geniş yapraklı ağaç; daha sonra kütük | Bölge kimliği ve görüşü kısmen örtme; ilk paket |
-| Taş ocağı donanımı | Taş yığınları, yükleme haznesi, konveyör | Ocak kimliği ve yön bulma; sonraki paket |
-| Demiryolu | Düz ve kavisli ray, hat sonu tamponu, yük vagonu | Tesisin işlevini anlatma ve görüşü bölme; sonraki paket |
-| Ana üs ve hedefler | Doğma hangarları, komuta merkezi, dış savunma binası, ortak iç savunma, üs çıkış duvarları | Yeni 5’e 5 planının gerekli yapıları; önce basit hacimlerle yerleşim, sonra modelleme |
-| Başlangıç dekoru | Kum torbası setleri, küçük servis barakası | Üs kimliği; sonraki paket |
-| Küçük dekor | Varil grubu, paletli yük, hurda metal, tabela, elektrik direği | Ölçek ve terk edilmişlik; son aşama |
+| Babylon.js — kodla üretim | Arazi, yollar, kuru dere, sürülebilen ocak basamakları, basit siper/dekor, yerleşim ve tekrarlar | Oynanışı etkileyen ölçüler kolay değiştirilebilir; görünür yüzey ile fizik aynı arazi verisini kullanır |
+| Blender MCP — özgün üretim | Üsler, büyük savunma yapıları, fabrika, özel ocak duvarı ve sanayi donanımı | Her varlık ayrı kaynak/çıktı; detaydan önce oyun içi ölçek ve silüet kontrolü |
+| Quaternius — seçip uyarlama | Çam, geniş yapraklı/kuru ağaç, çalı, ot, orta kaya ve çakıl | Seçilen modeller ve gerekli dokular alınır; paketin tümü oyuna yüklenmez |
 
-### İlk paket — 15 temel model önerisi
+### Mevcut koddan kullanılacaklar
 
-| Adet | Modeller |
-|---|---|
-| 3 | Bakım hangarı, atölye, idari bina |
-| 4 | Düz beton duvar, beton köşe, kırık duvar, beton bariyer |
-| 5 | Üç büyük kaya biçimi, uzun kaya sırtı, ocak duvarı |
-| 3 | İki çam çeşidi, bir geniş yapraklı ağaç |
+- `src/game/world/terrain.ts`: mevcut yükseklik, eğim ve sabit tohum yaklaşımı. Mevcut test haritasının ölçüleri yeni haritanın ölçüsü kabul edilmez.
+- `src/game/world/createTestGround.ts`: metre ölçeği, Havok statik çarpışmaları, tekrar kullanılan bitki geometrileri ve kaynak temizleme örneği. Mevcut sürüş test sahası korunur.
+- `src/game/world/terrainSurfaceTextures.ts` ve `SkyAtmosphere.ts`: mevcut zemin ve atmosfer başlangıç alınır; yeni bir kaplama/gökyüzü sistemi bu iş için gerekmez.
+- `src/mapPreview.ts`: mevcut tankla önizleme entegrasyon noktası; yeni yerleşim mevcut testleri bozmadan ayrı seçilebilir olmalı. Seçim arayüzü uygulamada belirlenir.
 
-Bu liste 2026-10-24 çevre seti önerisidir; yeni üs ve savunma hedeflerinin tamamını kapsamaz. Onaylı 5’e 5 yerleşimin basit hacim çalışması, dekoratif üretimden önce gelir.
+Yeni haritada üsler, koridorlar, yollar, hedef kimlikleri ve yerleşim konumları aynı tanımdan beslenecek. Sabit tohum dekorun her açılışta değişmesini önleyecek; ana siperler ve yollar rastgele dağıtılmayacak. İlk aşamada görsel harita editörü veya genel amaçlı varlık sistemi yapılmayacak.
 
-Bunlar 15 benzersiz temel varlıktır; haritada yerleştirilecek nesne sayısı değildir. Tekrarlar ve yerleşim varyasyonlarıyla kullanılacak. Konveyör, vagon ve küçük dekorlar ana yollarla siperler oturduktan sonra üretilecek.
+## Hazır doğa paketi — Quaternius
 
-## Üretim sırası
+**Yerel kaynak:** `Stylized Nature MegaKit[Standard]/`. Kaynak değiştirilmeden korunacak.
 
-1. Basit hacimlerle harita yerleşimini, yaklaşım ve yan geçişleri doğrula.
-2. Büyük kayaları ve beton siper setini üret.
-3. Hangar, atölye ve idari binayı üret.
-4. Ağaç çeşitlerini ekle; görüş okunabilirliğini koru.
-5. Taş ocağı donanımı ve demiryolu setini üret.
-6. Başlangıç dekorları ve küçük ayrıntılarla tamamla.
+**Kaynak ve lisans:** [Stylized Nature MegaKit — Quaternius](https://quaternius.itch.io/stylized-nature-megakit), CC0 1.0. Yerel `License_Standard.txt` bunu doğruluyor. 2026-10-28 incelemesinde Standard klasöründe **68 glTF model** bulundu; ürün sayfasındaki 116 model tüm paketin kapsamı, yerel Standard sürümün envanteri değildir. Kaynak pakette FBX ve OBJ seçenekleri de var; oyun için ilk aday mevcut glTF dosyaları.
 
-Bu sıra plan önerisidir; şu anda üretim başlatılmadı. Tekrarlı parçalar tasarlanırken görsel çeşitlilik kadar oynanış işlevi gözetilecek.
+### İlk seçki — oyun içi görünüm kabulü bekliyor
+
+Aşağıdaki dosyalar yerel `glTF/` klasöründe mevcut. Bunlar üretim adaylarıdır; tarayıcıda uygun bulunduğu iddia edilmez.
+
+| Dosya adı | Bölge / görev | Seçim nedeni |
+|---|---|---|
+| `Pine_1.gltf`, `Pine_3.gltf` | Batı sırtı, çevre ormanı | İki farklı çam silüetiyle tekrarın kırılması |
+| `CommonTree_1.gltf` | Dere kıyısı ve seyrek geçiş alanları | Çam ormanına ölçülü çeşitlilik |
+| `DeadTree_1.gltf` | Ocak ve fabrika kenarı | Terk edilmiş sanayi vadisi kimliği; seyrek kullanım |
+| `Rock_Medium_1.gltf`, `Rock_Medium_2.gltf`, `Rock_Medium_3.gltf` | Yol kenarı ve kaya kümeleri | Hazır düşük detaylı kaya çeşitleri; siper için boyut kontrolü şart |
+| `Bush_Common.gltf` | Orman kenarı ve dere | Sert siper olmayan görüş örtüsü |
+| `Grass_Common_Short.gltf`, `Grass_Wispy_Short.gltf` | Yakın çevrede seyrek ot | Yol ve hedef okunabilirliğini bozmayan zemin ayrıntısı |
+| `Pebble_Round_1.gltf`, `Pebble_Square_1.gltf` | Yakın yol/ocak kenarı | Küçük taş ayrıntısı; çarpışma gövdesi gerektirmez |
+
+İlk seçki **12 model**. Çiçekler, mantarlar, döşeme taşları ve belirgin fantastik burulmuş ağaçlar başlangıç kapsamına alınmaz. Yeni doğa modeli ihtiyacı doğarsa önce paketin kalan modellerine bakılır.
+
+### Uyarlama ve aktarım
+
+1. Seçilen glTF dosyalarını bağlı `.bin` ve görselleriyle birlikte incele. Göreli yollar korunmalı; tek başına `.gltf` kopyalamak teslim sayılmaz. Gerekirse yalnız seçilenleri GLB olarak paketle.
+2. Tankın yanında ölçek, zemin başlangıç noktası, eksen, normal ve yaprak saydamlığını kontrol et. Unity/Godot/Unreal shader'larının Babylon.js'e taşınmış olduğu varsayılmaz.
+3. Yaprakları soluk zeytin yeşiline, kayaları grafit/toprak paletine yaklaştır. Kaynak dokuyu değiştirmek yerine oyun kopyasında ayar yap; aydınlatma altında tankla birlikte karşılaştır.
+4. Kayaya basit statik çarpışma; gerekli ağaç gövdelerine basit gövde şekli önerilir. Yaprak, çalı, ot ve çakıl ilk aşamada tankı veya mermiyi durdurmaz. Gövde/mermi davranışı K0'da açıkça kaydedilir.
+5. Aynı modelleri ortak geometri/materyalle çoğalt; yakın/uzak bitki ayrımı ve seyrek uzak orman kullan. Tekrar çizimi fizik gövdelerini kendiliğinden azaltmaz; çarpışma yerleşimi ayrıca sınırlanır.
+6. Seçilen dosyalar, kaynak sürüm, yapılan değişiklikler ve CC0 lisansı önerilen `assets/environment/quaternius_nature/` teslim kaydında tutulur. Dağıtıma yalnız kullanılan dosyalar ve bağımlılıkları girer.
+
+**Dosya incelemesi:** İlk seçkide glTF'nin referans verdiği tampon/görsel dosyalarında eksik bulunmadı. Üçgen indekslerinden hesaplanan örnekler: `Pine_1` 3.947, `Pine_3` 4.964, `CommonTree_1` 6.265; üç orta kaya sırasıyla 342, 244 ve 522 üçgen. Bu sayılar FPS sonucu değildir. Çok sayıda ağaçta geometri, yaprak saydamlığı ve gölge maliyeti birlikte ölçülecek; uzak çevre için sadeleştirme gerekebilir.
+
+## Blender MCP ile üretilecek özgün modeller
+
+| Paket | Modeller | Oyun işlevi / öncelik |
+|---|---|---|
+| B1 — merkez fabrika | Büyük bakım hangarı, küçük atölye | İlk gerçek model kesiti; yakın çatışma, görüş kesme ve dolaşılabilir cepheler |
+| B2 — savunma ve üs | Büyük dış savunma yapısı, ortak iç savunma, komuta merkezi | Koridor ilerlemesini ve nihai hedefi ayırt eden özgün silüetler |
+| B2 — doğma alanı | Korunaklı doğma hangarı için B1 hangarından varyant; gerekirse ayrı model | Ayrı çıkışlar ve tank manevrası; üs mimarisi seçilmeden son detay yapılmaz |
+| B3 — özel kaya seti | Modüler dik ocak duvarı, gerekirse uzun kaya sırtı | Hazır orta kayaların karşılamadığı büyük şekiller; sürülebilen basamak zemini kodda kalır |
+| B4 — sanayi kimliği | Yük vagonu, konveyör ve yükleme haznesi | Bölgeler oynanabilir olduktan sonra yön bulma ve silüet |
+| Gerektiğinde | İdari bina, kırık beton parça veya kum torbası kümesi | Yeni oynanış/görsel ihtiyaç kanıtlanırsa; ilk zorunlu paket değil |
+
+**Tekrar kullanımı:** Bir dış savunma temel modeli altı dış savunma yerleşimine hizmet edebilir. İç savunma ve komuta merkezi de takım başına ayrı yeniden modellenmez; takım işareti ve kontrollü yerleşim varyasyonları kullanılır. Hasar davranışı modelden ayrı kalır.
+
+**İlk Blender işi:** B1 içindeki hangar ve atölye; ardından B2 dış savunma yapısı. Doğa paketinde uygun kaya/ağaç bulunduğu için eski 15 özgün çevre modeli önerisi artık başlangıç üretim listesi değildir.
+
+### Blender MCP üretim döngüsü
+
+- Üretim başladığında gerçek sahne özeti çağrısıyla bağlantıyı doğrula; araç listesi/port tek başına kanıt değildir. Bu belge görevinde bağlantı sınanmadı.
+- Mevcut tank, kabin ve silah sahnelerini değiştirmeden ayrı çevre çalışma dosyası kullan.
+- Her varlık için sırayla: kaba hacim → ölçülü silüet → mat malzeme → basit çarpışma → GLB aktarımı → yeniden içe aktarım → Babylon.js içinde tankla karşılaştırma.
+- Savunma topu hareket edecekse gövde, yatay dönüş ve namlu gruplarını ayrı tut; pivotlar doğru olsun. Model hazır olması otomatik hedefleme/ateş sisteminin hazır olduğu anlamına gelmez.
+- İlk kabul edilen modeli çoğaltılabilir teslim standardı yap; bütün paketi bitirip sonra ilk kez motora yükleme.
+- Her özgün varlık için `.blend`, `.glb`, önizleme ve kısa teslim kaydı önerilen `assets/environment/` altında tutulur. Var olan tank üretim betikleri çevre varlığı üreticisi gibi kullanılmaz.
+
+## Babylon.js ile üretilecek parçalar
+
+| Grup | Kodla üretilecekler | Çarpışma / kullanım önerisi |
+|---|---|---|
+| Ana arazi | Tepeler, sürülebilen ocak basamakları, kuru dere, yol eğimleri, toprak setler | Görsel ve fizik aynı yüzey tanımından; yol değişikliği Blender gerektirmez |
+| Beton seti | Düz duvar, köşe, basit bariyer, kapı direği | Gerçek sert siper; basit statik şekiller. Özel kırık silüet gerekirse Blender |
+| Küçük sanayi dekoru | Varil, sandık, basit paletli yük, boru grubu | Tekrar kullanılabilir kutu/silindir geometrisi; varsayılan görsel dekor |
+| Çizgisel parçalar | Düz ray/travers tekrarları, çit direği, elektrik direği/kablo, tabela | Rotaya göre yerleşim; küçük elemanlar tankı takmaz. Karmaşık makas sistemi başlangıçta yok |
+| İşaret ve yüzey ayrıntısı | Takım renkleri, yol/zemin renk geçişleri, basit numara/tabelalar | Ortak malzeme/doku; takım kimliği yalnız renge bağlı olmamalı |
+| Yerleşim | Doğa kümeleri, bina tekrarları, bölge bazlı dekor yoğunluğu | Ana yollar/kapılar/atış alanları için boş bırakılan bölgeler |
+
+Küçük görsel varil tek başına sert siper gibi sunulmayacak. Paletli yük veya dekor sonradan siper olacaksa hem görsel dili hem çarpışma/mermi kuralı birlikte değiştirilecek. Ayrıntılı fiziksel dekor ve tek tek kum torbası fiziği yapılmayacak.
+
+## Geliştirme sırası ve teslim kapıları
+
+Aşağıdaki aşamaların tamamı **planlandı, başlanmadı** durumunda. Harita üretimi önce yerel sürüş/atış önizlemesinde ilerler; 5’e 5 ağ ve maç kuralları çevre modellemesinin ön koşulu değildir.
+
+| Aşama | İş | Somut teslim ve bitiş kontrolü |
+|---|---|---|
+| K0 — ölçü ve davranış | Tank genişliği/uzunluğu/dönüşünü ölç; harita ölçüsü, yol/kapı genişliği, temel yükselti ve siper davranışını ilk taslak olarak kaydet | Ölçülü yerleşim şeması, geçici değer listesi ve sert siper/görsel örtü/maç hedefi ayrımı. 800 × 800 m veya 30–45 s kendiliğinden kesinleşmez |
+| K1 — bütün haritanın kaba yerleşimi | Babylon ile iki üs, üç koridor, yan geçitler, arazi ve hedefleri basit hacimlerle kur | Altı dış savunma, iki ortak iç savunma ve iki komuta merkezi işaretli; hangarlar ayrı. Her yol sürülebilir, doğma çıkışına düz atış yok; erişim ve dönüş süreleri iki taraftan kaydedilmiş |
+| K2 — tek oynanabilir fabrika kesiti | B1 hangar/atölye, bir B2 dış savunma, kod beton seti ve seçili hazır kaya/bitkiyi aynı kesitte birleştir | Siper arkasında durma, bina çevresinden dolaşma, geri çekilme ve yan geçiş gerçek tankla denenmiş. Ölçek, malzeme, çarpışma ve kamera kabulü; ilk performans kaydı |
+| K3 — üs ve savunma seti | İç savunma, komuta merkezi ve korunaklı hangar varyantını üret; iki üsse ve altı dış savunmaya uygula | Hedefler birbirinden tanınır; çıkışlar/manzara korunur. Beş tankın sevk avlusunda manevrası yerel araç yerleşimleriyle incelenir; ağ oturumu testi sayılmaz |
+| K4 — batı ormanı ve doğu ocağı | Quaternius seçkisini yerleştir; gerekli özel ocak duvarını üret; bütün bağlantıları tamamla | İki yöne sürüş ve bölgeler arası geçiş; tepeler tek başına tüm haritaya hâkim değil. Bitkiler hedefleri aşırı örtmez, sert siper davranışı tutarlı |
+| K5 — sanayi ve küçük dekor | B4 vagon/konveyör/hazne, kod ray ve küçük dekor | Bölge kimlikleri okunur; sonradan eklenen dekor geçitleri kapatmaz. Her dekorun somut işlevi var; kullanılmayan çeşitler eklenmez |
+| K6 — çevre teslimi | Yükleme, kaynak temizliği, görünüm ve performansı denetle; gerekli yoğunluk/uzaklık sadeleştirmesini yap | Model/lisans listesi, kontrol kayıtları ve cihaz/tarayıcı/çözünürlük/kalite bilgisi. Sürüş ve atış önizlemesinde gezi; 5’e 5 dengesi henüz onaylı değil |
+| K7 — ayrı maç entegrasyonu | Savunma hedeflerini maç kurallarına bağla; onaylanan yeniden doğma ve hedef/hasar sırasını uygula; 5’e 5 oturumda dene | Tek koridor yarılarak kazanma, cephe değişimi, yığılma ve kuşatma sınanmış. Ağ kapsamı ve açık mekanikler ayrıca kararlaştırılmadan bu adım uygulanmaz |
+
+**Önerilen ilk uygulama teslimi K0 + K1:** Mevcut tankla gezilebilen, yolları ve hedef hacimleri görülen Kül Vadisi. Ayrıntılı Blender üretimine geçiş K1 yol/görüş kontrolünden sonra; bütün varlıkları önceden üretmek gerekmez.
+
+### Aşamaya göre doğrulama
+
+- K1/K4 arazi değişikliklerinde mevcut `npm run map:check`, `npm run map:test`, `npm run drive:test` ve `npm run map:build` ilgili kontrollerdir. Yeni haritayı gerçekten kapsaması gereken arazi/fizik kontrolleri uygulama sırasında uyarlanır; mevcut testin geçmesi yeni harita kabulü sayılmaz.
+- K2/K3 modellerinde ölçek, pivot, görünmez çarpışma ve geçit kenarları kontrol edilir. Yeni otomatik kontrol yalnız somut fizik/hesaplama veya tekrar edebilecek hata için eklenir.
+- K1–K6 boyunca tank yüksekliğinden ve yüksek konumlardan görüş; kamera kesişmesi, dönüş, eğim ve geri çekilme tarayıcıda incelenir. Süreler koordinat mesafesinden tahmin edilmez, sürülerek ölçülür.
+- K6'da iki üs, merkez fabrika, yoğun orman ve açık ocaktan aynı koşullarda ölçüm alınır. Sayısal performans bütçesi referans cihaz ve hedef belirlendikten sonra yazılır.
+- K7 maç kuralları çevre dosyalarından bağımsız anlamlı durum geçişi kontrolleriyle sınanır. Yerel tek tank gezisi 5’e 5 denge doğrulaması değildir.
 
 ## Model teslim ve entegrasyon kuralları
 
@@ -203,4 +273,4 @@ Bu sıra plan önerisidir; şu anda üretim başlatılmadı. Tekrarlı parçalar
 - 5’e 5 oturumda bütün takımın tek yola yığılması, cephe değiştirme ve üs kuşatması senaryolarını oyna; sonuçlara göre mesafe ve siperleri ayarla.
 - Kamera kesişmeleri, görüş okunabilirliği ve performansı cihaz/tarayıcı/çözünürlük/kalite bilgisiyle kaydet.
 
-**Bu belge güncellemesinde:** Karar/öneri ayrımı, belge bağlantıları ve değişiklik farkı kontrol edildi. Oyun testi, yeni harita üretimi, Blender teslimi veya 5’e 5 denge testi yapılmadı. Harita onayı ve belge teslimi, uygulama veya oynanış kabulü değildir.
+**Bu belge güncellemesinde:** Mevcut dünya kodu ve proje belgeleri incelendi; üretim üç kanala ayrıldı ve K0–K7 teslim/kabul sırası yazıldı. Yerel Quaternius Standard paketi, lisansı, ilk seçkinin dosyaları ve glTF bağımlılıkları incelendi; yayıncı sayfasındaki lisans doğrulandı. Belge bağlantıları ve diff kontrolü yapıldı. Oyun testi, varlık aktarımı, Blender bağlantı/üretim kontrolü veya 5’e 5 denge testi yapılmadı. Harita onayı ve belge teslimi, uygulama veya oynanış kabulü değildir.
