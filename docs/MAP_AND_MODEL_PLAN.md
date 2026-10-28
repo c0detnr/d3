@@ -2,7 +2,7 @@
 
 İlk konsept: 2026-10-24. Son güncelleme: 2026-10-28.
 
-**Durum:** 5’e 5 üs saldırısı düzeni onaylı. Kullanıcı mevcut Babylon.js motorunun korunmasını, küçük parçaların kodla üretilmesini ve projeye eklediği Quaternius doğa paketinden yararlanılmasını istedi. K0–K7 harita uygulaması ve 5’e 5 maç sistemi bu model tesliminin kapsamı değil. Kullanıcının sonraki açık isteğiyle B1 kapalı askerî bakım hangarı bağımsız Blender varlığı olarak üretildi; [teslim ve kontroller](../assets/environment/maintenance_hangar_01/README.md). Harita yerleşiminde son ölçü ve oyun içi kabul bekliyor.
+**Durum:** 5’e 5 üs saldırısı düzeni onaylı. K0 ölçü taslağı ve K1 sürülebilir kaba harita uygulandı; [ölçüler, kontroller ve açık kabul](KUL_VADISI_BLOCKOUT.md). Kullanıcı mevcut Babylon.js motorunun korunmasını, küçük parçaların kodla üretilmesini ve projeye eklediği Quaternius doğa paketinden yararlanılmasını istedi. K0–K7 harita uygulaması ve 5’e 5 maç sistemi bu model tesliminin kapsamı değil. Kullanıcının sonraki açık isteğiyle B1 kapalı askerî bakım hangarı bağımsız Blender varlığı olarak üretildi; [teslim ve kontroller](../assets/environment/maintenance_hangar_01/README.md). Harita yerleşiminde son ölçü ve oyun içi kabul bekliyor.
 
 ## Kesin kararlar ve önceki planla ilişki
 
@@ -216,7 +216,7 @@ Küçük görsel varil tek başına sert siper gibi sunulmayacak. Paletli yük v
 
 ## Geliştirme sırası ve teslim kapıları
 
-Aşağıdaki aşamaların tamamı **planlandı, başlanmadı** durumunda. Harita üretimi önce yerel sürüş/atış önizlemesinde ilerler; 5’e 5 ağ ve maç kuralları çevre modellemesinin ön koşulu değildir.
+K0 ölçü/sert siper taslağı ve K1 sürülebilir iskelet 2026-10-28 tarihinde uygulandı; [teslim ve açık kabul](KUL_VADISI_BLOCKOUT.md). K1 insan kabulü ve K2–K7 açık. Harita üretimi önce yerel sürüş/atış önizlemesinde ilerler; 5’e 5 ağ ve maç kuralları çevre modellemesinin ön koşulu değildir.
 
 | Aşama | İş | Somut teslim ve bitiş kontrolü |
 |---|---|---|

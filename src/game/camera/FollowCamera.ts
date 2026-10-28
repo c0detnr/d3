@@ -30,7 +30,7 @@ export class FollowCamera {
     this.yaw += x * AIM_CAMERA.sensitivity;
     this.pitch = Math.max(-1.15, Math.min(1.15, this.pitch - y * AIM_CAMERA.sensitivity));
   }
-  follow() { this.overviewMode = false; this.yaw = 0; this.pitch = -0.09; this.aiming = false; this.blend = 0; this.shotMotion.reset(); this.desiredRadius = 15; this.positioned = false; }
+  follow(yaw = 0) { this.overviewMode = false; this.yaw = yaw; this.pitch = -0.09; this.aiming = false; this.blend = 0; this.shotMotion.reset(); this.desiredRadius = 15; this.positioned = false; }
   overview() { this.overviewMode = true; this.aiming = false; this.camera.position.set(0, 120, -130); this.camera.setTarget(Vector3.Zero()); }
   impulse(direction = this.direction) {
     const right = Vector3.Cross(Vector3.Up(), this.direction).normalize();

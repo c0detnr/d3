@@ -107,12 +107,12 @@ const FOG_BASE = new Color3(0.38, 0.345, 0.30);
 const FOG_FLASH = new Color3(0.62, 0.57, 0.49);
 
 /** Procedural storm sky with drifting turbulence and distant lightning flashes. */
-export function createChaoticSky(scene: Scene) {
+export function createChaoticSky(scene: Scene, diameter = 1800) {
   Effect.ShadersStore.chaoticSkyVertexShader = VERTEX;
   Effect.ShadersStore.chaoticSkyFragmentShader = FRAGMENT;
 
   const dome: Mesh = MeshBuilder.CreateSphere('chaotic-atmosphere',
-    { diameter: 1800, segments: 32 }, scene);
+    { diameter, segments: 32 }, scene);
   const material = new ShaderMaterial('chaotic-sky', scene,
     { vertex: 'chaoticSky', fragment: 'chaoticSky' },
     {

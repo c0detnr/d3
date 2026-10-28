@@ -2,6 +2,9 @@ import './game/input/gamePointerLock.css';
 import { GamePointerLock } from './game/input/GamePointerLock.ts';
 import { DuelTank } from './game/combat/DuelTank.ts';
 import { terrainHeight } from './game/world/terrain.ts';
+import { createKulVadisi } from './game/world/createKulVadisi.ts';
+import { kulTerrainHeight } from './game/world/kulVadisiLayout.ts';
+import { addMapControls } from './game/world/kulVadisiControls.ts';
 import { TouchControls } from './game/input/TouchControls.ts';
 import './mapPreview.css';
 import { TacticalHud } from './game/ui/TacticalHud.ts';
@@ -40,6 +43,9 @@ import { createChaoticSky } from './game/world/SkyAtmosphere.ts';
 import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
 import secondTankUrl from '../assets/tanks/iron_dust_02/iron_dust_02.glb?url';
 
+const kulVadisi = new URLSearchParams(location.search).get('map') === 'kul';
+const kulTeam = new URLSearchParams(location.search).get('base') === 'B' ? 'B' : 'A';
+const mapHeight = kulVadisi ? kulTerrainHeight : terrainHeight;
 const twoTankTest = new URLSearchParams(location.search).has('duel');
 const secondTank = new URLSearchParams(location.search).get('tank') === '02';
 const duelToggle = document.createElement('a');
@@ -69,9 +75,10 @@ scaleMobile();
 const scene = new Scene(engine);
 scene.imageProcessingConfiguration.exposure = 1;
 scene.imageProcessingConfiguration.contrast = 1.15;
-const sky = createChaoticSky(scene);
+const sky = createChaoticSky(scene, kulVadisi ? 2800 : 1800);
 const followCamera = new FollowCamera(scene, canvas);
 followCamera.camera.maxZ = 1600;
+const mapControls = addMapControls(followCamera, kulVadisi, kulVadisi && kulTeam === 'B' ? Math.PI : 0);
 const clock = new FixedStep();
 const input = new DriveInput();
 let opponent: DuelTank | undefined;
@@ -97,7 +104,7 @@ const combatInput = new CombatInput(canvas, () => (mgMode || !!weapon?.ready) &&
 function selectWeapon(useMG: boolean) {
   if (!machineGun || !vehicle || freeCamera.active) return;
   combatInput.clear();
-  if (followCamera.isOverview || !useMG) followCamera.follow();
+  if (followCamera.isOverview || !useMG) mapControls.follow();
   mgMode = useMG;
   scene.activeCamera = useMG ? machineGun.camera : followCamera.camera;
   if (useMG) machineGun.updateCamera();
@@ -153,11 +160,11 @@ function updateCombatHud() {
 function reset() {
   if (freeCamera.active) freeCamera.toggle();
   opponent?.reset();
-  touch.clear(); keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); movementEffects?.reset();
+  touch.clear(); keys.clear(); input.reset(); clock.reset(); vehicle?.reset(undefined, kulVadisi && kulTeam === 'B' ? Math.PI : 0); visual?.reset(); movementEffects?.reset();
   vehicleAudio?.reset(); combatAudio?.reset(); turret?.reset(); weapon?.reset(); projectiles?.reset(); combatEffects?.reset();
   machineGun?.reset(); mgProjectiles?.reset(); selectWeapon(false);
   combatInput.clear(); lastCombatResult = ''; combatResultTime = 0;
-  aim.reset(); followCamera.follow();
+  aim.reset(); mapControls.follow();
   lastTime = performance.now();
 }
 const visibility = () => {
@@ -226,7 +233,7 @@ window.addEventListener('keydown', unlockOnGesture);
 const resize = () => { scaleMobile(); engine.resize(); };
 window.addEventListener('resize', resize);
 let disposed = false;
-let ground: ReturnType<typeof createTestGround> | undefined;
+let ground: ReturnType<typeof createTestGround> | ReturnType<typeof createKulVadisi> | undefined;
 let tank: Awaited<ReturnType<typeof loadTankModel>> | undefined;
 
 async function start() {
@@ -236,7 +243,7 @@ async function start() {
   scene.getPhysicsEngine()!.setTimeStep(1 / 60);
   // Only FixedStep advances this world, never the render loop.
   scene.physicsEnabled = false;
-  ground = createTestGround(scene);
+  ground = kulVadisi ? createKulVadisi(scene, kulTeam) : createTestGround(scene);
   ground.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh));
   status.textContent = 'Harita hazır, tank modeli yükleniyor…';
   tank = await loadTankModel(scene, secondTank ? secondTankUrl : tankUrl, ground.spawn);
@@ -244,6 +251,7 @@ async function start() {
   tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
   const rig = extractTankRig(tank);
   vehicle = new TankVehicle(scene, rig, ground.spawn);
+  if (kulVadisi && kulTeam === 'B') vehicle.reset(ground.spawn, Math.PI);
   visual = new TankVisual(tank, rig);
   movementEffects = new MovementEffects(scene, vehicle);
   turret = new TurretController(tank, vehicle.definition);
@@ -258,8 +266,10 @@ async function start() {
     return hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
   }, 40, { gravity: -9.81, maxRange: 600, maxAge: 3, trailSeconds: 0.015, trailLength: 2.2, diameter: 0.035 });
   scene.activeCamera = followCamera.camera;
-  combatRange = new ArmorRange(scene, ground.spawn);
-  combatRange.targets.forEach(target => target.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh)));
+  if (!kulVadisi) {
+    combatRange = new ArmorRange(scene, ground.spawn);
+    combatRange.targets.forEach(target => target.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh)));
+  }
   combatEffects = new CombatEffects(scene);
   projectiles = new ProjectileSystem(scene, (from, to) => {
     const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body });
@@ -273,7 +283,7 @@ async function start() {
     sides: rig.wheels.map(wheel => wheel.side),
   };
   ensureVehicleAudio();
-  followCamera.follow();
+  mapControls.follow();
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('rimView')) {
     followCamera.overview();
     followCamera.camera.position.copyFrom(new Vector3(-25, 6, -235));
@@ -283,7 +293,7 @@ async function start() {
   if (twoTankTest) {
     status.textContent = 'İkinci tank yükleniyor…';
     const spawn = ground.spawn.add(new Vector3(6, 0, 0));
-    spawn.y = terrainHeight(spawn.x, spawn.z);
+    spawn.y = mapHeight(spawn.x, spawn.z);
     opponent = await DuelTank.load(scene, secondTank ? tankUrl : secondTankUrl, spawn);
     if (disposed) { opponent.dispose(); opponent = undefined; return; }
     opponent.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
@@ -419,6 +429,7 @@ function dispose() {
   mgProjectiles?.dispose(); machineGun?.dispose();
   opponent?.dispose();
   tank?.dispose();
+  mapControls.dispose();
   ground?.dispose();
   sky.dispose();
   scene.dispose();

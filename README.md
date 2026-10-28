@@ -105,3 +105,7 @@ Sol tık tek 120 mm AP mermisi ateşler; 6,5 saniyelik dolum süresi HUD'da gör
 Oyun alanına veya **OYUNA GİR** düğmesine tıkla: imleç gizlenir ve oyun alanına kilitlenir. Fareyi sürüklemeden kamerayı yönlendirebilirsin. İlk giriş tıklaması ateş etmez. **Esc** fareyi serbest bırakır; yeniden tıklayarak devam edebilirsin. Kilit kaybında sürüş, nişan ve ateş girdileri temizlenir. Ana oyun ve LAN sayfasında geçerlidir; dokunmatik kontroller değişmez. `combat:test` fare kilidi ve odak kontrollerini de çalıştırır.
 
 Haritada `0` ile serbest uçuş kamerasına geçip önceki görüşe dönebilirsin. `W/A/S/D` hareket, `Q/E` alçal/yüksel, `Shift` hızlan; fare bakışı yönlendirir. Serbest kamerada tank sürüşü ve silah girdileri kapatılır. Kamera kontrolü: `node --experimental-strip-types scripts/check-free-camera.ts`.
+
+## Kül Vadisi — ilk kaba harita
+
+`/map-preview.html?map=kul` iki üs, üç koridor ve iki dere bağlantısını gerçek tankla açar. Sağdaki harita seçimiyle sürüş test sahasına dönülebilir; kuşbakışı ve A/B başlangıç seçimi mevcut. Yapılar geçici sert siper hacimleridir. [Ölçüler, sürüş sonuçları ve açık kabul](docs/KUL_VADISI_BLOCKOUT.md). Yeni harita kontrolü: `node --experimental-strip-types scripts/check-kul-vadisi.ts`.

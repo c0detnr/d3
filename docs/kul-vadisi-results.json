@@ -1,0 +1,147 @@
+{
+  "description": "Gerçek GLB + Havok; otomatik rota takibi, insan sürüş/denge kabulü değildir. İlk temas orta hattın 15 m yakınına varıştır; düşmanla karşılaşma değildir.",
+  "results": {
+    "01": {
+      "visibleSizeMetres": [
+        4.159999847412109,
+        3.7635586261749268,
+        9.234999895095825
+      ],
+      "hullSizeMetres": [
+        2.9000000953674316,
+        1.25,
+        6.300000190734863
+      ],
+      "turn180Seconds": 4.533333333333333,
+      "drives": [
+        {
+          "route": "west-A-B",
+          "firstContactSeconds": 63.56666666666667,
+          "fullRouteSeconds": 129.15,
+          "minUp": 0.9761092178636765
+        },
+        {
+          "route": "west-B-A",
+          "firstContactSeconds": 63.583333333333336,
+          "fullRouteSeconds": 129.13333333333333,
+          "minUp": 0.9761959802546633
+        },
+        {
+          "route": "center-A-B",
+          "firstContactSeconds": 58.43333333333333,
+          "fullRouteSeconds": 119.05,
+          "minUp": 0.9900314717980583
+        },
+        {
+          "route": "center-B-A",
+          "firstContactSeconds": 58.43333333333333,
+          "fullRouteSeconds": 119.08333333333333,
+          "minUp": 0.9900805722882585
+        },
+        {
+          "route": "east-A-B",
+          "firstContactSeconds": 63.333333333333336,
+          "fullRouteSeconds": 128.73333333333332,
+          "minUp": 0.9818344107091077
+        },
+        {
+          "route": "east-B-A",
+          "firstContactSeconds": 63.333333333333336,
+          "fullRouteSeconds": 128.75,
+          "minUp": 0.981884779126266
+        },
+        {
+          "route": "creek--102-west-east",
+          "fullRouteSeconds": 60.88333333333333,
+          "minUp": 0.9861126490527483
+        },
+        {
+          "route": "creek--102-east-west",
+          "fullRouteSeconds": 61.05,
+          "minUp": 0.9849633442101741
+        },
+        {
+          "route": "creek-102-west-east",
+          "fullRouteSeconds": 60.88333333333333,
+          "minUp": 0.986112646553577
+        },
+        {
+          "route": "creek-102-east-west",
+          "fullRouteSeconds": 61.05,
+          "minUp": 0.984963324854703
+        }
+      ]
+    },
+    "02": {
+      "visibleSizeMetres": [
+        4.1579999923706055,
+        4.113609194755554,
+        10.975014671683311
+      ],
+      "hullSizeMetres": [
+        3.059999942779541,
+        1.0800000429153442,
+        7.150000095367432
+      ],
+      "turn180Seconds": 6.483333333333333,
+      "drives": [
+        {
+          "route": "west-A-B",
+          "firstContactSeconds": 65.2,
+          "fullRouteSeconds": 132.6,
+          "minUp": 0.9757278737959515
+        },
+        {
+          "route": "west-B-A",
+          "firstContactSeconds": 65.18333333333334,
+          "fullRouteSeconds": 132.61666666666667,
+          "minUp": 0.9756873768438947
+        },
+        {
+          "route": "center-A-B",
+          "firstContactSeconds": 59.833333333333336,
+          "fullRouteSeconds": 122.16666666666667,
+          "minUp": 0.9904322159788354
+        },
+        {
+          "route": "center-B-A",
+          "firstContactSeconds": 59.93333333333333,
+          "fullRouteSeconds": 122.3,
+          "minUp": 0.9904897614939239
+        },
+        {
+          "route": "east-A-B",
+          "firstContactSeconds": 64.6,
+          "fullRouteSeconds": 131.65,
+          "minUp": 0.9833336492529635
+        },
+        {
+          "route": "east-B-A",
+          "firstContactSeconds": 64.61666666666666,
+          "fullRouteSeconds": 131.66666666666666,
+          "minUp": 0.9833323702187311
+        },
+        {
+          "route": "creek--102-west-east",
+          "fullRouteSeconds": 60.916666666666664,
+          "minUp": 0.9858643895711929
+        },
+        {
+          "route": "creek--102-east-west",
+          "fullRouteSeconds": 61.083333333333336,
+          "minUp": 0.9842618909382699
+        },
+        {
+          "route": "creek-102-west-east",
+          "fullRouteSeconds": 60.916666666666664,
+          "minUp": 0.9858643870968319
+        },
+        {
+          "route": "creek-102-east-west",
+          "fullRouteSeconds": 61.083333333333336,
+          "minUp": 0.9842618959491515
+        }
+      ]
+    }
+  }
+}

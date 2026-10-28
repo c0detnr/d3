@@ -196,3 +196,11 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Plan:** [Oynanabilir ikinci tank](SECOND_TANK_BLENDER_PLAN.md).
 
 **Sonraki üretim durumu (2026-10-26):** Özgün kaynak ve GLB üretildi; tank seçimi, sürüş, kule ve top otomatik kontrolleri geçti. İnsan tarayıcı kabulü ve araç dengelemesi açık.
+
+## 2026-10-28 — Kül Vadisi uygulama başlangıcı
+
+**Kesin:** Kullanıcı K0 + K1'e başlamayı onayladı. Mevcut test sahası korunarak `map=kul` seçimiyle ayrı harita kuruldu. Blender hangar çalışması korunur; bu adımda geçici yapı hacimleri kullanılır.
+
+**İlk uygulama değerleri, son tasarım kararı değil:** 720 × 720 m, 18 m yol, 3 m arazi ağı ve [belgelenmiş geçici yapı ölçüleri](KUL_VADISI_BLOCKOUT.md). K0'da bütün yapı hacimleri statik sert siperdir; can/ateş/onarım/maç davranışı bağlı değildir.
+
+**Açık:** Son harita/yapı ölçüleri, insan sürüşü ve görüş kabulü, Blender modeliyle yerleşim, beş tankın avlusu, son sınır görseli ve 5'e 5 maç dengesi.

@@ -205,3 +205,9 @@ Ortak CombatEffects içinde top/MG parlaması, namlu gazı, yüzey/basınç tozu
 Harita önizlemesinde `0` (veya numpad 0) önceki görüşten serbest uçuşa geçer, tekrar basınca önceki tank/genel görüşe döner. WASD bakışa göre hareket, Q/E alçalma/yükselme, Shift hızlı uçuş; hızlar 25/100 m/s. Uçuş sırasında sürüş frenlenir, silah ve kule girdileri kapatılır; dünya simülasyonu devam eder. Odak/fare kilidi kaybında uçuş tuşları temizlenir.
 
 `node --experimental-strip-types scripts/check-free-camera.ts` geçiş/tekrar, konum/geri dönüş, sürüş/savaş girdi kapıları, 30/60/120 FPS eşitliği, hız, fare, odak kaybı ve kaynak temizliğini geçti. `map:build` geçti (mevcut büyük paket uyarısı). Chrome içinde Kül Vadisi açıldı; otomasyon Pointer Lock alamadığı için etkileşimli uçuş ve insan hissi kabulü açık. M1/M2/M3 genel kabulü değişmez.
+
+### 2026-10-28 — Kül Vadisi K0 + K1 ilk kaba yerleşim
+
+Ayrı seçilen 720 × 720 m taslak, 18 m yollar, iki üs, üç koridor, iki dere bağlantısı ve geçici fabrika/savunma hacimleri uygulandı. Altı dış savunma, iki iç savunma ve iki komuta merkezi işaretli; doğma hangarları ayrı. Gerçek GLB ölçüsü, iki tankla bütün yolların iki yönlü Havok sürüşü, orta hatta erişim, tam rota ve dönüş süreleri kaydedildi. [Teslim, ölçüler, kontroller ve sınırlar](KUL_VADISI_BLOCKOUT.md).
+
+`check-kul-vadisi.ts`, `map:test`, `drive:test`, `check-camera.ts` ve `map:build` geçti; büyük paket uyarısı mevcut. K0 ölçü/sert siper taslağı ve K1 sürülebilir iskelet teslim edildi. İnsan sürüş/görüş kabulü, beş araçlı avlu ve gerçek maç dengesi açık; K1 nihai kabulü ve M1/M2/M3 kapatılmadı. Blender hangarı, doğa varlıkları ve hedef mekanikleri bu haritaya henüz entegre edilmedi.
