@@ -22,6 +22,7 @@ import { TankVehicle } from './game/vehicle/TankVehicle.ts';
 import { TankVisual } from './game/vehicle/TankVisual.ts';
 import { AimSystem } from './game/aim/AimSystem.ts';
 import { TurretController } from './game/vehicle/TurretController.ts';
+import { FreeFlyCamera } from './game/camera/FreeFlyCamera.ts';
 import { FollowCamera } from './game/camera/FollowCamera.ts';
 import { CombatAudio } from './game/audio/CombatAudio.ts';
 import { impactSurface } from './game/combat/ImpactSurface.ts';
@@ -90,11 +91,11 @@ let lastCombatResult = '';
 let combatResultTime = 0;
 const aim = new AimSystem(scene, followCamera, document.querySelector<HTMLElement>('#aim-bore')!,
   document.querySelector<HTMLElement>('#aim-status')!);
-const combatInput = new CombatInput(canvas, () => (mgMode || !!weapon?.ready) && !followCamera.isOverview && !paused && pointerLock.active,
-  () => !!vehicle && !followCamera.isOverview && !paused && pointerLock.active,
+const combatInput = new CombatInput(canvas, () => (mgMode || !!weapon?.ready) && !followCamera.isOverview && !paused && pointerLock.active && !freeCamera.active,
+  () => !!vehicle && !followCamera.isOverview && !paused && pointerLock.active && !freeCamera.active,
   (x, y) => { if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); }, () => { followCamera.aiming = false; });
 function selectWeapon(useMG: boolean) {
-  if (!machineGun || !vehicle) return;
+  if (!machineGun || !vehicle || freeCamera.active) return;
   combatInput.clear();
   if (followCamera.isOverview || !useMG) followCamera.follow();
   mgMode = useMG;
@@ -111,10 +112,13 @@ const weaponKey = (event: KeyboardEvent) => {
 window.addEventListener('keydown', weaponKey);
 let lastTime = performance.now();
 let paused = document.hidden;
-const keys = bindDriveKeys(window, () => reset(), () => pointerLock.active);
+const keys = bindDriveKeys(window, () => reset(), () => pointerLock.active && !freeCamera.active);
 const pointerLock = new GamePointerLock(canvas, () => {
   combatInput.clear(); keys.clear(); input.reset();
 }, () => !!vehicle && !paused, !mobile);
+const freeCamera = new FreeFlyCamera(scene, canvas, () => !!vehicle && !paused && pointerLock.active, () => {
+  combatInput.clear(); keys.clear(); input.reset();
+});
 const touch = new TouchControls(document.querySelector<HTMLElement>('#touch-controls')!, canvas, {
   look: (x, y) => { if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); },
   fireReady: () => !!vehicle && !paused && (mgMode || !!weapon?.ready),
@@ -147,6 +151,7 @@ function updateCombatHud() {
   document.querySelector<HTMLProgressElement>('#reload-progress')!.value = mgMode ? 1 : weapon.reloadFraction;
 }
 function reset() {
+  if (freeCamera.active) freeCamera.toggle();
   opponent?.reset();
   touch.clear(); keys.clear(); input.reset(); clock.reset(); vehicle?.reset(); visual?.reset(); movementEffects?.reset();
   vehicleAudio?.reset(); combatAudio?.reset(); turret?.reset(); weapon?.reset(); projectiles?.reset(); combatEffects?.reset();
@@ -297,7 +302,7 @@ async function start() {
     sun.intensity = 1.05 + stormFlash * 0.25;
     followCamera.aiming = !mgMode && (combatInput.aiming || touch.aiming);
     const alpha = clock.advance(dt, step => {
-      const command = input.resolve(observation?.keys() ?? Object.fromEntries(Object.entries(keys.keys).map(([key, value]) => [key, value || touch.keys[key as keyof typeof touch.keys]])) as typeof keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
+      const command = freeCamera.active ? { throttle: 0, steer: 0, brake: 1 } : input.resolve(observation?.keys() ?? Object.fromEntries(Object.entries(keys.keys).map(([key, value]) => [key, value || touch.keys[key as keyof typeof touch.keys]])) as typeof keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
       vehicle!.beforeStep(step, command);
       movementEffects!.fixedUpdate(vehicle!, step);
       opponent?.beforeStep(step);
@@ -361,6 +366,7 @@ async function start() {
     combatEffects!.render(alpha);
     followCamera.update(vehicle, tank.anchor.position, Math.min(dt, 0.1), turret);
     if (mgMode) machineGun!.updateCamera();
+    freeCamera.update(dt);
     hudElapsed += dt;
     combatResultTime = Math.max(0, combatResultTime - dt);
     if (combatResultTime === 0 && lastCombatResult) lastCombatResult = '';
@@ -374,7 +380,8 @@ async function start() {
       vehicleAudio.update(audioSnapshot, dt);
     }
     scene.render();
-    aim.render(vehicle, mgMode ? machineGun! : turret!);
+    if (!freeCamera.active) aim.render(vehicle, mgMode ? machineGun! : turret!);
+    else { aim.marker.hidden = true; aim.label.hidden = true; }
     observation?.frame(dt, vehicle);
   });
 }
@@ -394,6 +401,7 @@ function dispose() {
   window.removeEventListener('keydown', weaponKey);
   tacticalHud.dispose();
   touch.dispose();
+  freeCamera.dispose();
   pointerLock.dispose();
   combatInput.dispose();
   window.removeEventListener('pointerdown', unlockOnGesture);

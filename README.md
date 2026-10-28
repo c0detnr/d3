@@ -103,3 +103,5 @@ Sol tık tek 120 mm AP mermisi ateşler; 6,5 saniyelik dolum süresi HUD'da gör
 ## Masaüstü fare kilidi
 
 Oyun alanına veya **OYUNA GİR** düğmesine tıkla: imleç gizlenir ve oyun alanına kilitlenir. Fareyi sürüklemeden kamerayı yönlendirebilirsin. İlk giriş tıklaması ateş etmez. **Esc** fareyi serbest bırakır; yeniden tıklayarak devam edebilirsin. Kilit kaybında sürüş, nişan ve ateş girdileri temizlenir. Ana oyun ve LAN sayfasında geçerlidir; dokunmatik kontroller değişmez. `combat:test` fare kilidi ve odak kontrollerini de çalıştırır.
+
+Haritada `0` ile serbest uçuş kamerasına geçip önceki görüşe dönebilirsin. `W/A/S/D` hareket, `Q/E` alçal/yüksel, `Shift` hızlan; fare bakışı yönlendirir. Serbest kamerada tank sürüşü ve silah girdileri kapatılır. Kamera kontrolü: `node --experimental-strip-types scripts/check-free-camera.ts`.

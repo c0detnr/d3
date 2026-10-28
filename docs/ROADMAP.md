@@ -199,3 +199,9 @@ Kullanıcının seçtiği kapalı askerî bakım tesisi ayrı Blender MCP sahnes
 Ortak CombatEffects içinde top/MG parlaması, namlu gazı, yüzey/basınç tozu, metal kıvılcımı, hasarlı tank alevi ve tek seferlik 25 kare imha paketin görsellerine bağlandı. Yerel/LAN çağrıları ve hasar/atış kuralları korunur. [Dosya eşlemesi ve PNG dönüşümü](../assets/vfx/brackeys/README.md).
 
 `check-combat.ts`, `mg:test`, `lan:check`, `map:build` geçti. Atlas başlangıç/orta/son kare, render tekrarında ilerlememe, bitince gizlenme, MG/hasar doku yönlendirmesi, havuz sınırı ve üç temizlik çevrimi doğrulandı. Chrome'da geçici kontrol sahnesinde başlangıç/orta kare incelendi; hata günlüğü boş. [Görsel kanıt](previews/brackeys-combat.png). Geçici kontrol sayfası kaldırıldı. Gerçek maçta uzun performans ve insan kabulü açık; M1/M2/M3 tamamlandı sayılmaz.
+
+### 2026-10-28 — Serbest uçuş kamerası
+
+Harita önizlemesinde `0` (veya numpad 0) önceki görüşten serbest uçuşa geçer, tekrar basınca önceki tank/genel görüşe döner. WASD bakışa göre hareket, Q/E alçalma/yükselme, Shift hızlı uçuş; hızlar 25/100 m/s. Uçuş sırasında sürüş frenlenir, silah ve kule girdileri kapatılır; dünya simülasyonu devam eder. Odak/fare kilidi kaybında uçuş tuşları temizlenir.
+
+`node --experimental-strip-types scripts/check-free-camera.ts` geçiş/tekrar, konum/geri dönüş, sürüş/savaş girdi kapıları, 30/60/120 FPS eşitliği, hız, fare, odak kaybı ve kaynak temizliğini geçti. `map:build` geçti (mevcut büyük paket uyarısı). Chrome içinde Kül Vadisi açıldı; otomasyon Pointer Lock alamadığı için etkileşimli uçuş ve insan hissi kabulü açık. M1/M2/M3 genel kabulü değişmez.
