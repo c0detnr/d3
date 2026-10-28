@@ -4,7 +4,7 @@
     "nature": {
       "trees": 76,
       "quarryRocks": 20,
-      "decorativePlants": 358
+      "decorativePlants": 360
     },
     "01": {
       "visibleSizeMetres": [
@@ -41,7 +41,7 @@
           "route": "center-B-A",
           "firstContactSeconds": 58.43333333333333,
           "fullRouteSeconds": 119.08333333333333,
-          "minUp": 0.9901049411055698
+          "minUp": 0.9901049391794249
         },
         {
           "route": "east-A-B",
@@ -73,7 +73,7 @@
         {
           "route": "creek-102-east-west",
           "fullRouteSeconds": 61.05,
-          "minUp": 0.984963345210624
+          "minUp": 0.9849633999847599
         },
         {
           "route": "field--35-A-B",
@@ -136,7 +136,7 @@
           "route": "center-B-A",
           "firstContactSeconds": 59.93333333333333,
           "fullRouteSeconds": 122.3,
-          "minUp": 0.9904888215005515
+          "minUp": 0.9904888872445125
         },
         {
           "route": "east-A-B",
@@ -158,7 +158,7 @@
         {
           "route": "creek--102-east-west",
           "fullRouteSeconds": 61.083333333333336,
-          "minUp": 0.9842618954858996
+          "minUp": 0.9842618876828029
         },
         {
           "route": "creek-102-west-east",
@@ -168,7 +168,7 @@
         {
           "route": "creek-102-east-west",
           "fullRouteSeconds": 61.083333333333336,
-          "minUp": 0.9842618831351713
+          "minUp": 0.9842618110231314
         },
         {
           "route": "field--35-A-B",

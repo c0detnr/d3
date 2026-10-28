@@ -26,3 +26,7 @@ Varsayılan canlı Blender özet çağrısı yanıt vermediği için kullanıcı
 - `node --experimental-strip-types scripts/check-concrete-emplacement.ts`: gerçek GLB ile Babylon/Havok içe aktarımı, yedi gizli collider, ana duvar ve kırık köşe mermi ışınları, iki yanda açıklık ve kaynak temizliği geçti.
 
 Oyun haritasına yerleştirme, tankla yakın sürüş/kamera ve gerçek cihaz performansı bu varlık tesliminde yapılmadı. K2 ve genel M1/M2/M3 kabulü kapanmadı.
+
+## Harita entegrasyonu — 2026-10-28
+
+Kül Vadisi merkezindeki altı geçici beton siperin yerine metre ölçeği korunarak yerleştirildi. Kuzey/güney cepheleri karşılıklı; yedi collider gizlenip statik Havok'a bağlandı. Gerçek haritada ana duvar, kırık köşe açıklığı, iki yandan geçiş, iki tankla rota ve kaynak temizliği kontrolleri geçti. [Yerleşim ve oyun görüntüsü](../../../docs/CENTER_BATTLEFIELD.md#2026-10-28--hazır-binalar-ve-beton-mevziler). İnsan yakın sürüş/kamera ve performans kabulü açık.

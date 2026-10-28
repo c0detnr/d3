@@ -4,10 +4,10 @@
 
 ## Yerleşim
 
-Merkez yaklaşık 230 × 310 m'lik açık arazi kesitidir; haritanın tamamı 720 × 720 m taslağını korur. Hangar batı kenarında (−135, −36), atölye doğu kenarında (132, −48), geçici depo (138, 66). Kapalı binalar orta alanı daraltmaz; kaynak modeller değiştirilmedi.
+Merkez yaklaşık 230 × 310 m'lik açık arazi kesitidir; haritanın tamamı 720 × 720 m taslağını korur. Hangar batı kenarında (−135, −36), atölye doğu kenarında (132, −48), ikinci atölye/depo (138, 66). Kapalı binalar orta alanı daraltmaz; kaynak modeller değiştirilmedi.
 
 - Dört geniş/alçak toprak sırtı: 2.7–2.8 m yükseklik, 26–28 m yatay yarıçap. Dört sığ çöküntü: 1.2–1.6 m derinlik. Metre değerleri ilk oynanış ayarıdır.
-- Şaşırtmalı altı beton siper grubu: 10–15 m genişlik, 2.3–2.7 m yükseklik. Yüksekliği farklı tanklar için gövde saklama ve köşeden çıkma seçenekleri; iki ucundan dolaşılabilir.
+- Şaşırtmalı altı hazır beton mevzi: 8.4 × 3.5 m ayak izi, demir uçlarıyla 2.672 m yükseklik. Yüksekliği farklı tanklar için gövde saklama ve köşeden çıkma seçenekleri; iki ucundan dolaşılabilir.
 - Altı çift kaya kümesi: toplam 12 statik kaya, 4–6 m ana kaya genişliği. Üçgen çarpışma görünen kaya yüzeyini takip eder.
 - 18 m ana yol ve iki kuru dere bağlantısı açık kalır. Düz merkez koridoruna ek olarak iki tarafta arazi üzerinden ilerlenebilir. Siperler kesintisiz duvar veya güvenli tünel oluşturmaz.
 - Seyrek hazır ot/çalı, küçük beton kırıkları, paslı metal parçaları ve kırık çift palet izleri. Bitkiler ve küçük ayrıntılar tankı/mermiyi durdurmaz. Palet izleri arazi yüksekliğine oturur; fizik gövdesi yoktur.
@@ -47,3 +47,13 @@ Sekiz yeni GLB, özgün geometri ve en çok 512 px dokularla yaklaşık 4 MB tut
 ## Asset üretim ilerlemesi — 2026-10-28
 
 1 numaralı beton mevzi setinin ilk 8 m düz parçası Blender MCP ile üretildi. [Teslim ve kontroller](../assets/environment/concrete_emplacement_01/README.md). Hasarlı panel silüeti çarpışmaya taşındı; GLB yeniden aktarım ve Babylon/Havok mermi/yan açıklık kontrolü geçti. Haritaya yerleştirme ve diğer set varyantları henüz yok.
+
+## 2026-10-28 — Hazır binalar ve beton mevziler
+
+Üslerdeki `A-hangar` (0, −336) ve `B-hangar` (0, 336) kutuları mevcut bakım hangarıyla değiştirildi. B hangarı 180° dönük; iki kapalı cephe de kendi sevk avlusuna bakar. Merkezdeki `factory-store` (138, 66) kutusu mevcut atölyeyle değiştirildi. Önceki fabrika hangarı/atölyesiyle toplam üç hangar ve iki atölye vardır. Gerçek model ölçekleri ve arazi tabanları korunur; onarım/kapı mekaniği eklenmedi.
+
+Altı geçici beton siper, [hasarlı beton mevzi GLB](../assets/environment/concrete_emplacement_01/README.md) ile değiştirildi. Her biri 8.4 × 3.5 m; kuzey/güney çiftleri karşılıklı cephelere bakar. Modeller uzatılmadı; önceki 10–15 m bloklara göre daha kısa siper sunar. Yedi ayrı collider, kırık üst köşeler ve iki yandan dolaşma açıklığı korunur. Atölye/mevzi isabetleri beton, hangar isabetleri metal yüzey tepkisi verir.
+
+`check-kul-vadisi.ts`: beş binada gerçek GLB, zemin/ayak izi, kapı yönü ve mermi engelleme; altı mevzide gizli collider, ana duvar/kırık köşe ve yan geçiş kontrolü geçti. İki tankla ana koridorlar, dere bağlantıları ve merkez geçişleri iki yönde; iki kur/temizle çevrimi geçti. `map:check` ve `map:build` geçti; mevcut büyük paket uyarısı sürüyor. [Ham sürüş sonucu](kul-vadisi-results.json).
+
+Chrome, 1255 × 493 görünümünde merkezde atölyeler, yeni mevziler ve açık yollar incelendi; [oyun görüntüsü](previews/kul-ready-structures.png). FPS ölçümü, tankla insan yakın sürüş/kamera kabulü ve taktik denge açık; K2 ve genel kilometre taşları kapanmadı.

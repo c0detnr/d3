@@ -19,6 +19,7 @@ scene.physicsEnabled = false; const physics = scene.getPhysicsEngine()!; physics
 const warmup = await loadTankModel(scene, new Uint8Array(await readFile(new URL('../assets/tanks/iron_dust_01/iron_dust_01.glb', import.meta.url))), Vector3.Zero()); warmup.dispose();
 const baseline = { meshes: scene.meshes.length, materials: scene.materials.length, textures: scene.textures.length };
 const factorySources = {
+  emplacement: new Uint8Array(await readFile(new URL('../assets/environment/concrete_emplacement_01/concrete_emplacement_01.glb', import.meta.url))),
   hangar: new Uint8Array(await readFile(new URL('../assets/environment/maintenance_hangar_01/maintenance_hangar_01.glb', import.meta.url))),
   workshop: new Uint8Array(await readFile(new URL('../assets/environment/maintenance_workshop_01/maintenance_workshop_01.glb', import.meta.url))),
 };
@@ -79,14 +80,18 @@ try {
       assert.ok(hit.hasHit && hit.body?.transformNode.name === id, `${id}: mermiyi durduran siper`);
       assert.equal(hit.body?.transformNode.metadata.surface, id === 'factory-hangar' ? 'metal' : 'concrete');
     }
-    for (const id of ['factory-hangar', 'factory-workshop']) {
+    for (const id of ['A-hangar', 'B-hangar', 'factory-hangar', 'factory-workshop', 'factory-store']) {
       assert.equal(scene.getMeshByName(`${id}-mark`), null, 'No placeholder roof marker');
       const structure = KUL_STRUCTURES.find(s => s.id === id)!;
       const meshes = scene.meshes.filter(m => m.metadata?.structure === id);
       const visible = meshes.filter(m => m.isVisible);
       const colliders = meshes.filter(m => m.metadata?.gltf?.extras?.collision_only);
-      assert.equal(colliders.length, id === 'factory-hangar' ? 3 : 6);
+      assert.equal(colliders.length, structure.kind === 'hangar' ? 3 : 6);
       assert.ok(colliders.every(m => !m.isVisible && !m.isPickable), 'Collision geometry is hidden');
+      if (structure.team) {
+        const facade = visible.find(m => m.name === 'MH01_Recess_Geometry')!;
+        assert.ok((facade.getBoundingInfo().boundingBox.centerWorld.z - structure.z) * (structure.team === 'B' ? -1 : 1) > 0, `${id}: hangar courtyard orientation`);
+      }
       const minY = Math.min(...visible.map(m => m.getBoundingInfo().boundingBox.minimumWorld.y));
       assert.ok(Math.abs(minY - kulTerrainHeight(structure.x, structure.z)) < 0.001, 'Building grounded');
       const minX = Math.min(...visible.map(m => m.getBoundingInfo().boundingBox.minimumWorld.x));
@@ -95,21 +100,46 @@ try {
       for (const dx of [-structure.width / 2, 0, structure.width / 2]) for (const dz of [-structure.depth / 2, 0, structure.depth / 2]) {
         assert.ok(Math.abs(kulTerrainHeight(structure.x + dx, structure.z + dz) - minY) < 0.001, 'Level pad');
       }
-      const from = new Vector3(structure.x, minY + 2, structure.z - structure.depth);
+      const from = new Vector3(structure.x, minY + 2, structure.z + (structure.team === 'B' ? -1 : 1) * (structure.depth / 2 + 5));
       const hit = physics.raycast(from, new Vector3(structure.x, minY + 2, structure.z));
       assert.ok(hit.hasHit && hit.body?.transformNode.metadata?.structure === id, `${id}: actual GLB blocks projectiles`);
-      assert.equal(hit.body?.transformNode.metadata.surface, 'metal');
+      assert.equal(hit.body?.transformNode.metadata.surface, structure.kind === 'hangar' ? 'metal' : 'concrete');
       for (const side of [-1, 1]) {
         const x = structure.x + side * (structure.width / 2 + 3);
-        const hit = physics.raycast(new Vector3(x, minY + 2, structure.z - structure.depth), new Vector3(x, minY + 2, structure.z + structure.depth));
+        const hit = physics.raycast(new Vector3(x, minY + 2, structure.z - structure.depth / 2 - 3), new Vector3(x, minY + 2, structure.z + structure.depth / 2 + 3));
         assert.ok(!hit.hasHit, `${id}: no invisible box outside building`);
       }
     }
     for (const [i, p] of KUL_FIELD_COVER.entries()) {
-      const mesh = scene.getMeshByName(`field-cover-${i}`)!;
-      const from = mesh.position.add(new Vector3(0, 0, -p.depth / 2 - 0.2));
-      const hit = physics.raycast(from, mesh.position.add(new Vector3(0, 0, p.depth / 2 + 0.2)));
-      assert.ok(hit.hasHit && hit.body?.transformNode.metadata?.hardCover, `Beton siper ${i}: ${hit.body?.transformNode.name}, pos ${mesh.position.asArray()}`);
+      const mesh = scene.getTransformNodeByName(`field-cover-${i}`)!;
+      assert.ok(mesh, 'Hazır mevzi yüklendi');
+      const colliders = scene.meshes.filter(m => m.metadata?.structure === `field-cover-${i}` && m.metadata?.gltf?.extras?.collision_only);
+      assert.equal(colliders.length, 7);
+      assert.ok(colliders.every(m => !m.isVisible && !m.isPickable));
+      assert.ok(colliders.every(m => m.metadata.surface === 'concrete'));
+      const visible = scene.meshes.filter(m => m.metadata?.structure === `field-cover-${i}` && m.isVisible);
+      const bounds = visible.map(m => m.getBoundingInfo().boundingBox);
+      const minX = Math.min(...bounds.map(b => b.minimumWorld.x)), maxX = Math.max(...bounds.map(b => b.maximumWorld.x));
+      const minZ = Math.min(...bounds.map(b => b.minimumWorld.z)), maxZ = Math.max(...bounds.map(b => b.maximumWorld.z));
+      const groundY = Math.min(...bounds.map(b => b.minimumWorld.y));
+      assert.ok(Math.abs(maxX - minX - 8.4) < .001 && Math.abs(maxZ - minZ - 3.5) < .001, 'Mevzi metre ölçeğinde');
+      assert.ok(Math.abs((minX + maxX) / 2 - p.x) < .001 && Math.abs((minZ + maxZ) / 2 - p.z) < .001, 'Mevzi noktaya ortalı');
+      assert.ok(Math.abs(groundY - kulTerrainHeight(p.x, p.z)) < .001, 'Mevzi zemine oturur');
+      const buttress = colliders.find(m => m.name.startsWith('COL_RearButtress'))!;
+      assert.equal(Math.sign(buttress.getBoundingInfo().boundingBox.centerWorld.z - p.z), Math.sign(p.z), 'Payandalar cepheden uzağa bakar');
+      for (const side of [-1, 1]) {
+        const x = p.x + side * 3.9, y = groundY + 2.4;
+        const hit = physics.raycast(new Vector3(x, y, p.z - 1.9), new Vector3(x, y, p.z + 1.9));
+        assert.ok(!hit.hasHit, 'Kırık üst köşe görünmez duvarla kapanmaz');
+      }
+      const y = kulTerrainHeight(p.x, p.z) + 1.5;
+      const from = new Vector3(p.x, y, p.z - p.depth);
+      const hit = physics.raycast(from, new Vector3(p.x, y, p.z + p.depth));
+      assert.ok(hit.hasHit && hit.body?.transformNode.metadata?.structure === `field-cover-${i}`, `Beton siper ${i}: ${hit.body?.transformNode.name}, pos ${mesh.position.asArray()}`);
+      for (const side of [-1, 1]) {
+        const x = p.x + side * 3.9, y = kulTerrainHeight(p.x, p.z) + 2.4;
+        assert.ok(!physics.raycast(new Vector3(x, y, p.z - p.depth), new Vector3(x, y, p.z + p.depth)).hasHit, 'Broken upper corners have no invisible wall');
+      }
       // Both ends have enough space for a tank to pass around the cover.
       for (const side of [-1, 1]) {
         const x = p.x + side * (p.width / 2 + 4);

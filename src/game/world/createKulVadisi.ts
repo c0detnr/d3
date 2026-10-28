@@ -9,8 +9,8 @@ const factorySources = {
   workshop: new URL('../../../assets/environment/maintenance_workshop_01/maintenance_workshop_01.glb', import.meta.url).href,
 };
 
-/** K1 terrain with B1 factory buildings; no objective/repair logic. */
-export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sources: { hangar: string | Uint8Array; workshop: string | Uint8Array } = factorySources, natureSources?: Record<keyof typeof fieldSources, string | Uint8Array>) {
+/** K1 terrain with ready-made base/factory buildings; no objective/repair logic. */
+export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sources: { hangar: string | Uint8Array; workshop: string | Uint8Array; emplacement?: string | Uint8Array } = factorySources, natureSources?: Record<keyof typeof fieldSources, string | Uint8Array>) {
   let battlefield: Awaited<ReturnType<typeof createKulBattlefield>> | undefined;
   const buildings: Awaited<ReturnType<typeof loadFactoryBuilding>>[] = [];
   const meshes: Mesh[] = [], materials: StandardMaterial[] = [], bodies: PhysicsAggregate[] = [];
@@ -41,17 +41,17 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
   }
   VertexData.ComputeNormals(positions, indices, normals);
   const data = new VertexData(); Object.assign(data, { positions, indices, normals, colors, uvs }); data.applyToMesh(terrain); solid(terrain);
-  const concrete = material('kul-concrete', '#828575'), hangar = material('kul-hangar', '#56615B');
+  const concrete = material('kul-concrete', '#828575');
   const teams = { A: material('kul-team-A', '#84AEBC'), B: material('kul-team-B', '#BA7959') };
   const marker = material('kul-neutral-marker', '#D5C7AB');
   for (const s of KUL_STRUCTURES) {
-    if (s.id === 'factory-hangar' || s.id === 'factory-workshop') continue;
+    if (s.kind === 'hangar' || s.kind === 'workshop') continue;
     const mesh = MeshBuilder.CreateBox(s.id, { width: s.width, depth: s.depth, height: s.height }, scene);
     // Base of large placeholders is embedded so sloped terrain leaves no underpass.
     const y = Math.min(...[-1, 1].flatMap(dx => [-1, 1].map(dz => kulTerrainHeight(s.x + dx * s.width / 2, s.z + dz * s.depth / 2))));
     mesh.position.set(s.x, y + s.height / 2, s.z);
-    mesh.material = s.kind === 'hangar' ? hangar : concrete; mesh.receiveShadows = true;
-    mesh.metadata = { blockout: true, structure: s.id, kind: s.kind, hardCover: true, surface: s.kind === 'berm' ? 'soil' : s.kind === 'hangar' ? 'metal' : 'concrete' };
+    mesh.material = concrete; mesh.receiveShadows = true;
+    mesh.metadata = { blockout: true, structure: s.id, kind: s.kind, hardCover: true, surface: s.kind === 'berm' ? 'soil' : 'concrete' };
     meshes.push(mesh); solid(mesh);
     if (s.kind !== 'berm') {
       const strip = MeshBuilder.CreateBox(`${s.id}-mark`, { width: s.width * 0.8, depth: s.depth * 0.8, height: 0.12 }, scene);
@@ -71,12 +71,13 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
     dispose() { battlefield?.dispose(); buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); surface.dispose(); },
   };
   try {
-    for (const [id, source] of [['factory-hangar', sources.hangar], ['factory-workshop', sources.workshop]] as const) {
-      const building = await loadFactoryBuilding(scene, source, KUL_STRUCTURES.find(s => s.id === id)!);
+    for (const structure of KUL_STRUCTURES) {
+      if (structure.kind !== 'hangar' && structure.kind !== 'workshop') continue;
+      const building = await loadFactoryBuilding(scene, sources[structure.kind], structure);
       buildings.push(building);
       ground.shadowCasters.push(...building.shadowCasters);
     }
-    battlefield = await createKulBattlefield(scene, natureSources);
+    battlefield = await createKulBattlefield(scene, natureSources, sources.emplacement);
     ground.shadowCasters.push(...battlefield.shadowCasters);
     return ground;
   } catch (error) { ground.dispose(); throw error; }

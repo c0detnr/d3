@@ -1,5 +1,6 @@
 import { Color3, LoadAssetContainerAsync, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, StandardMaterial, TransformNode, Vector3, type AssetContainer, type Scene } from '@babylonjs/core';
 import { registerBuiltInLoaders } from '@babylonjs/loaders/dynamic.js';
+import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
 import { KUL_FIELD_COVER, KUL_FIELD_ROCKS } from './kulBattlefieldLayout.ts';
 import { KUL_STRUCTURES, kulRoadDistance, kulTerrainHeight } from './kulVadisiLayout.ts';
 
@@ -20,7 +21,7 @@ export const fieldSources = {
 };
 
 /** Central cover, wooded ridges and quarry dressing. Small details never receive physics bodies. */
-export async function createKulBattlefield(scene: Scene, sources: Record<keyof typeof fieldSources, string | Uint8Array> = fieldSources) {
+export async function createKulBattlefield(scene: Scene, sources: Record<keyof typeof fieldSources, string | Uint8Array> = fieldSources, emplacementSource: string | Uint8Array = new URL('../../../assets/environment/concrete_emplacement_01/concrete_emplacement_01.glb', import.meta.url).href) {
   const meshes: Mesh[] = [], materials: StandardMaterial[] = [], bodies: PhysicsAggregate[] = [], assets: AssetContainer[] = [];
   const roots: { dispose(): void }[] = [];
   const dispose = () => {
@@ -43,13 +44,14 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
     meshes.push(mesh); if (hardCover) solid(mesh); return mesh;
   };
   try {
-    KUL_FIELD_COVER.forEach((p, i) => {
-      box(`field-cover-${i}`, p.x, p.z, p.width, p.depth, p.height, concrete, true);
-      // Wider foot and a weathered cap give the solid wall a readable silhouette.
-      box(`field-cover-foot-${i}`, p.x, p.z, p.width + 0.8, p.depth + 0.7, 0.4, concrete, true);
-      box(`field-cover-cap-${i}`, p.x, p.z, p.width + 0.15, p.depth + 0.15, 0.22, concrete).position.y += p.height - 0.25;
-      for (const side of [-1, 1]) box(`field-cover-end-${i}-${side}`, p.x + side * (p.width / 2 - 0.7), p.z, 1.4, p.depth + 0.5, p.height + 0.2, concrete, true);
-    });
+    for (const [i, p] of KUL_FIELD_COVER.entries()) {
+      const cover = await loadFactoryBuilding(scene, emplacementSource, {
+        ...p, id: `field-cover-${i}`, kind: 'emplacement', yaw: p.z > 0 ? Math.PI : 0,
+      });
+      roots.push(cover);
+      meshes.push(...cover.meshes);
+      cover.meshes.forEach(m => { m.metadata.battlefield = true; });
+    }
     const templates = {} as Record<keyof typeof sources, AssetContainer>;
     for (const key of Object.keys(sources) as (keyof typeof sources)[]) {
       const container = await LoadAssetContainerAsync(sources[key], scene, { pluginExtension: '.glb' }); assets.push(container);

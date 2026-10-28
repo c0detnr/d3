@@ -27,22 +27,22 @@ export function kulRoadDistance(x: number, z: number) {
   }
   return distance;
 }
-export type KulStructure = MapPoint & { id: string; team?: 'A' | 'B'; kind: 'outer' | 'inner' | 'command' | 'hangar' | 'workshop' | 'berm'; width: number; depth: number; height: number };
+export type KulStructure = MapPoint & { id: string; team?: 'A' | 'B'; kind: 'outer' | 'inner' | 'command' | 'hangar' | 'workshop' | 'berm' | 'emplacement'; width: number; depth: number; height: number; yaw?: number };
 const base: Omit<KulStructure, 'team'>[] = [
   { id: 'outer-west', kind: 'outer', x: -132, z: -183, width: 24, depth: 21, height: 9 },
   { id: 'outer-center', kind: 'outer', x: 9, z: -201, width: 24, depth: 21, height: 9 },
   { id: 'outer-east', kind: 'outer', x: 132, z: -183, width: 24, depth: 21, height: 9 },
   { id: 'inner', kind: 'inner', x: 0, z: -249, width: 30, depth: 24, height: 11 },
   { id: 'command', kind: 'command', x: -42, z: -282, width: 30, depth: 24, height: 14 },
-  { id: 'hangar', kind: 'hangar', x: 0, z: -336, width: 36, depth: 24, height: 10 },
+  { id: 'hangar', kind: 'hangar', x: 0, z: -336, width: 40, depth: 24, height: 11.74 },
   { id: 'spawn-screen', kind: 'berm', x: 0, z: -279, width: 51, depth: 9, height: 8 },
 ];
 export const KUL_STRUCTURES: KulStructure[] = [
   ...base.map(s => ({ ...s, team: 'A' as const, id: `A-${s.id}` })),
-  ...base.map(s => ({ ...s, ...mirror(s), team: 'B' as const, id: `B-${s.id}` })),
+  ...base.map(s => ({ ...s, ...mirror(s), team: 'B' as const, id: `B-${s.id}`, yaw: Math.PI })),
   { id: 'factory-hangar', kind: 'hangar', x: -135, z: -36, width: 40, depth: 24, height: 11.74 },
   { id: 'factory-workshop', kind: 'workshop', x: 132, z: -48, width: 23, depth: 14, height: 6.71 },
-  { id: 'factory-store', kind: 'workshop', x: 138, z: 66, width: 24, depth: 24, height: 9 },
+  { id: 'factory-store', kind: 'workshop', x: 138, z: 66, width: 23, depth: 14, height: 6.71 },
 ];
 
 /** K0 provisional heights in metres. Roads are graded, with a smooth base apron. */
@@ -73,7 +73,7 @@ export function kulTerrainHeight(x: number, z: number) {
     }
   }
   for (const s of KUL_STRUCTURES) {
-    if (s.id !== 'factory-hangar' && s.id !== 'factory-workshop') continue;
+    if (s.kind !== 'hangar' && s.kind !== 'workshop') continue;
     const edge = Math.max(Math.abs(x - s.x) - s.width / 2, Math.abs(z - s.z) - s.depth / 2);
     if (edge < 6) {
       const blend = smooth(Math.max(0, edge) / 6);

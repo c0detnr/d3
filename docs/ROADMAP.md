@@ -241,3 +241,7 @@ Kül Vadisi batı sırtı, taş ocağı ve dere kıyılarına sekiz yeni hazır 
 ### 2026-10-28 — İlk hasarlı beton mevzi modeli
 
 Açık merkez için 8 m nominal uzunlukta, eğimli yüzlü ve üç arka payandalı özgün siper Blender MCP üzerinden üretildi. Taban dahil 8.4 × 3.5 m; beton 2.5 m, demir uçlarıyla 2.672 m. 1.090 görünür üçgen, 8 mat malzeme ve 7 ayrı collider / 164 üçgen. [Kaynak, GLB, önizlemeler ve kontroller](../assets/environment/concrete_emplacement_01/README.md). Blender GLB yeniden aktarımı ve doğrudan indeks sayımı; Babylon/Havok metre, ana duvar, kırık köşe boşluğu, yan açıklık ve kaynak temizliği kontrolü geçti. Oyun yerleşimi/yakın sürüş/kamera/performans kabulü açık; K2 ve M1/M2/M3 kapanmadı.
+
+### 2026-10-28 — Hazır çevre varlıklarının haritaya yayılması
+
+İki üs hangarı ve merkez depo geçici hacimleri hazır hangar/atölyeyle, altı merkez siperi hazır hasarlı beton mevziyle değiştirildi. Metre ölçeği, düz taban, karşılıklı cepheler ve statik sert siper davranışı uygulandı. Gerçek GLB/Havok ile bina/mevzi çarpışması, kırık köşe açıklığı, iki tankın iki yönlü rotaları ve kaynak temizliği; `map:check`, `map:build` geçti. Chrome merkez görünümü kaydedildi. [Yerleşim ve açık kabul](CENTER_BATTLEFIELD.md#2026-10-28--hazır-binalar-ve-beton-mevziler). Yakın insan sürüş/kamera, FPS ve taktik denge kabulü açık; K2/M1/M2/M3 kapanmadı.
