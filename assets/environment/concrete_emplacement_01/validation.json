@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "method": "Blender MCP GLB reimport",
+  "visible_triangles": 1090,
+  "visible_meshes": 10,
+  "materials": 8,
+  "collision_meshes": 7,
+  "collision_triangles": 164,
+  "bounds_min": [
+    -4.199999809265137,
+    -1.2000000476837158,
+    0.0
+  ],
+  "bounds_max": [
+    4.199999809265137,
+    2.299999952316284,
+    2.6718602180480957
+  ],
+  "metre_scale": true,
+  "ground_origin": true,
+  "external_textures": false,
+  "tank_in_export": false,
+  "game_integration_tested": false,
+  "collision_note": "7 marked meshes: footing, 3 damaged wall panels, 3 buttresses. Runtime must hide collision_only meshes and build static physics. Rebar, chips and loose rubble have no separate collider."
+}

@@ -280,3 +280,7 @@ K0 ölçü/sert siper taslağı ve K1 sürülebilir iskelet 2026-10-28 tarihinde
 - Kamera kesişmeleri, görüş okunabilirliği ve performansı cihaz/tarayıcı/çözünürlük/kalite bilgisiyle kaydet.
 
 **Bu belge güncellemesinde:** Mevcut dünya kodu ve proje belgeleri incelendi; üretim üç kanala ayrıldı ve K0–K7 teslim/kabul sırası yazıldı. Yerel Quaternius Standard paketi, lisansı, ilk seçkinin dosyaları ve glTF bağımlılıkları incelendi; yayıncı sayfasındaki lisans doğrulandı. Belge bağlantıları ve diff kontrolü yapıldı. Oyun testi, varlık aktarımı, Blender bağlantı/üretim kontrolü veya 5’e 5 denge testi yapılmadı. Harita onayı ve belge teslimi, uygulama veya oynanış kabulü değildir.
+
+## İlk açık alan mevzisi — 2026-10-28
+
+Kullanıcı mevcut çevre varlıklarına benzer bir beton mevziyi Blender MCP ile üretmeyi istedi; renk ajana bırakıldı. İlk 8 m düz parça üretildi: mat sıcak gri beton, açık kırık yüzeyleri, sınırlı paslı demir ve üç arka payanda. [Kaynak, GLB, önizleme ve doğrulama](../assets/environment/concrete_emplacement_01/README.md). L biçimi/diğer uzunluklar ve haritaya yerleştirme henüz yapılmadı; setin tümü tamamlandı sayılmaz.

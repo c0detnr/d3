@@ -237,3 +237,7 @@ Kullanıcının isteğiyle merkez açık araziye dönüştürüldü; bakım yap�
 ### 2026-10-28 — Quaternius doğa setiyle çevre zenginleştirme
 
 Kül Vadisi batı sırtı, taş ocağı ve dere kıyılarına sekiz yeni hazır modelle 76 ağaç, 20 kaya ve 358 bitki/çakıl yerleştirildi. Merkez ve ana yollar açık tutuldu. Gerçek GLB/Havok ile iki tankın iki yönlü bütün rotaları, ağaç gövdesi isabeti, yol açıklığı ve kaynak temizliği geçti; `map:build` geçti. Chrome genel/merkez görünümü incelendi. [Teslim ve açık kabul](CENTER_BATTLEFIELD.md#2026-10-28--hazır-doğa-setiyle-harita-zenginleştirme). FPS/insan sürüş ve genel kilometre taşı kabulü açık.
+
+### 2026-10-28 — İlk hasarlı beton mevzi modeli
+
+Açık merkez için 8 m nominal uzunlukta, eğimli yüzlü ve üç arka payandalı özgün siper Blender MCP üzerinden üretildi. Taban dahil 8.4 × 3.5 m; beton 2.5 m, demir uçlarıyla 2.672 m. 1.090 görünür üçgen, 8 mat malzeme ve 7 ayrı collider / 164 üçgen. [Kaynak, GLB, önizlemeler ve kontroller](../assets/environment/concrete_emplacement_01/README.md). Blender GLB yeniden aktarımı ve doğrudan indeks sayımı; Babylon/Havok metre, ana duvar, kırık köşe boşluğu, yan açıklık ve kaynak temizliği kontrolü geçti. Oyun yerleşimi/yakın sürüş/kamera/performans kabulü açık; K2 ve M1/M2/M3 kapanmadı.

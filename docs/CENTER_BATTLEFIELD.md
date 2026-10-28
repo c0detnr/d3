@@ -43,3 +43,7 @@ Batı sırtında çam/geniş yapraklı/kuru ağaçlar, doğudaki taş ocağında
 Sekiz yeni GLB, özgün geometri ve en çok 512 px dokularla yaklaşık 4 MB tutar. Yaprak alfa maskesi korunur. Kaynak ve tekrar üretim: [Quaternius teslimi](../assets/environment/quaternius_nature/README.md).
 
 `check-kul-vadisi.ts`: gerçek modellerle ağaç gövdesi isabeti/yol açıklığı, iki tankla bütün ana yollar, dere bağlantıları ve iki merkez geçişinin iki yönde sürüşü, iki kur/temizle çevrimi geçti. `npm run map:build` geçti; mevcut büyük JavaScript paket uyarısı sürüyor. Chrome 1255 × 549 görünümünde genel harita ve merkez incelendi; [merkez görüntüsü](previews/kul-nature-center.png). FPS ölçümü, tank yüksekliğinden insan sürüş hissi ve genel K2/M1/M2/M3 kabulü açık.
+
+## Asset üretim ilerlemesi — 2026-10-28
+
+1 numaralı beton mevzi setinin ilk 8 m düz parçası Blender MCP ile üretildi. [Teslim ve kontroller](../assets/environment/concrete_emplacement_01/README.md). Hasarlı panel silüeti çarpışmaya taşındı; GLB yeniden aktarım ve Babylon/Havok mermi/yan açıklık kontrolü geçti. Haritaya yerleştirme ve diğer set varyantları henüz yok.
