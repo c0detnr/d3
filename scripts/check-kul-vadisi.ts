@@ -4,7 +4,7 @@ import { ArcRotateCamera, HavokPlugin, NullEngine, Scene, Vector3 } from '@babyl
 import HavokPhysics from '@babylonjs/havok';
 import { KUL_FIELD_COVER, KUL_FIELD_ROCKS, KUL_FIELD_RELIEF } from '../src/game/world/kulBattlefieldLayout.ts';
 import { createKulVadisi } from '../src/game/world/createKulVadisi.ts';
-import { KUL_ROUTES, KUL_CONNECTIONS, KUL_STRUCTURES, KUL_SPAWNS, KUL_STEP, kulTerrainHeight, type MapPoint } from '../src/game/world/kulVadisiLayout.ts';
+import { KUL_ROUTES, KUL_CONNECTIONS, KUL_STRUCTURES, KUL_SPAWNS, KUL_STEP, kulTerrainHeight, kulRoadDistance, type MapPoint } from '../src/game/world/kulVadisiLayout.ts';
 import { loadTankModel } from '../src/game/vehicle/loadTankModel.ts';
 import { extractTankRig } from '../src/game/vehicle/tankRig.ts';
 import { TankVehicle } from '../src/game/vehicle/TankVehicle.ts';
@@ -25,6 +25,14 @@ const factorySources = {
 const natureSources = {
   rock1: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Rock_Medium_1.glb', import.meta.url))),
   rock2: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Rock_Medium_2.glb', import.meta.url))),
+  pine: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Pine_5.glb', import.meta.url))),
+  pineTall: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Pine_2.glb', import.meta.url))),
+  deadTree: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/DeadTree_2.glb', import.meta.url))),
+  broadTree: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/CommonTree_3.glb', import.meta.url))),
+  rock3: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Rock_Medium_3.glb', import.meta.url))),
+  pebble: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Pebble_Square_2.glb', import.meta.url))),
+  shortGrass: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Grass_Common_Short.glb', import.meta.url))),
+  fern: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Fern_1.glb', import.meta.url))),
   bush: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Bush_Common.glb', import.meta.url))),
   grass: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Grass_Wispy_Short.glb', import.meta.url))),
 };
@@ -121,6 +129,16 @@ try {
     for (const mesh of scene.meshes.filter(m => m.getTotalVertices() > 0 && (m.name.startsWith('field-plant-') || m.name.startsWith('field-rubble-')))) {
       assert.ok(!mesh.physicsBody && !mesh.isPickable, 'Küçük dekor tankı veya mermiyi durdurmaz');
     }
+    const trees = scene.meshes.filter(m => m.metadata?.treeTrunk);
+    assert.ok(trees.length >= 40, 'Wooded ridge and scattered dead trees loaded');
+    for (const trunk of trees) {
+      assert.ok(kulRoadDistance(trunk.position.x, trunk.position.z) > 13, 'Tree trunks leave routes clear');
+      assert.ok(!trunk.isVisible && trunk.physicsBody, 'Only simple hidden trunks receive physics');
+      const hit = physics.raycast(trunk.position.add(new Vector3(-2, 0, 0)), trunk.position.add(new Vector3(2, 0, 0)));
+      assert.ok(hit.hasHit && hit.body?.transformNode === trunk, 'Trunk blocks projectiles');
+    }
+    results.nature = { trees: trees.length, quarryRocks: scene.meshes.filter(m => m.name.startsWith('quarry-rock-') && m.getTotalVertices() > 0).length,
+      decorativePlants: scene.meshes.filter(m => /^(ridge-understory|creek-plant|creek-pebble)-/.test(m.name) && m.getTotalVertices() > 0).length };
     for (const p of KUL_FIELD_RELIEF) assert.ok(Number.isFinite(kulTerrainHeight(p.x, p.z)));
     if (!cycle) {
       for (const tankId of ['01', '02']) {

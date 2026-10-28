@@ -35,3 +35,11 @@ Her özgün model için ayrı `.blend`, `.glb`, önizleme, metre/eksen/çarpış
 - Chrome 1570 × 617 görünümünde **Savaş alanına bak** ile merkez incelendi: kenardaki binalar, açık yol, beton/kaya siperleri ve arazi dalgaları görüldü. Sonrasında tarayıcı bağlantısı kapandı; ayrı ekran görüntüsü dosyası kaydedilemedi. Bu kontrol tank yüksekliğinden insan sürüş/kamera kabulü değildir.
 
 FPS ölçümü, siper başına taktik denge ve 5'e 5 maç kontrolü yapılmadı. Genel K2 ve M1/M2/M3 kabulü bu kesitle tamamlanmış sayılmaz.
+
+## 2026-10-28 — Hazır doğa setiyle harita zenginleştirme
+
+Batı sırtında çam/geniş yapraklı/kuru ağaçlar, doğudaki taş ocağında iri kayalar ve seyrek kuru ağaçlar, iki dere kıyısında alçak bitki ve çakıllar eklendi. Mevcut merkez siperleri, binalar, yollar ve arazi yüksekliği korunur. Son sabit yerleşim: 76 ağaç, 20 ek taş ocağı kayası ve 358 ek bitki/çakıl. Kayalar sert siperdir; ağaçlarda yalnız yaklaşık gövde çarpışması vardır. Bitki ve çakıllar dekoratif; yıkılma yoktur.
+
+Sekiz yeni GLB, özgün geometri ve en çok 512 px dokularla yaklaşık 4 MB tutar. Yaprak alfa maskesi korunur. Kaynak ve tekrar üretim: [Quaternius teslimi](../assets/environment/quaternius_nature/README.md).
+
+`check-kul-vadisi.ts`: gerçek modellerle ağaç gövdesi isabeti/yol açıklığı, iki tankla bütün ana yollar, dere bağlantıları ve iki merkez geçişinin iki yönde sürüşü, iki kur/temizle çevrimi geçti. `npm run map:build` geçti; mevcut büyük JavaScript paket uyarısı sürüyor. Chrome 1255 × 549 görünümünde genel harita ve merkez incelendi; [merkez görüntüsü](previews/kul-nature-center.png). FPS ölçümü, tank yüksekliğinden insan sürüş hissi ve genel K2/M1/M2/M3 kabulü açık.

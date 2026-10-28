@@ -1,6 +1,11 @@
 {
   "description": "Gerçek GLB + Havok; otomatik rota takibi, insan sürüş/denge kabulü değildir. İlk temas orta hattın 15 m yakınına varıştır; düşmanla karşılaşma değildir.",
   "results": {
+    "nature": {
+      "trees": 76,
+      "quarryRocks": 20,
+      "decorativePlants": 358
+    },
     "01": {
       "visibleSizeMetres": [
         4.159999847412109,

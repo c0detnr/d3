@@ -118,3 +118,5 @@ Haritada `0` ile serbest uçuş kamerasına geçip önceki görüşe dönebilirs
 Kül Vadisi merkez fabrikasında gerçek Blender hangarı ve atölyesi yer alır; sağdaki **Fabrikaya bak** düğmesi ikisini yakından gösterir. Kapalı binalar statik sert siperdir. [Yerleşim, kontroller ve oyun görüntüsü](docs/KUL_VADISI_BLOCKOUT.md#b1--hangar-ve-atölye-entegrasyonu).
 
 Kül Vadisi merkezinde açık arazi siperleri, beton/kaya mevzileri ve seyrek çevre ayrıntıları mevcut. **Savaş alanına bak** düğmesi merkezi gösterir. [Yerleşim ve sonraki asset planı](docs/CENTER_BATTLEFIELD.md).
+
+Kül Vadisi batı sırtında hazır ağaç grupları, doğudaki taş ocağında iri kayalar ve dere kıyılarında bitki/çakıl kümeleri bulunur. [Doğa yerleşimi ve doğrulama](docs/CENTER_BATTLEFIELD.md#2026-10-28--hazır-doğa-setiyle-harita-zenginleştirme).
