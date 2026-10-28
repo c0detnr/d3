@@ -1,5 +1,15 @@
 # Kararlar ve açık konular
 
+## 2026-10-28 — Kül Vadisi 5’e 5 üs saldırısı
+
+- **Kesin kullanıcı kararları:** İki takımda beşer oyuncu; kuzey/güney ana üsler; ormanlık sırt, merkez fabrika ve taş ocağından oluşan üç koridor; yan geçitler. Koridor başına ve takım başına bir büyük dış savunma, üs girişinde ortak iç savunma; ayrı korunaklı doğma hangarları ve komuta merkezi.
+- **Kazanma yolu:** Tek koridorun dış savunmasını kırıp ortak iç savunmayı aşarak komuta merkezini yok etmek yeterli; diğer iki koridoru temizlemek zorunlu değil.
+- **Önceki planla ilişki:** 2026-10-24 kaydındaki 6’ya 6 ve merkezde tek ele geçirme alanı önerileri bu tasarım için geçersiz. 800 × 800 m ve 30–45 saniye kesin değerler değil.
+- **Açık:** Yeniden doğma/koruma, maç süresi, yapı can/ateş ve hasara açılma kuralları, son ölçüler, üs mimarisi. Onarım hangarı ve konvoy oynanış önerisi olarak kalır.
+- **Gerekçe:** Kullanıcı koridor savunmalarını aşarak düşman üssüne ilerlemeyi seçti ve önerilen harita düzenini onayladı.
+- **Durum:** Yalnız belge teslimi; 5’e 5 sistem veya harita üretimi başlamadı. M1/M2/M3 kabulü değişmez.
+- **Etkilenen belgeler:** [Harita ve model planı](MAP_AND_MODEL_PLAN.md), README belge haritası, bu karar kaydı.
+
 ## Kullanıcı tarafından belirlenen kararlar — 2026-10-23
 
 | Konu | Karar |
