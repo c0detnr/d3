@@ -1,0 +1,11 @@
+# İlerleme
+- Hangar üretim, render, yeniden aktarım betikleri ve ART_DIRECTION okundu.
+- Varsayılan MCP çağrısı bekliyor; izole MCP stdio bağlantısına geçiliyor.
+- Ayrı görünür Blender 5.2.1 süreci, 9880 köprüsü ve resmî blender-mcp stdio sunucusu üzerinden gerçek özet çağrısı geçti.
+- Kaba hacim MCP üzerinden üretildi: 18 × 12 × 5,1 m ana gövde, yan sundurma; 320 üçgen. Kaynak kaydedildi. Gerçek tankla kaba render sürüyor.
+- Ayrıntı ve GLB export MCP üzerinden tamamlandı: 3.641 görünür üçgen, 10 malzeme, 6 çarpışma mesh / 72 üçgen.
+- MCP ile ayrı sahnede GLB yeniden aktarımı geçti: ölçek, sınırlar, zemin, çarpışma extras, materyal ve dış doku kontrolü. Bağımsız GLB indeks sayımı da geçti.
+- Blender export kullanılmayan MeshOptimizer kitaplığı için uyarı verdi; sıkıştırmasız GLB başarıyla üretildi ve tekrar içe aktarıldı.
+- Ön ve arka render görsel incelendi. Kaynak sahnede tank objesi kalmadığı ve 6 collision mesh korunduğu MCP ile doğrulandı.
+- Python AST, teslim belge bağlantıları ve stage diff whitespace kontrolleri geçti. Oyun kodu değişmediği için oyun testleri çalıştırılmadı.
+- Yalnız atölye dosyaları ve ilgili MAP_AND_MODEL_PLAN/ROADMAP parçaları stage edildi; mevcut kirli çalışmalar korunuyor.

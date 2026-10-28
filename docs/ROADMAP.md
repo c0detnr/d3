@@ -211,3 +211,7 @@ Harita önizlemesinde `0` (veya numpad 0) önceki görüşten serbest uçuşa ge
 Ayrı seçilen 720 × 720 m taslak, 18 m yollar, iki üs, üç koridor, iki dere bağlantısı ve geçici fabrika/savunma hacimleri uygulandı. Altı dış savunma, iki iç savunma ve iki komuta merkezi işaretli; doğma hangarları ayrı. Gerçek GLB ölçüsü, iki tankla bütün yolların iki yönlü Havok sürüşü, orta hatta erişim, tam rota ve dönüş süreleri kaydedildi. [Teslim, ölçüler, kontroller ve sınırlar](KUL_VADISI_BLOCKOUT.md).
 
 `check-kul-vadisi.ts`, `map:test`, `drive:test`, `check-camera.ts` ve `map:build` geçti; büyük paket uyarısı mevcut. K0 ölçü/sert siper taslağı ve K1 sürülebilir iskelet teslim edildi. İnsan sürüş/görüş kabulü, beş araçlı avlu ve gerçek maç dengesi açık; K1 nihai kabulü ve M1/M2/M3 kapatılmadı. Blender hangarı, doğa varlıkları ve hedef mekanikleri bu haritaya henüz entegre edilmedi.
+
+### 2026-10-28 — B1 küçük bakım atölyesi
+
+Hangarı tamamlayan beton ağırlıklı 18 × 12 m kapalı atölye Blender MCP ile bağımsız varlık olarak üretildi: panelli servis kapısı, üst pencereler, yan sundurma ve çatı havalandırması. [Kaynak, GLB, tankla önizlemeler ve doğrulama](../assets/environment/maintenance_workshop_01/README.md). 3.641 görünür üçgen, 10 malzeme; ayrı 6 çarpışma mesh'i / 72 üçgen. Blender GLB yeniden aktarımı ve doğrudan GLB indeks sayımı geçti; ölçek/zemin/sınır ve dış doku bağımsızlığı doğrulandı. Oyun entegrasyonu ve performans kontrolü yapılmadı; K2 ve genel M1/M2/M3 kabulü açık.

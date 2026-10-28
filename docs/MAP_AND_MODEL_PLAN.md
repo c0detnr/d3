@@ -190,7 +190,7 @@ Aşağıdaki dosyalar yerel `glTF/` klasöründe mevcut. Bunlar üretim adaylar�
 
 **İlk Blender işi:** B1 içindeki hangar ve atölye; ardından B2 dış savunma yapısı. Doğa paketinde uygun kaya/ağaç bulunduğu için eski 15 özgün çevre modeli önerisi artık başlangıç üretim listesi değildir.
 
-**2026-10-28 B1 başlangıcı:** Kullanıcı kapalı askerî bakım tesisi seçti ve Blender MCP ile modellemeyi açıkça istedi. İlk hangar 32 × 22 m ana hacim, alçak yan servis kanadı, kademeli çatı ve kapalı sürgülü kapıyla üretildi. Mat zeytin yeşili metal, beton kaide ve seyrek uyarı işaretleri kullanıldı. Bu ölçüler ilk model taslağıdır; K0/K1 harita yerleşimi sınanmadan bağımsız varlık üretimine geçilmesi bu isteğin kapsamıdır. Atölye ve savunma yapıları henüz üretilmedi; K2 kabulü tamamlanmadı.
+**2026-10-28 B1 başlangıcı:** Kullanıcı kapalı askerî bakım tesisi seçti ve Blender MCP ile modellemeyi açıkça istedi. İlk hangar 32 × 22 m ana hacim, alçak yan servis kanadı, kademeli çatı ve kapalı sürgülü kapıyla üretildi. Mat zeytin yeşili metal, beton kaide ve seyrek uyarı işaretleri kullanıldı. Bu ölçüler ilk model taslağıdır; K0/K1 harita yerleşimi sınanmadan bağımsız varlık üretimine geçilmesi bu isteğin kapsamıdır. Küçük atölye de sonraki kullanıcı isteğiyle üretildi; [kaynak, GLB ve kontroller](../assets/environment/maintenance_workshop_01/README.md). Savunma yapıları henüz üretilmedi; K2 kabulü tamamlanmadı.
 
 ### Blender MCP üretim döngüsü
 
