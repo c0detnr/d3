@@ -57,3 +57,7 @@ Altı geçici beton siper, [hasarlı beton mevzi GLB](../assets/environment/conc
 `check-kul-vadisi.ts`: beş binada gerçek GLB, zemin/ayak izi, kapı yönü ve mermi engelleme; altı mevzide gizli collider, ana duvar/kırık köşe ve yan geçiş kontrolü geçti. İki tankla ana koridorlar, dere bağlantıları ve merkez geçişleri iki yönde; iki kur/temizle çevrimi geçti. `map:check` ve `map:build` geçti; mevcut büyük paket uyarısı sürüyor. [Ham sürüş sonucu](kul-vadisi-results.json).
 
 Chrome, 1255 × 493 görünümünde merkezde atölyeler, yeni mevziler ve açık yollar incelendi; [oyun görüntüsü](previews/kul-ready-structures.png). FPS ölçümü, tankla insan yakın sürüş/kamera kabulü ve taktik denge açık; K2 ve genel kilometre taşları kapanmadı.
+
+### Mevzi yerleşimi son kontrolü
+
+Altı mevzide gerçek GLB ölçeği, zemin hizası, karşılıklı cephe/payanda yönleri, beton yüzey, yedi gizli collider, kırık üst köşe ve yan açıklık kontrolleri geçti. İki tankın iki yönlü rota ve kaynak temizleme kontrolü, `map:build` başarılı. Chrome 1570 × 617 merkez görünümü incelendi; warn/error günlüğü boş. [Son oyun görüntüsü](previews/kul-concrete-emplacements.png). İnsan yakın sürüş/kamera ve FPS kabulü açık.
