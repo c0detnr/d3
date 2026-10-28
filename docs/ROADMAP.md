@@ -192,3 +192,10 @@ Brackeys VFX Bundle v1 indirildi; kaynak varlıklar ve CC0 lisansı `assets/vfx/
 ### 2026-10-28 — B1 kapalı askerî bakım hangarı
 
 Kullanıcının seçtiği kapalı askerî bakım tesisi ayrı Blender MCP sahnesinde üretildi: 32 × 22 m ana hacim, alçak servis kanadı, kapalı sürgülü kapı ve kademeli çatı. [Kaynak, GLB, önizlemeler ve kontroller](../assets/environment/maintenance_hangar_01/README.md). 4.809 görünür üçgen, 10 malzeme ve 52 üçgenlik üç ayrı çarpışma mesh'i. GLB yeniden içe aktarımında ölçek/zemin/sınırlar, üçgen sayımı, çarpışma işaretleri ve doku bağımsızlığı doğrulandı; gerçek IRON DUST 02 ile Blender önizlemeleri incelendi. Oyun kodu değişmedi; Babylon/Havok/mermi entegrasyonu, harita yerleşimi ve performans kabulü açık. K0/K1/K2 ve genel M1/M2/M3 bu varlık teslimiyle tamamlanmaz.
+
+
+### 2026-10-28 — Brackeys savaş efektleri
+
+Ortak CombatEffects içinde top/MG parlaması, namlu gazı, yüzey/basınç tozu, metal kıvılcımı, hasarlı tank alevi ve tek seferlik 25 kare imha paketin görsellerine bağlandı. Yerel/LAN çağrıları ve hasar/atış kuralları korunur. [Dosya eşlemesi ve PNG dönüşümü](../assets/vfx/brackeys/README.md).
+
+`check-combat.ts`, `mg:test`, `lan:check`, `map:build` geçti. Atlas başlangıç/orta/son kare, render tekrarında ilerlememe, bitince gizlenme, MG/hasar doku yönlendirmesi, havuz sınırı ve üç temizlik çevrimi doğrulandı. Chrome'da geçici kontrol sahnesinde başlangıç/orta kare incelendi; hata günlüğü boş. [Görsel kanıt](previews/brackeys-combat.png). Geçici kontrol sayfası kaldırıldı. Gerçek maçta uzun performans ve insan kabulü açık; M1/M2/M3 tamamlandı sayılmaz.

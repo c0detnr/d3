@@ -1,27 +1,20 @@
-import { Color3, Color4, Constants, PointLight, RawTexture, Sprite, SpriteManager, Texture, Vector3, type Scene } from '@babylonjs/core';
+import { Color3, Color4, Constants, PointLight, Sprite, SpriteManager, Texture, Vector3, type Scene } from '@babylonjs/core';
 import { IMPACT_FEEDBACK, type ImpactSurface } from './ImpactSurface.ts';
 import type { DamageState } from './DamageModel.ts';
 import { seededRandom } from '../world/terrain.ts';
 
-/** Original code-generated textures: sharp luminous core and irregular, translucent gas. */
-function createTexture(scene: Scene, smoke: boolean) {
-  const size = 64, pixels = new Uint8Array(size * size * 4);
-  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-    const u = (x + 0.5) / size * 2 - 1, v = (y + 0.5) / size * 2 - 1;
-    const angle = Math.atan2(v, u);
-    const edge = smoke ? 0.81 + 0.08 * Math.sin(angle * 5 + 1) + 0.06 * Math.cos(angle * 7) : 1;
-    const radial = Math.max(0, 1 - Math.hypot(u, v) / edge);
-    const detail = 0.62 + 0.16 * Math.sin(u * 17 + Math.sin(v * 13))
-      + 0.12 * Math.cos(v * 23 - u * 9) + 0.1 * Math.sin(u * 39 + v * 31);
-    const alpha = smoke ? Math.min(1, radial * 3) * radial ** 0.4 * detail : radial ** 3;
-    pixels.set([255, 255, 255, Math.round(alpha * 255)], (y * size + x) * 4);
-  }
-  const texture = RawTexture.CreateRGBATexture(pixels, size, size, scene, false, false, Texture.BILINEAR_SAMPLINGMODE);
-  texture.name = smoke ? 'original-combat-turbulent-gas' : 'original-combat-flash';
-  return texture;
-}
+type ParticleKind = 'flash' | 'smoke' | 'dust' | 'spark' | 'fire' | 'explosion';
+const EFFECT_TEXTURES = {
+  flash: new URL('../../../assets/vfx/brackeys/particles/alpha/muzzle_02_a.png', import.meta.url).href,
+  smoke: new URL('../../../assets/vfx/brackeys/particles/alpha/smoke_07_a.png', import.meta.url).href,
+  dust: new URL('../../../assets/vfx/brackeys/particles/alpha/smoke_01_a.png', import.meta.url).href,
+  spark: new URL('../../../assets/vfx/brackeys/particles/alpha/trace_01_a.png', import.meta.url).href,
+  fire: new URL('../../../assets/vfx/brackeys/particles/alpha/flame_01_a.png', import.meta.url).href,
+  explosion: new URL('../../../assets/vfx/brackeys/runtime/explosion_01.png', import.meta.url).href,
+};
+const PARTICLE_KINDS = Object.keys(EFFECT_TEXTURES) as ParticleKind[];
+const isLuminous = (kind: ParticleKind) => kind === 'flash' || kind === 'spark' || kind === 'fire';
 
-type ParticleKind = 'flash' | 'smoke' | 'dust' | 'spark';
 interface CombatParticle {
   previous: Vector3;
   position: Vector3;
@@ -39,11 +32,11 @@ interface CombatParticle {
 export interface BlastGround { point: Vector3; normal: Vector3 }
 export const COMBAT_PARTICLE_CAPACITY = 128;
 
-/** Fixed-step world-space effects. Gas and dust use alpha blending; only flash/sparks emit light. */
+/** Fixed-step world-space effects. Gas and dust use alpha blending; flashes, sparks and flames use additive blending. */
 export class CombatEffects {
   readonly particles: CombatParticle[] = [];
   private readonly managers: SpriteManager[];
-  private readonly sprites: Sprite[][];
+  private readonly sprites: Record<ParticleKind, Sprite[]>;
   private readonly random = seededRandom(9417);
   private cursor = 0;
   private readonly flashLight: PointLight;
@@ -53,21 +46,25 @@ export class CombatEffects {
     this.flashLight.diffuse = new Color3(1, 0.72, 0.42);
     this.flashLight.range = 12;
     this.flashLight.intensity = 0;
-    this.managers = [false, true].map(smoke => {
-      const manager = new SpriteManager(smoke ? 'combat-gas' : 'combat-flash', '', COMBAT_PARTICLE_CAPACITY, 64, scene);
-      manager.texture = createTexture(scene, smoke);
+    this.sprites = {} as Record<ParticleKind, Sprite[]>;
+    this.managers = PARTICLE_KINDS.map(kind => {
+      // The source filename says 8x8, but this explosion actually contains 5x5 frames.
+      const cellSize = kind === 'explosion' ? 1024 / 5 : 512;
+      const manager = new SpriteManager(`combat-${kind}`, EFFECT_TEXTURES[kind],
+        COMBAT_PARTICLE_CAPACITY, cellSize, scene, 0.01, Texture.BILINEAR_SAMPLINGMODE);
       manager.isPickable = false;
       manager.disableDepthWrite = true;
-      manager.blendMode = smoke ? Constants.ALPHA_COMBINE : Constants.ALPHA_ADD;
-      manager.fogEnabled = smoke;
+      manager.blendMode = isLuminous(kind) ? Constants.ALPHA_ADD : Constants.ALPHA_COMBINE;
+      manager.fogEnabled = !isLuminous(kind);
+      this.sprites[kind] = Array.from({ length: COMBAT_PARTICLE_CAPACITY }, (_, index) => {
+        const sprite = new Sprite(`combat-${kind}-${index}`, manager);
+        sprite.isVisible = false;
+        return sprite;
+      });
       return manager;
     });
-    this.sprites = this.managers.map(manager => Array.from({ length: COMBAT_PARTICLE_CAPACITY }, (_, index) => {
-      const sprite = new Sprite(`combat-effect-${manager.name}-${index}`, manager);
-      sprite.isVisible = false;
-      return sprite;
-    }));
   }
+
   private spawn(position: Vector3, velocity: Vector3, life: number, size: number,
     color: Color4, gravity = 0, kind: ParticleKind = 'smoke') {
     const particle: CombatParticle = {
@@ -150,10 +147,7 @@ export class CombatEffects {
   }
   destruction(point: Vector3) {
     this.flashLight.position.copyFrom(point); this.flashAge = 0;
-    for (let i = 0; i < 16; i++) {
-      const velocity = new Vector3((this.random() - 0.5) * 10, 1 + this.random() * 8, (this.random() - 0.5) * 10);
-      this.spawn(point, velocity, 0.12 + this.random() * 0.24, 1 + this.random() * 1.8, new Color4(1, 0.48, 0.12, 0.85), 0, 'flash');
-    }
+    this.spawn(point, Vector3.Zero(), 1.25, 3.8, new Color4(1, 1, 1, 1), 0, 'explosion');
     this.armorImpact(point, Vector3.Up(), true);
   }
   /** Called at a fixed 20 Hz per vehicle; emitters follow the current engine deck. */
@@ -168,7 +162,7 @@ export class CombatEffects {
     if (destroyed || critical) {
       const flame = point.add(new Vector3((this.random() - 0.5) * 0.7, 0, (this.random() - 0.5) * 0.7));
       this.spawn(flame, new Vector3(0.1, 2.8, 0), 0.24 + this.random() * 0.3,
-        destroyed ? 1.1 : 0.5, new Color4(1, 0.32 + this.random() * 0.2, 0.04, 0.55), 0, 'flash');
+        destroyed ? 1.1 : 0.5, new Color4(1, 0.32 + this.random() * 0.2, 0.04, 0.55), 0, 'fire');
     }
   }
   fixedUpdate(dt: number) {
@@ -181,38 +175,38 @@ export class CombatEffects {
       particle.age += dt;
       particle.velocity.y += particle.gravity * dt;
       particle.position.addInPlace(particle.velocity.scale(dt));
-      const luminous = particle.kind === 'flash' || particle.kind === 'spark';
+      const luminous = isLuminous(particle.kind);
       particle.velocity.scaleInPlace(Math.exp(-(luminous ? 1.2 : 3.2) * dt));
       if (particle.kind === 'smoke') particle.velocity.addInPlace(new Vector3(0.6, 0.2, 0.15).scale(dt));
     }
   }
   render(alpha: number) {
-    this.sprites[0].forEach((flash, index) => {
-      const smoke = this.sprites[1][index];
-      flash.isVisible = smoke.isVisible = false;
+    for (let index = 0; index < COMBAT_PARTICLE_CAPACITY; index++) {
+      for (const kind of PARTICLE_KINDS) this.sprites[kind][index].isVisible = false;
       const particle = this.particles[index];
-      if (!particle || particle.age >= particle.life) return;
+      if (!particle || particle.age >= particle.life) continue;
       const age = particle.previousAge + (particle.age - particle.previousAge) * alpha;
       const t = age / particle.life;
-      if (t >= 1) return;
-      const luminous = particle.kind === 'flash' || particle.kind === 'spark';
-      const sprite = luminous ? flash : smoke;
+      if (t >= 1) continue;
+      const luminous = isLuminous(particle.kind);
+      const sprite = this.sprites[particle.kind][index];
       sprite.isVisible = true;
       Vector3.LerpToRef(particle.previous, particle.position, alpha, sprite.position);
-      const growth = luminous ? 1 - t * 0.6 : 0.65 + t * 2.8;
+      const growth = particle.kind === 'explosion' ? 1 + t * 0.4 : luminous ? 1 - t * 0.6 : 0.65 + t * 2.8;
       sprite.width = particle.size * growth;
-      sprite.height = sprite.width * (luminous ? 0.8 : 0.85 + t * 0.15);
-      sprite.angle = particle.angle + particle.spin * age;
-      const fade = luminous ? (1 - t) ** 1.5 : Math.min(1, age / 0.045) * (1 - t) ** 1.4;
+      sprite.height = sprite.width * (particle.kind === 'fire' ? 1.6 : particle.kind === 'spark' ? 2.5 : 1);
+      sprite.angle = particle.kind === 'fire' || particle.kind === 'explosion' ? 0 : particle.angle + particle.spin * age;
+      sprite.cellIndex = particle.kind === 'explosion' ? Math.min(24, Math.floor(t * 25)) : 0;
+      const fade = particle.kind === 'explosion' ? 1 : luminous ? (1 - t) ** 1.5 : Math.min(1, age / 0.045) * (1 - t) ** 1.4;
       sprite.color = new Color4(particle.color.r, particle.color.g, particle.color.b, particle.color.a * fade);
-    });
+    }
   }
   reset() {
     this.cursor = 0;
     this.flashAge = Infinity;
     this.flashLight.intensity = 0;
     this.particles.length = 0;
-    this.sprites.flat().forEach(sprite => { sprite.isVisible = false; });
+    Object.values(this.sprites).flat().forEach(sprite => { sprite.isVisible = false; });
   }
   dispose() { this.flashLight.dispose(); this.managers.forEach(manager => manager.dispose()); }
 }

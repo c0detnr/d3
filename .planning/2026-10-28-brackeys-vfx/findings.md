@@ -1,2 +1,4 @@
 # Bulgular
 Paket sayfası CC0 ve 26 MB v1 indirilebilir arşiv bildiriyor. Mevcut MovementEffects 64x64 prosedürel sprite kullanıyor. Sabit adımlı DustSimulation ve 320 parçacık kapasitesi korunacak. Depoda ilgisiz devam eden değişiklikler var.
+Yeni kullanıcı isteği: paketi gerekli diğer efektlerde kullan. CombatEffects tek ortak 128 parçacık havuzuyla top/MG namlu, gaz, basınç tozu, yüzey isabetleri, zırh darbesi, imha ve sürekli hasar yangınını hem yerel hem LAN görünümüne sağlar. İki prosedürel doku tüm türlerde tekrar kullanılıyor. Bu ortak sınıfı güncellemek mevcut çağrıları kapsar.
+İmha flipbook dosya adı 8x8 dese de alfa sütunları ve görsel inceleme gerçek içeriğin 5x5 (25 kare) olduğunu gösteriyor. TGA piksel verisi değiştirilmeden PNG'ye dönüştürüldü; 204,8 px hücreyle normalize atlas UV'si kullanılıyor. Kıvılcım için paketin lightning biçimli spark görselleri yerine trace_01_a seçildi.

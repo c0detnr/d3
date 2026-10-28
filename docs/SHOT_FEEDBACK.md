@@ -13,10 +13,10 @@ Kamera hareketi yalnız sunumdadır: küçük pitch/yaw/roll, hızlı başlangı
 ## Namlu, gaz ve toz
 
 - 35–60 ms kısa parlama; tek, kısa ömürlü namlu ışığı.
-- Parlama ve gaz için ayrı, bu projede kodla üretilmiş dokular ve blend yöntemleri. Gaz dokusunun kenarı ve iç yoğunluğu düzensizdir.
+- Parlama ve gaz için ayrı CC0 Brackeys dokuları ve blend yöntemleri: `muzzle_02_a.png` ile `smoke_07_a.png`. Gaz dokusunun kenarı ve iç yoğunluğu düzensizdir.
 - Gaz gerçek namlu doğrultusunda konik yayılır; hızlı çıkış, sürüklenmeyle yavaşlama, genişleme, hafif yükselme ve sönme. Her atışta parçacık dağılımı değişir.
 - Namlu altına 4,5 m fizik sorgusu; yalnız `natural-terrain` isabetinde basınç tozu. Zeminden uzaklaştıkça yoğunluk azalır; havada veya başka yüzeyin üzerinde yapay toz üretilmez. Zemin tozu daha sıcak renkte ve yatay yayılımlıdır. Bunun dışında palet tozu değiştirilmedi.
-- Dünya uzayında toplam 128 aktif parçacık yuvası; ayrı parlama/gaz yöneticileri, her birinde 128 önceden ayrılmış sprite. Kaynaklar sahne kapanışında bırakılır. Ömrü biten sprite ara karede yeniden görünmez.
+- Dünya uzayında toplam 128 aktif parçacık yuvası; namlu/gaz/toz/kıvılcım/alev/imha için altı ayrı yönetici, her birinde 128 önceden ayrılmış sprite; bir parçacık yalnız kendi türünde görünür. Kaynaklar sahne kapanışında bırakılır. Ömrü biten sprite ara karede yeniden görünmez.
 
 ## Ses
 
