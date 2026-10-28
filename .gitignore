@@ -40,3 +40,23 @@ Thumbs.db
 /android/app/src/main/assets/
 /android/local.properties
 /artifacts/
+
+# Unity (unity/ projesi); Assets, Packages/manifest.json, packages-lock.json, ProjectSettings ve .meta dosyaları sürüm kontrolünde
+/unity/[Ll]ibrary/
+/unity/[Tt]emp/
+/unity/[Oo]bj/
+/unity/[Bb]uild/
+/unity/[Bb]uilds/
+/unity/[Ll]ogs/
+/unity/[Uu]ser[Ss]ettings/
+/unity/[Mm]emoryCaptures/
+/unity/*.csproj
+/unity/*.sln
+/unity/*.slnx
+/unity/*.suo
+/unity/*.user
+/unity/*.pidb
+/unity/*.booproj
+/unity/*.unityproj
+/unity/*.apk
+/unity/*.aab

@@ -1,5 +1,20 @@
 # Kararlar ve açık konular
 
+## 2026-10-28 — Unity'ye sıfırdan geçiş
+
+- **Kesin kullanıcı kararları** ([plan](UNITY_MIGRATION_PLAN.md) Karar kapısı, tümü önerilen seçenekle onaylandı):
+  1. Geçişin amacı masaüstü kalite ve editör iş akışıdır; hedef platform masaüstü (Windows/Linux), klavye ve fare, tek oyuncu.
+  2. Unity 6 LTS (6000.3 serisi). Kesin alt sürüm kurulumda resmi kaynaktan doğrulanır ve `ProjectSettings/ProjectVersion.txt` ile kilitlenir.
+  3. Render hattı URP.
+  4. Fizik yerleşik PhysX; DOTS/Havok kullanılmaz. `WheelCollider` yok, özel raycast süspansiyonu.
+  5. Aynı depoda `unity/` klasörü; web sürümü yerinde kalır, Blender kaynakları `assets/` altında kalır, Unity'ye kopyalanan GLB'ler `unity/Assets/Imported/` altına gider.
+  6. Girdi: yeni Input System paketi.
+  7. UI: UI Toolkit.
+  8. Web sürümü, Unity sürümü kabul koşullarını geçene kadar paralel sürdürülür, sonra arşivlenir; o zamana kadar silinmez ve bozulmaz.
+- **Sıra:** U0 altyapı → U1 varlıklar → U2 dünya → U3 sürüş → U4 kule/nişan → U5 savaş → U6 düello/AI → U7 UI/cila. LAN düello ve Android (U8) ertelendi.
+- **Açık:** Linux'ta Unity Editor kurulumu ve lisans etkinleştirmesi (Unity hesabı gerektirir), kesin 6000.3.x alt sürümü, arazi için prosedürel mesh (öneri, henüz karar değil), kamera için Cinemachine kullanımı, ses stratejisi, Git LFS ihtiyacı.
+- **Durum:** Yalnız karar kaydı; Unity projesi henüz oluşturulmadı. Mevcut web M1/M2/M3 kabul durumları değişmez.
+
 ## 2026-10-28 — Kül Vadisi 5’e 5 üs saldırısı
 
 - **Kesin kullanıcı kararları:** İki takımda beşer oyuncu; kuzey/güney ana üsler; ormanlık sırt, merkez fabrika ve taş ocağından oluşan üç koridor; yan geçitler. Koridor başına ve takım başına bir büyük dış savunma, üs girişinde ortak iç savunma; ayrı korunaklı doğma hangarları ve komuta merkezi.

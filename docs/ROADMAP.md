@@ -10,6 +10,21 @@ Leopard 2A6 esintili, kum beji ikinci tank için [B0–B9 planı](SECOND_TANK_BL
 
 [Çatışma ve hasar planı](COMBAT_DUEL_PLAN.md): İki tank aynı Havok dünyasında sabit adımla çalışır; `?duel=1` kolay modunda rakip görüşte yaklaşır, tepki süresiyle nişan alır ve yalnız açık görüşte top atar. Can, rakip AI topu ve R ile sıfırlama bağlandı. Bu ilk prototipte tam sonuç ekranı, engelden kurtulma davranışı ve tarayıcı/insan oynanış kabulü açık. Uzun vadeli M3 ve M1/M2 kabul durumları değişmez.
 
+## Unity geçişi — 2026-10-28
+
+**Durum:** Kararlar kesinleşti ([DECISIONS.md](DECISIONS.md), [plan](UNITY_MIGRATION_PLAN.md)); U0 başladı, Unity Editor henüz kurulu değil. Web sürümü Unity eşdeğerliğine kadar korunur; yukarıdaki web M1/M2/M3 durumları değişmez.
+
+| Aşama | Durum |
+|---|---|
+| U0 Karar ve altyapı | Devam ediyor: kararlar yazıldı, `.gitignore` hazır; editör kurulumu ve `unity/` projesi bekliyor |
+| U1 Varlık aktarımı | Bekliyor |
+| U2 Dünya | Bekliyor |
+| U3 Sürüş | Bekliyor |
+| U4 Kule ve nişan | Bekliyor |
+| U5 Savaş çekirdeği | Bekliyor |
+| U6 Düello ve AI | Bekliyor |
+| U7 UI ve cila | Bekliyor |
+
 ## Uygulamaya geçiş hazırlığı
 
 - Kullanıcı kodlamaya başlamayı istediğinde mevcut aşama kaydını güncelle.

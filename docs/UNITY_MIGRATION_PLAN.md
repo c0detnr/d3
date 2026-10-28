@@ -1,6 +1,6 @@
 # Unity'ye sıfırdan geçiş planı
 
-Durum: **ÖNERİ. Onaylanmış karar değildir.** Kullanıcı 2026-10-28 tarihinde planın hazırlanmasını ve yeni bir sohbette uygulanmasını istedi. Uygulamaya başlamadan önce "Karar kapısı" bölümü kullanıcıyla netleştirilir ve sonuç [DECISIONS.md](DECISIONS.md) içine kesin karar olarak yazılır.
+Durum: **Karar kapısındaki 8 madde 2026-10-28'de kullanıcı tarafından önerilen seçenekle onaylandı** ve [DECISIONS.md](DECISIONS.md) içine kesin karar olarak yazıldı. Aşamaların geri kalan ayrıntıları (arazi yöntemi, kamera, ses) hâlâ öneridir. U0 devam ediyor.
 
 Bu belge yeni bir sohbette tek başına okunup uygulanabilecek şekilde yazıldı. Önce [AGENTS.md](../AGENTS.md), [GAME_DESIGN.md](GAME_DESIGN.md), [ROADMAP.md](ROADMAP.md) ve [ARCHITECTURE.md](ARCHITECTURE.md) okunur.
 
