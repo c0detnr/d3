@@ -1,3 +1,4 @@
+import { KUL_FIELD_COVER, KUL_FIELD_RELIEF } from './kulBattlefieldLayout.ts';
 import { Vector3 } from '@babylonjs/core';
 import type { FollowCamera } from '../camera/FollowCamera.ts';
 import { KUL_PATHS, KUL_STRUCTURES, KUL_SPAWNS } from './kulVadisiLayout.ts';
@@ -24,16 +25,16 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
     }
   };
   toggle.addEventListener('click', view);
-  const factory = document.createElement('button'); factory.textContent = 'Fabrikaya bak';
+  const factory = document.createElement('button'); factory.textContent = 'Savaş alanına bak';
   const viewFactory = () => {
-    camera.overview(); camera.camera.position.set(-110, 48, -100); camera.camera.setTarget(new Vector3(-5, 2, -15));
+    camera.overview(); camera.camera.position.set(-100, 65, -130); camera.camera.setTarget(new Vector3(0, 0, -15));
     camera.scene.fogDensity = 0.00035; toggle.textContent = 'Tanka dön';
   };
   factory.addEventListener('click', viewFactory);
   if (active) {
     document.title = 'IRON DUST · Kül Vadisi';
     const header = document.createElement('strong'); header.textContent = 'KÜL VADİSİ'; panel.append(header);
-    const note = document.createElement('span'); note.textContent = 'Merkezde hangar ve atölye · W/A/S/D sürüş · R kurtar'; panel.append(note, toggle, factory);
+    const note = document.createElement('span'); note.textContent = 'Açık merkez · Siperler ve yan geçişler · W/A/S/D sürüş · R kurtar'; panel.append(note, toggle, factory);
     const bases = document.createElement('div');
     for (const base of ['A', 'B']) {
       const link = document.createElement('a'); const url = new URL(location.href); url.searchParams.set('base', base);
@@ -47,6 +48,8 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
     };
     node('rect', { x: -360, y: -360, width: 720, height: 720, fill: '#303b34', stroke: '#7a806c', 'stroke-width': 3 });
     for (const path of KUL_PATHS) node('polyline', { points: path.points.map(p => `${p.x},${p.z}`).join(' '), fill: 'none', stroke: path.id.startsWith('creek') ? '#718b8b' : '#bdab8b', 'stroke-width': 13 });
+    for (const p of KUL_FIELD_RELIEF) node('ellipse', { cx: p.x, cy: p.z, rx: p.rx, ry: p.rz, fill: p.height > 0 ? '#93936b' : '#222e26', opacity: 0.8 });
+    for (const p of KUL_FIELD_COVER) node('rect', { x: p.x - p.width / 2, y: p.z - p.depth / 2, width: p.width, height: p.depth, fill: '#d1cbb6' });
     for (const s of KUL_STRUCTURES) {
       node('rect', { x: s.x - s.width / 2, y: s.z - s.depth / 2, width: s.width, height: s.depth, fill: s.team === 'A' ? '#84aebc' : s.team === 'B' ? '#ba7959' : '#d5c7ab' });
       if (['outer', 'inner', 'command'].includes(s.kind)) {
@@ -58,7 +61,7 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
       const text = node('text', { x: p.x + 22, y: p.z + 8, fill: '#fff', 'font-size': 26 }); text.textContent = base;
     }
     panel.append(svg);
-    const legend = document.createElement('span'); legend.textContent = 'Batı: sırt · Merkez: fabrika · Doğu: ocak'; panel.append(legend);
+    const legend = document.createElement('span'); legend.textContent = 'Batı: sırt · Merkez: açık savaş alanı · Doğu: ocak'; panel.append(legend);
     const targets = document.createElement('span'); targets.textContent = 'D dış savunma · İ iç savunma · K komuta'; panel.append(targets);
   }
   document.body.append(panel);

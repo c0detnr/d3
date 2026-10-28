@@ -227,3 +227,9 @@ Hangarı tamamlayan beton ağırlıklı 18 × 12 m kapalı atölye Blender MCP i
 ### 2026-10-28 — B1 modelleri merkez fabrikada
 
 Hangar ve atölye Kül Vadisi merkezine gerçek GLB olarak yerleştirildi; metre ölçeği, düz bina tabanı, görünmez statik çarpışmalar, gölgeler ve kaynak temizliği bağlandı. **Fabrikaya bak** görünümü eklendi. `check-kul-vadisi.ts` gerçek modellerle mermi engelleme/yan açıklık, iki tankın bütün rotalarda iki yönlü sürüşü ve kaynak temizliğini geçti; `map:build` geçti. Chrome görünümü kaydedildi. [Teslim ve açık kabul](KUL_VADISI_BLOCKOUT.md#b1--hangar-ve-atölye-entegrasyonu). B2/çevre seti, insan sürüş/kamera ve performans kabulü açık; K2 ve genel kilometre taşları kapanmadı.
+
+### 2026-10-28 — Açık merkez savaş alanı
+
+Kullanıcının isteğiyle merkez açık araziye dönüştürüldü; bakım yapıları kenara taşındı. Dört alçak sırt, dört sığ çöküntü, altı beton siper grubu, 12 hazır kaya ve seyrek bitki/kırık malzeme/palet izi eklendi. Ana yollar ve dere bağlantıları korunur; loot yok. [Yerleşim, doğrulama ve sonraki asset planı](CENTER_BATTLEFIELD.md).
+
+`check-kul-vadisi.ts` iki gerçek tankla ana yollar ve iki merkez geçişini her iki yönde; siper mermi davranışı, yan açıklık ve kaynak temizliğini geçti. `map:test`, `drive:test`, `map:build` geçti. Chrome'da merkez görünümü incelendi; FPS, insan sürüş kabulü ve 5'e 5 denge açık. K2 ve genel kilometre taşları kapanmadı.

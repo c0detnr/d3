@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { ArcRotateCamera, HavokPlugin, NullEngine, Scene, Vector3 } from '@babylonjs/core';
 import HavokPhysics from '@babylonjs/havok';
+import { KUL_FIELD_COVER, KUL_FIELD_ROCKS, KUL_FIELD_RELIEF } from '../src/game/world/kulBattlefieldLayout.ts';
 import { createKulVadisi } from '../src/game/world/createKulVadisi.ts';
 import { KUL_ROUTES, KUL_CONNECTIONS, KUL_STRUCTURES, KUL_SPAWNS, KUL_STEP, kulTerrainHeight, type MapPoint } from '../src/game/world/kulVadisiLayout.ts';
 import { loadTankModel } from '../src/game/vehicle/loadTankModel.ts';
@@ -21,10 +22,16 @@ const factorySources = {
   hangar: new Uint8Array(await readFile(new URL('../assets/environment/maintenance_hangar_01/maintenance_hangar_01.glb', import.meta.url))),
   workshop: new Uint8Array(await readFile(new URL('../assets/environment/maintenance_workshop_01/maintenance_workshop_01.glb', import.meta.url))),
 };
+const natureSources = {
+  rock1: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Rock_Medium_1.glb', import.meta.url))),
+  rock2: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Rock_Medium_2.glb', import.meta.url))),
+  bush: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Bush_Common.glb', import.meta.url))),
+  grass: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Grass_Wispy_Short.glb', import.meta.url))),
+};
 const results: Record<string, unknown> = {};
 try {
   for (let cycle = 0; cycle < 2; cycle++) {
-    const map = await createKulVadisi(scene, 'A', factorySources); scene.render();
+    const map = await createKulVadisi(scene, 'A', factorySources, natureSources); scene.render();
     assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'outer').length, 6);
     assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'inner').length, 2);
     assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'command').length, 2);
@@ -90,6 +97,31 @@ try {
         assert.ok(!hit.hasHit, `${id}: no invisible box outside building`);
       }
     }
+    for (const [i, p] of KUL_FIELD_COVER.entries()) {
+      const mesh = scene.getMeshByName(`field-cover-${i}`)!;
+      const from = mesh.position.add(new Vector3(0, 0, -p.depth / 2 - 0.2));
+      const hit = physics.raycast(from, mesh.position.add(new Vector3(0, 0, p.depth / 2 + 0.2)));
+      assert.ok(hit.hasHit && hit.body?.transformNode.metadata?.hardCover, `Beton siper ${i}: ${hit.body?.transformNode.name}, pos ${mesh.position.asArray()}`);
+      // Both ends have enough space for a tank to pass around the cover.
+      for (const side of [-1, 1]) {
+        const x = p.x + side * (p.width / 2 + 4);
+        const y = Math.max(...[-7, 0, 7].map(dz => kulTerrainHeight(x, p.z + dz))) + 2;
+        const ray = physics.raycast(new Vector3(x, y, p.z - 7), new Vector3(x, y, p.z + 7));
+        assert.ok(!ray.hasHit, `Siper ${i} yanında geçiş açık`);
+      }
+    }
+    for (let i = 0; i < KUL_FIELD_ROCKS.length; i++) {
+      const mesh = scene.meshes.find(m => m.name.startsWith(`field-rock-${i}-`) && m.getTotalVertices() > 0)!;
+      assert.ok(mesh, 'Hazır kaya yüklendi');
+      const bounds = mesh.getBoundingInfo().boundingBox;
+      const center = bounds.centerWorld;
+      const hit = physics.raycast(center.add(new Vector3(0, 12, 0)), center);
+      assert.ok(hit.hasHit && hit.body?.transformNode.metadata?.hardCover, 'Kaya sert siperdir');
+    }
+    for (const mesh of scene.meshes.filter(m => m.getTotalVertices() > 0 && (m.name.startsWith('field-plant-') || m.name.startsWith('field-rubble-')))) {
+      assert.ok(!mesh.physicsBody && !mesh.isPickable, 'Küçük dekor tankı veya mermiyi durdurmaz');
+    }
+    for (const p of KUL_FIELD_RELIEF) assert.ok(Number.isFinite(kulTerrainHeight(p.x, p.z)));
     if (!cycle) {
       for (const tankId of ['01', '02']) {
         const tank = await loadTankModel(scene, new Uint8Array(await readFile(new URL(`../assets/tanks/iron_dust_${tankId}/iron_dust_${tankId}.glb`, import.meta.url))), map.spawn);
@@ -125,6 +157,10 @@ try {
         }
         for (const route of KUL_ROUTES) { drive(route.points, `${route.id}-A-B`); drive([...route.points].reverse(), `${route.id}-B-A`); }
         for (const connection of KUL_CONNECTIONS) { drive(connection.points, `${connection.id}-west-east`); drive([...connection.points].reverse(), `${connection.id}-east-west`); }
+        for (const x of [-35, 35]) {
+          const points = [-150, -40, 40, 150].map(z => ({ x, z }));
+          drive(points, `field-${x}-A-B`); drive([...points].reverse(), `field-${x}-B-A`);
+        }
         vehicle.reset(map.spawn); for (let i = 0; i < 180; i++) tick();
         let yawTravel = 0, lastYaw = vehicle.current.rotation.toEulerAngles().y, turnSeconds = 0;
         for (let i = 0; i < 60 * 45; i++) {

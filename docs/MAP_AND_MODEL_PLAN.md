@@ -56,6 +56,10 @@ Aşağıdaki şema bağlantıları gösterir; ölçekli arazi veya bina yerleşi
 
 2026-10-24 tarihli görsel bu proje için imagegen ile üretildi ve kullanıcı tarafından seçildi; dış oyundan varlık alınmadı. Orman, sanayi ve taş ocağı kimliği için referanstır. Yeni üsler ve savunma zinciri bu eski görselde gösterilmiş kabul edilmez. Görseldeki kontur rakamları, yol genişlikleri ve bina ölçüleri üretim verisi değildir.
 
+## Merkez için güncel kullanıcı kararı — 2026-10-28
+
+Merkez **açık arazi ağırlıklı geniş savaş alanı** olarak değiştirildi. Hangar ve atölye kenarlara taşındı; arada arazi sırtları, çöküntüler, beton/kaya siperleri, açık geçişler ve seyrek çevre detayları uygulandı. Loot kapsam dışı. Önceki yoğun fabrika/avlu anlatımının yerini bu merkez düzeni alır; üç koridor ve üs zinciri korunur. [Uygulama, doğrulama ve sonraki asset planı](CENTER_BATTLEFIELD.md).
+
 ## Bölge kimliği ve çatışma düzeni
 
 Ormanlık tepeler arasında, eski taş ocağına ve yük demiryoluna hizmet veren sanayi vadisi. Industrial Low Poly dilinde mat zeytin yeşili, tozlu toprak, grafit kaya ve paslı metal kullanılır. Fırtınalı atmosfer görüş okunabilirliğini bozmamalı.
@@ -63,7 +67,7 @@ Ormanlık tepeler arasında, eski taş ocağına ve yük demiryoluna hizmet vere
 | Bölge | Yerleşim | Oyun işlevi |
 |---|---|---|
 | Batı — ormanlık sırt | Büyük kayalar, kırılan yollar, alçak sırtlar ve ağaç kümeleri | Gövde saklama, konum değiştirerek ilerleme ve yan saldırı. Atış noktalarının dolaşılabilir arka/yan yaklaşımı olmalı. |
-| Merkez — fabrika alanı | Bakım hangarları, atölyeler, avlular ve yük vagonları | Üsler arasındaki en kısa yaklaşım; yakın çatışma ve yoğun baskı. Yapılar uzun düz atış hattını bölmeli. |
+| Merkez — açık savaş alanı | Alçak sırtlar, sığ çöküntüler, beton/kaya siperleri; kenarlarda bakım yapıları | Geniş manevra, gövde saklama, riskli açık geçişler ve yan saldırı. |
 | Doğu — taş ocağı | Sürülebilen basamaklar, servis yolları, kaya ve yükleme alanları | Daha uzun görüşler, yükselti kullanımı ve riskli açık alan geçişleri. Tek bir basamak bütün bölgeye hükmetmemeli. |
 | Yan bağlantılar — kuru dere ve servis geçitleri | Ana yollar arasında kısmen gizli hareket | Takviye, kuşatma ve geri çekilme. Çıkışları açıkta veya karşı konumdan görülebilir; bedelsiz güvenli kestirme olmamalı. |
 | Kuzey/güney — ana üsler | Ayrı doğma hangarları, sevk avlusu, komuta merkezi ve savunma girişi | Cepheye dağılım, son savunma ve maçın nihai hedefi. |

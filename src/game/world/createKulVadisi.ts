@@ -1,3 +1,4 @@
+import { createKulBattlefield, type fieldSources } from './createKulBattlefield.ts';
 import { Color3, Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, StandardMaterial, Vector3, VertexData, type Scene } from '@babylonjs/core';
 import { KUL_LIMIT, KUL_STEP, KUL_ROAD_WIDTH, KUL_SPAWNS, KUL_STRUCTURES, kulRoadDistance, kulTerrainHeight } from './kulVadisiLayout.ts';
 import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
@@ -9,7 +10,8 @@ const factorySources = {
 };
 
 /** K1 terrain with B1 factory buildings; no objective/repair logic. */
-export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sources: { hangar: string | Uint8Array; workshop: string | Uint8Array } = factorySources) {
+export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sources: { hangar: string | Uint8Array; workshop: string | Uint8Array } = factorySources, natureSources?: Record<keyof typeof fieldSources, string | Uint8Array>) {
+  let battlefield: Awaited<ReturnType<typeof createKulBattlefield>> | undefined;
   const buildings: Awaited<ReturnType<typeof loadFactoryBuilding>>[] = [];
   const meshes: Mesh[] = [], materials: StandardMaterial[] = [], bodies: PhysicsAggregate[] = [];
   const material = (id: string, color: string) => {
@@ -66,7 +68,7 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
   const ground = {
     spawn: new Vector3(start.x, kulTerrainHeight(start.x, start.z), start.z), terrain, meshes,
     shadowCasters: meshes.filter(m => m.isVisible && m !== terrain),
-    dispose() { buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); surface.dispose(); },
+    dispose() { battlefield?.dispose(); buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); surface.dispose(); },
   };
   try {
     for (const [id, source] of [['factory-hangar', sources.hangar], ['factory-workshop', sources.workshop]] as const) {
@@ -74,6 +76,8 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
       buildings.push(building);
       ground.shadowCasters.push(...building.shadowCasters);
     }
+    battlefield = await createKulBattlefield(scene, natureSources);
+    ground.shadowCasters.push(...battlefield.shadowCasters);
     return ground;
   } catch (error) { ground.dispose(); throw error; }
 }

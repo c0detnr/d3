@@ -1,3 +1,4 @@
+import { KUL_FIELD_COVER, KUL_FIELD_RELIEF } from './kulBattlefieldLayout.ts';
 import { smooth, terrainNoise } from './terrain.ts';
 
 export type MapPoint = { x: number; z: number };
@@ -9,7 +10,7 @@ const point = (x: number, z: number): MapPoint => ({ x, z });
 const mirror = (p: MapPoint) => point(-p.x, -p.z);
 export const KUL_ROUTES = [
   { id: 'west', name: 'Ormanlık sırt', points: [point(0, -309), point(-78, -300), point(-90, -240), point(-180, -180), point(-210, -90), point(-186, 0), point(-210, 90), point(-180, 180), point(-90, 240), point(-78, 300), point(0, 309)] },
-  { id: 'center', name: 'Fabrika', points: [point(0, -309), point(-78, -300), point(-78, -252), point(-30, -198), point(-24, -132), point(-24, -66), point(0, 0), point(24, 66), point(24, 132), point(30, 198), point(78, 252), point(78, 300), point(0, 309)] },
+  { id: 'center', name: 'Açık savaş alanı', points: [point(0, -309), point(-78, -300), point(-78, -252), point(-30, -198), point(-24, -132), point(-24, -66), point(0, 0), point(24, 66), point(24, 132), point(30, 198), point(78, 252), point(78, 300), point(0, 309)] },
   { id: 'east', name: 'Taş ocağı', points: [point(0, -309), point(78, -300), point(90, -240), point(180, -180), point(210, -90), point(186, 0), point(210, 90), point(180, 180), point(90, 240), point(78, 300), point(0, 309)] },
 ];
 export const KUL_CONNECTIONS = [-102, 102].map(z => ({ id: `creek-${z}`, name: 'Kuru dere', points: [point(-210, z), point(-108, z + 18), point(0, z), point(108, z - 18), point(210, z)] }));
@@ -39,9 +40,9 @@ const base: Omit<KulStructure, 'team'>[] = [
 export const KUL_STRUCTURES: KulStructure[] = [
   ...base.map(s => ({ ...s, team: 'A' as const, id: `A-${s.id}` })),
   ...base.map(s => ({ ...s, ...mirror(s), team: 'B' as const, id: `B-${s.id}` })),
-  { id: 'factory-hangar', kind: 'hangar', x: -54, z: 0, width: 40, depth: 24, height: 11.74 },
-  { id: 'factory-workshop', kind: 'workshop', x: 60, z: -45, width: 23, depth: 14, height: 6.71 },
-  { id: 'factory-store', kind: 'workshop', x: 72, z: 66, width: 24, depth: 24, height: 9 },
+  { id: 'factory-hangar', kind: 'hangar', x: -135, z: -36, width: 40, depth: 24, height: 11.74 },
+  { id: 'factory-workshop', kind: 'workshop', x: 132, z: -48, width: 23, depth: 14, height: 6.71 },
+  { id: 'factory-store', kind: 'workshop', x: 138, z: 66, width: 24, depth: 24, height: 9 },
 ];
 
 /** K0 provisional heights in metres. Roads are graded, with a smooth base apron. */
@@ -54,12 +55,23 @@ function rawTerrainHeight(x: number, z: number) {
   const bumps = (terrainNoise(x / 34 + 7, z / 34 + 19) - 0.5) * 6;
   const creek = Math.max(...KUL_CONNECTIONS.map(c => 1 - smooth((Math.abs(z - c.points[2].z) - 9) / 24)));
   const rim = smooth((Math.max(Math.abs(x), Math.abs(z)) - 350) / 10) * 24;
-  return front * (west + quarry + shelves * (1 - road) + bumps * (1 - road) - creek * 2) + rim;
+  const relief = KUL_FIELD_RELIEF.reduce((sum, p) => {
+    const radius = Math.hypot((x - p.x) / p.rx, (z - p.z) / p.rz);
+    return sum + p.height * (1 - smooth(radius));
+  }, 0) * (1 - road);
+  return relief + front * (west + quarry + shelves * (1 - road) + bumps * (1 - road) - creek * 2) + rim;
 }
 
 /** Level building pads with a six-metre apron; keep terrain and Havok on one surface. */
 export function kulTerrainHeight(x: number, z: number) {
   const height = rawTerrainHeight(x, z);
+  for (const p of KUL_FIELD_COVER) {
+    const edge = Math.max(Math.abs(x - p.x) - (p.width + 1) / 2, Math.abs(z - p.z) - (p.depth + 1) / 2);
+    if (edge < 3) {
+      const blend = smooth(Math.max(0, edge) / 3);
+      return rawTerrainHeight(p.x, p.z) * (1 - blend) + height * blend;
+    }
+  }
   for (const s of KUL_STRUCTURES) {
     if (s.id !== 'factory-hangar' && s.id !== 'factory-workshop') continue;
     const edge = Math.max(Math.abs(x - s.x) - s.width / 2, Math.abs(z - s.z) - s.depth / 2);

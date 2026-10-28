@@ -65,3 +65,7 @@ Hangarın üç, atölyenin altı `collision_only` mesh'i görünmez statik Havok
 Sağ panelde **Fabrikaya bak** iki modeli birlikte gösterir; **Tanka dön** mevcut üs tankına döner. [Gerçek oyun görünümü](previews/kul-vadisi-factory.png): Chrome, 1255 × 493 görüntü; görsel gözlem, FPS ölçümü değildir. Tarayıcı hata/uyarı kaydı boştu. Otomasyon fare kilidi alamadığından elle sürüş/kamera hissi kabulü yapılamadı.
 
 `node --experimental-strip-types scripts/check-kul-vadisi.ts` gerçek iki GLB ile zemin/ölçek, gizli çarpışma, mermi engelleme, yan açıklıklar, iki tankın bütün mevcut rotalarda iki yönlü sürüşü ve iki kur/temizle çevrimini geçti. `npm run map:build` geçti; mevcut büyük paket uyarısı sürüyor. Ham sürüş kaydı güncellendi; rota süreleri değişmedi. B2 savunma modeli, beton/doğa seti, insan yakın sürüş kabulü ve performans ölçümü olmadan K2 tamamlandı sayılmaz.
+
+## Açık merkez güncellemesi — 2026-10-28
+
+Önceki merkez fabrika yerleşiminin yerini açık savaş alanı aldı. Hangar/atölye kenarlara taşındı; eski konum ve süre tabloları tarihsel ilk kaba yerleşim kaydıdır. Güncel ham ölçümler `kul-vadisi-results.json` içinde; [yeni yerleşim, siperler, doğrulama ve asset planı](CENTER_BATTLEFIELD.md). İki tankla iki yönde ek merkez geçişleri de kontrol edildi.
