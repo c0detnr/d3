@@ -2,7 +2,7 @@
 
 İlk konsept: 2026-10-24. Son güncelleme: 2026-10-28.
 
-**Durum:** 5’e 5 üs saldırısı düzeni onaylı. Kullanıcı mevcut Babylon.js motorunun korunmasını, küçük parçaların kodla üretilmesini ve projeye eklediği Quaternius doğa paketinden yararlanılmasını istedi. Aşağıdaki üretim dağılımı ve K0–K7 sırası geliştirme önerisidir; harita uygulaması, Blender çevre üretimi ve 5’e 5 maç sistemi bu görevde başlatılmadı.
+**Durum:** 5’e 5 üs saldırısı düzeni onaylı. Kullanıcı mevcut Babylon.js motorunun korunmasını, küçük parçaların kodla üretilmesini ve projeye eklediği Quaternius doğa paketinden yararlanılmasını istedi. K0–K7 harita uygulaması ve 5’e 5 maç sistemi bu model tesliminin kapsamı değil. Kullanıcının sonraki açık isteğiyle B1 kapalı askerî bakım hangarı bağımsız Blender varlığı olarak üretildi; [teslim ve kontroller](../assets/environment/maintenance_hangar_01/README.md). Harita yerleşiminde son ölçü ve oyun içi kabul bekliyor.
 
 ## Kesin kararlar ve önceki planla ilişki
 
@@ -103,7 +103,7 @@ Orta ve doğu dış savunmaları ayakta kalsa da maç kazanılabilir. Bu, savuna
 
 | Yapı | Yerleşim ve amaç | Durum |
 |---|---|---|
-| Büyük hangar ve atölyeler | Fabrikada görüşü bölmek, çevresinden dolaşmak ve alternatif yaklaşım oluşturmak | Harita düzeninin parçası; içinden geçilebilir hangar seçimi ve ölçüleri açık |
+| Büyük hangar ve atölyeler | Fabrikada görüşü bölmek, çevresinden dolaşmak ve alternatif yaklaşım oluşturmak | İlk bakım hangarı kapalı askerî tesis olarak seçildi ve modellendi; çevresinden dolaşılır. Atölye ve son yerleşim ölçüleri açık |
 | Depo ve vagonlar | Avluda siper, yön bulma ve atış hattını bölme | Çevre yerleşimi; kesin adetler açık |
 | Konveyör ve yükleme haznesi | Taş ocağının silüeti ve bölge kimliği | Çevre önerisi; üretim sırası aşağıda |
 | İleri bakım/onarım hangarı | Cepheye yakın onarım ve bunun kaybıyla geri çekilme ihtiyacı | Oynanış önerisi; onarım sistemi ve yıkılma etkisi onaylanmadı |
@@ -190,9 +190,11 @@ Aşağıdaki dosyalar yerel `glTF/` klasöründe mevcut. Bunlar üretim adaylar�
 
 **İlk Blender işi:** B1 içindeki hangar ve atölye; ardından B2 dış savunma yapısı. Doğa paketinde uygun kaya/ağaç bulunduğu için eski 15 özgün çevre modeli önerisi artık başlangıç üretim listesi değildir.
 
+**2026-10-28 B1 başlangıcı:** Kullanıcı kapalı askerî bakım tesisi seçti ve Blender MCP ile modellemeyi açıkça istedi. İlk hangar 32 × 22 m ana hacim, alçak yan servis kanadı, kademeli çatı ve kapalı sürgülü kapıyla üretildi. Mat zeytin yeşili metal, beton kaide ve seyrek uyarı işaretleri kullanıldı. Bu ölçüler ilk model taslağıdır; K0/K1 harita yerleşimi sınanmadan bağımsız varlık üretimine geçilmesi bu isteğin kapsamıdır. Atölye ve savunma yapıları henüz üretilmedi; K2 kabulü tamamlanmadı.
+
 ### Blender MCP üretim döngüsü
 
-- Üretim başladığında gerçek sahne özeti çağrısıyla bağlantıyı doğrula; araç listesi/port tek başına kanıt değildir. Bu belge görevinde bağlantı sınanmadı.
+- Üretim başladığında gerçek sahne özeti çağrısıyla bağlantıyı doğrula; araç listesi/port tek başına kanıt değildir. B1 üretiminde ayrı köprüyle gerçek sahne sorgusu ve model işlemleri doğrulandı.
 - Mevcut tank, kabin ve silah sahnelerini değiştirmeden ayrı çevre çalışma dosyası kullan.
 - Her varlık için sırayla: kaba hacim → ölçülü silüet → mat malzeme → basit çarpışma → GLB aktarımı → yeniden içe aktarım → Babylon.js içinde tankla karşılaştırma.
 - Savunma topu hareket edecekse gövde, yatay dönüş ve namlu gruplarını ayrı tut; pivotlar doğru olsun. Model hazır olması otomatik hedefleme/ateş sisteminin hazır olduğu anlamına gelmez.

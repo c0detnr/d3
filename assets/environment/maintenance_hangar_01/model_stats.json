@@ -1,0 +1,19 @@
+{
+  "stage": "export",
+  "visible_meshes": 11,
+  "visible_triangles": 4809,
+  "collision_meshes": 3,
+  "collision_triangles": 52,
+  "bounds_min": [
+    -16.30335807800293,
+    -12.130000114440918,
+    -5.960464477539063e-08
+  ],
+  "bounds_max": [
+    23.01999855041504,
+    11.300000190734863,
+    11.739999771118164
+  ],
+  "background": false,
+  "windows": 1
+}

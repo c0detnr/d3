@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "method": "Blender GLB reimport",
+  "visible_triangles": 4809,
+  "materials": 10,
+  "visible_meshes": 11,
+  "collision_meshes": 3,
+  "collision_triangles": 52,
+  "bounds_min": [
+    -16.30335807800293,
+    -12.130000114440918,
+    -5.960464477539063e-08
+  ],
+  "bounds_max": [
+    23.01999855041504,
+    11.300000190734863,
+    11.739999771118164
+  ],
+  "metre_scale": true,
+  "ground_origin": true,
+  "external_textures": false,
+  "closed_building": true,
+  "source_tank_width_m": 4.158,
+  "source_tank_total_length_m": 10.975,
+  "door_visual_width_m": 10.16,
+  "door_visual_height_m": 6.65,
+  "game_integration_tested": false,
+  "collision_note": "Collision meshes carry collision_only=true; runtime must hide them and create static physics. No Havok or projectile test performed."
+}

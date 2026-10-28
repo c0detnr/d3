@@ -188,3 +188,7 @@ Ana oyun ve LAN sayfasına tıklamayla Pointer Lock, Esc ile çıkış ve yenide
 Brackeys VFX Bundle v1 indirildi; kaynak varlıklar ve CC0 lisansı `assets/vfx/brackeys/` altında. Palet/hız/dönüş tozu `smoke_01_a.png` dokusuna geçirildi; alfa harmanlama ve sahne sisi kullanılıyor. Sabit adım, temas davranışı ve havuz bütçesi değişmedi. Kullanılmayan paket görselleri web derlemesine taşınmıyor. Dağıtım lisans kaydı `public/licenses/BRACKEYS-VFX.txt`.
 
 `effects:test` ve `map:build` geçti; seçilen PNG derleme çıktısında 74,79 KB. Chrome'da sahne ve kısa otomatik sürüş açıldı; otomasyon fare kilidi alamadı. Uzun süreli performans/insan görsel kabulü yapılmadı; M1/M2/M3 kabul durumu korunur.
+
+### 2026-10-28 — B1 kapalı askerî bakım hangarı
+
+Kullanıcının seçtiği kapalı askerî bakım tesisi ayrı Blender MCP sahnesinde üretildi: 32 × 22 m ana hacim, alçak servis kanadı, kapalı sürgülü kapı ve kademeli çatı. [Kaynak, GLB, önizlemeler ve kontroller](../assets/environment/maintenance_hangar_01/README.md). 4.809 görünür üçgen, 10 malzeme ve 52 üçgenlik üç ayrı çarpışma mesh'i. GLB yeniden içe aktarımında ölçek/zemin/sınırlar, üçgen sayımı, çarpışma işaretleri ve doku bağımsızlığı doğrulandı; gerçek IRON DUST 02 ile Blender önizlemeleri incelendi. Oyun kodu değişmedi; Babylon/Havok/mermi entegrasyonu, harita yerleşimi ve performans kabulü açık. K0/K1/K2 ve genel M1/M2/M3 bu varlık teslimiyle tamamlanmaz.
