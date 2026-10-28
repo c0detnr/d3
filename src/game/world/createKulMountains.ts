@@ -1,9 +1,10 @@
 import { Color3, Mesh, StandardMaterial, VertexData, type Scene } from '@babylonjs/core';
+import { KUL_ATMOSPHERE } from './atmosphereSettings.ts';
 import { cellHash } from './facetedTerrain.ts';
 import { smooth, terrainNoise } from './terrain.ts';
 
 /** Fog tone of the sky horizon; distant layers are baked toward it (fog is off for this mesh). */
-const HAZE = new Color3(0.38, 0.345, 0.30);
+const HAZE = KUL_ATMOSPHERE.fog.color;
 const hex = Color3.FromHexString;
 const ROCK = hex('#7E7B72'), ROCK_DARK = hex('#68665F'), FOREST = hex('#596340'), DIRT = hex('#8C7855');
 

@@ -251,3 +251,7 @@ Kül Vadisi zemini low poly faset prototipine geçirildi ([facetedTerrain.ts](..
 ### 2026-10-28 — Kül Vadisi katmanlı dağ ufku
 
 Kenardaki 24 m'lik `rim` duvarı 5 m'lik yumuşak bir kenara indirildi (352–360 m). Oynanabilir alanın dışına 3 katmanlı, yalnızca görsel low poly dağ halkası eklendi ([createKulMountains.ts](../src/game/world/createKulMountains.ts)): 38/70/115 m yükseklik, uzaklaştıkça daha az kesit ve sise doğru solan renk (sis dağ malzemesinde kapalı, ton köşeye pişirildi). Doğu daha alçak taş ocağı, batı daha yüksek ormanlık renk. Fizik, seçim ve gölge yok; `kul-boundary-*` duvarları korunur; kamera uzak düzlemi (1600/2800) yeterli. `tsc -p tsconfig.map.json` ve `check-kul-vadisi.ts` geçti. Tarayıcıda görsel inceleme yapılmadı; silüet, ton ve performans kabulü açık.
+
+### 2026-10-28 — Kül Vadisi ışık ve sis
+
+Işık/sis değerleri tek ayar nesnesinde toplandı ([atmosphereSettings.ts](../src/game/world/atmosphereSettings.ts)); test zemini eski değerleri korur. Kül Vadisi: ~20° yükseklikte sıcak güneş (daha alçak, uzun gölge, faset yüz tonu farkı), soğuk mavi gökyüzü dolgusu ve koyu toprak tonlu zemin yansıması, daha açık ve ince sis (yoğunluk 0,0039 → 0,0028; yakın savaş alanı okunur). Sis rengi dağ katmanlarının pişirilmiş ufuk rengiyle aynı kaynaktan gelir. Kaynak eklenmedi; mevcut `dispose` yolu aynı. `tsc -p tsconfig.map.json` ve `check-kul-vadisi.ts` geçti. Tarayıcıda görsel inceleme yapılmadı; ton, sis mesafesi ve gölge kalitesi kabulü açık.

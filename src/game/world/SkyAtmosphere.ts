@@ -1,6 +1,7 @@
 import {
   Color3, Color4, Effect, MeshBuilder, Scene, ShaderMaterial, Vector3, type Mesh,
 } from '@babylonjs/core';
+import { TEST_GROUND_ATMOSPHERE, type AtmosphereSettings } from './atmosphereSettings.ts';
 
 const VERTEX = `
 precision highp float;
@@ -103,11 +104,10 @@ const HORIZON = Color3.FromHexString('#A87D50');
 const CLOUD_DARK = Color3.FromHexString('#1E2324');
 const CLOUD_LIGHT = Color3.FromHexString('#8E8878');
 const FLASH_COLOR = Color3.FromHexString('#EADDBF');
-const FOG_BASE = new Color3(0.38, 0.345, 0.30);
-const FOG_FLASH = new Color3(0.62, 0.57, 0.49);
 
 /** Procedural storm sky with drifting turbulence and distant lightning flashes. */
-export function createChaoticSky(scene: Scene, diameter = 1800) {
+export function createChaoticSky(scene: Scene, diameter = 1800, atmosphere: AtmosphereSettings = TEST_GROUND_ATMOSPHERE) {
+  const FOG_BASE = atmosphere.fog.color, FOG_FLASH = atmosphere.fog.flashColor;
   Effect.ShadersStore.chaoticSkyVertexShader = VERTEX;
   Effect.ShadersStore.chaoticSkyFragmentShader = FRAGMENT;
 
@@ -139,7 +139,7 @@ export function createChaoticSky(scene: Scene, diameter = 1800) {
 
   scene.clearColor = new Color4(FOG_BASE.r, FOG_BASE.g, FOG_BASE.b, 1);
   scene.fogMode = Scene.FOGMODE_EXP2;
-  scene.fogDensity = 0.0039;
+  scene.fogDensity = atmosphere.fog.density;
   scene.fogColor = FOG_BASE.clone();
 
   const flashDirection = new Vector3(0, 0.2, 1);
