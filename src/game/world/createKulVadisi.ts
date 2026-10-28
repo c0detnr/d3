@@ -4,6 +4,7 @@ import { KUL_CONNECTIONS, KUL_LIMIT, KUL_STEP, KUL_ROAD_WIDTH, KUL_SPAWNS, KUL_S
 import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
 import { buildFacetedTerrain } from './facetedTerrain.ts';
 import { terrainNoise } from './terrain.ts';
+import { createKulMountains } from './createKulMountains.ts';
 
 const factorySources = {
   hangar: new URL('../../../assets/environment/maintenance_hangar_01/maintenance_hangar_01.glb', import.meta.url).href,
@@ -56,6 +57,8 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
     name: 'natural-terrain', limit: KUL_LIMIT, step: KUL_STEP, jitter: 0.3, height: kulTerrainHeight, shade: kulFacetShade,
   });
   facets.material = soil; meshes.push(terrain, facets); solid(terrain);
+  const mountains = createKulMountains(scene, KUL_LIMIT);
+  meshes.push(...mountains.meshes); materials.push(mountains.material);
   const concrete = material('kul-concrete', '#828575');
   const teams = { A: material('kul-team-A', '#84AEBC'), B: material('kul-team-B', '#BA7959') };
   const marker = material('kul-neutral-marker', '#D5C7AB');
@@ -82,7 +85,7 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
   const start = KUL_SPAWNS[team];
   const ground = {
     spawn: new Vector3(start.x, kulTerrainHeight(start.x, start.z), start.z), terrain, meshes,
-    shadowCasters: meshes.filter(m => m.isVisible && m !== terrain && m !== facets),
+    shadowCasters: meshes.filter(m => m.isVisible && m !== terrain && m !== facets && !mountains.meshes.includes(m)),
     dispose() { battlefield?.dispose(); buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); },
   };
   try {

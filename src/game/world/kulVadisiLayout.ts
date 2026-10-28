@@ -54,7 +54,8 @@ function rawTerrainHeight(x: number, z: number) {
   const road = 1 - smooth((kulRoadDistance(x, z) - KUL_ROAD_WIDTH / 2) / 12);
   const bumps = (terrainNoise(x / 34 + 7, z / 34 + 19) - 0.5) * 6;
   const creek = Math.max(...KUL_CONNECTIONS.map(c => 1 - smooth((Math.abs(z - c.points[2].z) - 9) / 24)));
-  const rim = smooth((Math.max(Math.abs(x), Math.abs(z)) - 350) / 10) * 24;
+  // Gentle verge only; the visible horizon is the visual-only mountain ring (createKulMountains).
+  const rim = smooth((Math.max(Math.abs(x), Math.abs(z)) - 352) / 8) * 5;
   const relief = KUL_FIELD_RELIEF.reduce((sum, p) => {
     const radius = Math.hypot((x - p.x) / p.rx, (z - p.z) / p.rz);
     return sum + p.height * (1 - smooth(radius));
