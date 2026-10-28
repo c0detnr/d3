@@ -181,3 +181,10 @@ Kullanıcının onayladığı konsept ana oyun ve mevcut LAN görünümüne uygu
 ### 2026-10-27 — Masaüstü fare kilidi
 
 Ana oyun ve LAN sayfasına tıklamayla Pointer Lock, Esc ile çıkış ve yeniden giriş eklendi. İlk tık ateş etmez; kilit/odak kaybında girdiler temizlenir. `check-pointer-lock.ts`, `combat:test`, `touch:test`, `npm test`, `lan:check` ve `map:build` geçti. Chrome'da ana oyun giriş/Esc/yeniden giriş gözlendi; LAN iki oyunculu insan denemesi yapılmadı. M1/M2/M3 genel kabulü değişmez.
+
+
+### 2026-10-28 — Brackeys VFX paketi
+
+Brackeys VFX Bundle v1 indirildi; kaynak varlıklar ve CC0 lisansı `assets/vfx/brackeys/` altında. Palet/hız/dönüş tozu `smoke_01_a.png` dokusuna geçirildi; alfa harmanlama ve sahne sisi kullanılıyor. Sabit adım, temas davranışı ve havuz bütçesi değişmedi. Kullanılmayan paket görselleri web derlemesine taşınmıyor. Dağıtım lisans kaydı `public/licenses/BRACKEYS-VFX.txt`.
+
+`effects:test` ve `map:build` geçti; seçilen PNG derleme çıktısında 74,79 KB. Chrome'da sahne ve kısa otomatik sürüş açıldı; otomasyon fare kilidi alamadı. Uzun süreli performans/insan görsel kabulü yapılmadı; M1/M2/M3 kabul durumu korunur.

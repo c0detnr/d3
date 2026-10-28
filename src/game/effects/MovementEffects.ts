@@ -1,29 +1,7 @@
-import { Color4, RawTexture, Sprite, SpriteManager, Texture, Vector3, type Scene } from '@babylonjs/core';
+import { Color4, Constants, Sprite, SpriteManager, Texture, Vector3, type Scene } from '@babylonjs/core';
 import type { TankVehicle } from '../vehicle/TankVehicle.ts';
-import { seededRandom } from '../world/terrain.ts';
 import { DustSimulation } from './DustSimulation.ts';
 import { MOVEMENT_DUST } from './MovementEffectsDefinition.ts';
-
-/** Original procedural dust sprite; no downloaded artwork. Soft, irregular alpha lobes. */
-function createDustTexture(scene: Scene) {
-  const size = 64, pixels = new Uint8Array(size * size * 4);
-  const random = seededRandom(482);
-  const lobes = Array.from({ length: 9 }, () => ({
-    x: (random() - 0.5) * 0.8, y: (random() - 0.5) * 0.8, radius: 0.35 + random() * 0.35,
-  }));
-  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-    const u = (x + 0.5) / size * 2 - 1, v = (y + 0.5) / size * 2 - 1;
-    let alpha = 0;
-    for (const lobe of lobes) alpha = Math.max(alpha,
-      Math.max(0, 1 - Math.hypot(u - lobe.x, v - lobe.y) / lobe.radius) ** 1.6);
-    const edge = Math.max(0, 1 - Math.hypot(u, v)) ** 0.5;
-    const offset = (y * size + x) * 4;
-    pixels.set([255, 255, 255, Math.round(alpha * edge * (0.88 + random() * 0.12) * 255)], offset);
-  }
-  const texture = RawTexture.CreateRGBATexture(pixels, size, size, scene, false, false, Texture.BILINEAR_SAMPLINGMODE);
-  texture.name = 'original-procedural-track-dust';
-  return texture;
-}
 
 export class MovementEffects {
   readonly simulation = new DustSimulation();
@@ -33,8 +11,11 @@ export class MovementEffects {
   enabled = true;
   constructor(scene: Scene, vehicle: TankVehicle) {
     this.sides = vehicle.rig.wheels.map(wheel => wheel.side);
-    this.manager = new SpriteManager('track-dust', '', MOVEMENT_DUST.capacity, 64, scene);
-    this.manager.texture = createDustTexture(scene);
+    this.manager = new SpriteManager('track-dust',
+      new URL('../../../assets/vfx/brackeys/particles/alpha/smoke_01_a.png', import.meta.url).href,
+      MOVEMENT_DUST.capacity, 512, scene, 0.01, Texture.BILINEAR_SAMPLINGMODE);
+    this.manager.blendMode = Constants.ALPHA_COMBINE;
+    this.manager.fogEnabled = true;
     this.manager.isPickable = false;
     this.manager.disableDepthWrite = true;
     this.sprites = this.simulation.particles.map((_, index) => {

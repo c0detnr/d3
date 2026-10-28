@@ -70,7 +70,7 @@ W ileri, S fren ve durduktan 0,25 saniye sonra geri; A/D palet farkıyla dönü�
 - `npm run map:test`: gerçek Havok ile arazi/görsel yüzey eşleşmesi, başlangıç açıklığı, orman/patika yerleşimi, ağaç çarpışması ve kaynak temizleme kontrolü.
 - `npm run map:build`: `dist-map/` altında dağıtılabilir harita önizlemesi.
 
-Harita kodla, tank Blender MCP ile bu projede üretildi; dış görsel varlık kullanılmadı. Havok bildirimi `public/licenses/HAVOK.txt` içinde ve derleme çıktısında korunur.
+Harita kodla, tank Blender MCP ile bu projede üretildi. Palet tozu için CC0 lisanslı [Brackeys VFX Bundle](assets/vfx/brackeys/README.md) dokusu kullanılır. Havok bildirimi `public/licenses/HAVOK.txt` içinde ve derleme çıktısında korunur.
 
 Son görünüm: [Gerçekçi arazi yüzeyi](docs/previews/terrain-surface.png). Önceki görünümler: [Kaotik fırtına gökyüzü](docs/previews/chaotic-sky.png), [Orman eşiği](docs/previews/forest-clearing.png). Çevre geometrisi ve zemin yüzey dokuları bu proje için kodla üretildi; dış model veya kaplama eklenmedi.
 

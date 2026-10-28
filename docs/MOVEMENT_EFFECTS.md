@@ -122,3 +122,7 @@ Kullanıcı palet temas tozu, hızlı sürüş tozu ve dönüş tozunu seçti. `
 - R sıfırlaması, görünürlük değişimi ve kapatma havuzu temizler. Gizli sekmede adım yok; sahne kapanışında sprite/kaplama temizlenir. Panelde aç/kapat kutusu vardır; 80 m ötesinde üretim azaltılır, 350 m ötesinde kesilir.
 - `npm run effects:test` anlamlı davranış, deterministik kare hızı ve gerçek Havok kontrollerini çalıştırır. 10 dakika testi hızlandırılmış sabit adımlı havuz testidir; 10 dakika tarayıcı performans kaydı değildir.
 - Fren ve iniş pufu, çakıl/toprak parçaları, egzoz ve kalıcı palet izi bu teslimde yok. M1/M2 son kabulü ve efekt açık/kapalı performans karşılaştırması hâlâ açık.
+
+## 2026-10-28 — Brackeys toz dokusu
+
+Yukarıdaki 64×64 prosedürel kaplama yerine CC0 Brackeys VFX Bundle v1 içindeki 512×512 `particles/alpha/smoke_01_a.png` kullanılıyor. [Kaynak/lisans ve paket içeriği](../assets/vfx/brackeys/README.md). Mevcut simülasyon, dünya konumları, renk ve kapasite korunur; sprite alfa harmanlama ve sis kullanır. Paket arşivindeki diğer efektler varlık olarak hazırdır, henüz oyuna bağlanmadı. `effects:test` ve `map:build` geçti. Kısa tarayıcı sürüşü açıldı; uzun görsel/performans kabulü yapılmadı.
