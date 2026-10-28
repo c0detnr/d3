@@ -223,3 +223,7 @@ Ayrı seçilen 720 × 720 m taslak, 18 m yollar, iki üs, üç koridor, iki dere
 ### 2026-10-28 — B1 küçük bakım atölyesi
 
 Hangarı tamamlayan beton ağırlıklı 18 × 12 m kapalı atölye Blender MCP ile bağımsız varlık olarak üretildi: panelli servis kapısı, üst pencereler, yan sundurma ve çatı havalandırması. [Kaynak, GLB, tankla önizlemeler ve doğrulama](../assets/environment/maintenance_workshop_01/README.md). 3.641 görünür üçgen, 10 malzeme; ayrı 6 çarpışma mesh'i / 72 üçgen. Blender GLB yeniden aktarımı ve doğrudan GLB indeks sayımı geçti; ölçek/zemin/sınır ve dış doku bağımsızlığı doğrulandı. Oyun entegrasyonu ve performans kontrolü yapılmadı; K2 ve genel M1/M2/M3 kabulü açık.
+
+### 2026-10-28 — B1 modelleri merkez fabrikada
+
+Hangar ve atölye Kül Vadisi merkezine gerçek GLB olarak yerleştirildi; metre ölçeği, düz bina tabanı, görünmez statik çarpışmalar, gölgeler ve kaynak temizliği bağlandı. **Fabrikaya bak** görünümü eklendi. `check-kul-vadisi.ts` gerçek modellerle mermi engelleme/yan açıklık, iki tankın bütün rotalarda iki yönlü sürüşü ve kaynak temizliğini geçti; `map:build` geçti. Chrome görünümü kaydedildi. [Teslim ve açık kabul](KUL_VADISI_BLOCKOUT.md#b1--hangar-ve-atölye-entegrasyonu). B2/çevre seti, insan sürüş/kamera ve performans kabulü açık; K2 ve genel kilometre taşları kapanmadı.

@@ -17,10 +17,14 @@ scene.physicsEnabled = false; const physics = scene.getPhysicsEngine()!; physics
 // glTF creates a shared scene BRDF texture on first load; it is owned by Scene.
 const warmup = await loadTankModel(scene, new Uint8Array(await readFile(new URL('../assets/tanks/iron_dust_01/iron_dust_01.glb', import.meta.url))), Vector3.Zero()); warmup.dispose();
 const baseline = { meshes: scene.meshes.length, materials: scene.materials.length, textures: scene.textures.length };
+const factorySources = {
+  hangar: new Uint8Array(await readFile(new URL('../assets/environment/maintenance_hangar_01/maintenance_hangar_01.glb', import.meta.url))),
+  workshop: new Uint8Array(await readFile(new URL('../assets/environment/maintenance_workshop_01/maintenance_workshop_01.glb', import.meta.url))),
+};
 const results: Record<string, unknown> = {};
 try {
   for (let cycle = 0; cycle < 2; cycle++) {
-    const map = createKulVadisi(scene); scene.render();
+    const map = await createKulVadisi(scene, 'A', factorySources); scene.render();
     assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'outer').length, 6);
     assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'inner').length, 2);
     assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'command').length, 2);
@@ -53,12 +57,38 @@ try {
         assert.ok(hit.hasHit && Vector3.Distance(hit.hitPointWorld, to) > 8, `${team}: doğma çıkışına düz atış`);
       }
     }
-    for (const id of ['A-outer-west', 'B-command', 'factory-hangar']) {
+    for (const id of ['A-outer-west', 'B-command']) {
       const mesh = scene.getMeshByName(id)!;
       const from = mesh.position.add(new Vector3(0, 0, -60));
       const hit = physics.raycast(from, mesh.position);
       assert.ok(hit.hasHit && hit.body?.transformNode.name === id, `${id}: mermiyi durduran siper`);
       assert.equal(hit.body?.transformNode.metadata.surface, id === 'factory-hangar' ? 'metal' : 'concrete');
+    }
+    for (const id of ['factory-hangar', 'factory-workshop']) {
+      assert.equal(scene.getMeshByName(`${id}-mark`), null, 'No placeholder roof marker');
+      const structure = KUL_STRUCTURES.find(s => s.id === id)!;
+      const meshes = scene.meshes.filter(m => m.metadata?.structure === id);
+      const visible = meshes.filter(m => m.isVisible);
+      const colliders = meshes.filter(m => m.metadata?.gltf?.extras?.collision_only);
+      assert.equal(colliders.length, id === 'factory-hangar' ? 3 : 6);
+      assert.ok(colliders.every(m => !m.isVisible && !m.isPickable), 'Collision geometry is hidden');
+      const minY = Math.min(...visible.map(m => m.getBoundingInfo().boundingBox.minimumWorld.y));
+      assert.ok(Math.abs(minY - kulTerrainHeight(structure.x, structure.z)) < 0.001, 'Building grounded');
+      const minX = Math.min(...visible.map(m => m.getBoundingInfo().boundingBox.minimumWorld.x));
+      const maxX = Math.max(...visible.map(m => m.getBoundingInfo().boundingBox.maximumWorld.x));
+      assert.ok(maxX - minX <= structure.width + 0.01, 'Metre scale footprint');
+      for (const dx of [-structure.width / 2, 0, structure.width / 2]) for (const dz of [-structure.depth / 2, 0, structure.depth / 2]) {
+        assert.ok(Math.abs(kulTerrainHeight(structure.x + dx, structure.z + dz) - minY) < 0.001, 'Level pad');
+      }
+      const from = new Vector3(structure.x, minY + 2, structure.z - structure.depth);
+      const hit = physics.raycast(from, new Vector3(structure.x, minY + 2, structure.z));
+      assert.ok(hit.hasHit && hit.body?.transformNode.metadata?.structure === id, `${id}: actual GLB blocks projectiles`);
+      assert.equal(hit.body?.transformNode.metadata.surface, 'metal');
+      for (const side of [-1, 1]) {
+        const x = structure.x + side * (structure.width / 2 + 3);
+        const hit = physics.raycast(new Vector3(x, minY + 2, structure.z - structure.depth), new Vector3(x, minY + 2, structure.z + structure.depth));
+        assert.ok(!hit.hasHit, `${id}: no invisible box outside building`);
+      }
     }
     if (!cycle) {
       for (const tankId of ['01', '02']) {

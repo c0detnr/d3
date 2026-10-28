@@ -250,7 +250,7 @@ window.addEventListener('keydown', unlockOnGesture);
 const resize = () => { scaleMobile(); engine.resize(); };
 window.addEventListener('resize', resize);
 let disposed = false;
-let ground: ReturnType<typeof createTestGround> | ReturnType<typeof createKulVadisi> | undefined;
+let ground: ReturnType<typeof createTestGround> | Awaited<ReturnType<typeof createKulVadisi>> | undefined;
 let tank: Awaited<ReturnType<typeof loadTankModel>> | undefined;
 
 async function start() {
@@ -260,7 +260,8 @@ async function start() {
   scene.getPhysicsEngine()!.setTimeStep(1 / 60);
   // Only FixedStep advances this world, never the render loop.
   scene.physicsEnabled = false;
-  ground = kulVadisi ? createKulVadisi(scene, kulTeam) : createTestGround(scene);
+  ground = kulVadisi ? await createKulVadisi(scene, kulTeam) : createTestGround(scene);
+  if (disposed) { ground.dispose(); return; }
   ground.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh));
   status.textContent = 'Harita hazır, tank modeli yükleniyor…';
   tank = await loadTankModel(scene, secondTank ? secondTankUrl : tankUrl, ground.spawn);

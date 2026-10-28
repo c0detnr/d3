@@ -36,7 +36,7 @@
           "route": "center-B-A",
           "firstContactSeconds": 58.43333333333333,
           "fullRouteSeconds": 119.08333333333333,
-          "minUp": 0.9900805722882585
+          "minUp": 0.9900805681553316
         },
         {
           "route": "east-A-B",
@@ -58,7 +58,7 @@
         {
           "route": "creek--102-east-west",
           "fullRouteSeconds": 61.05,
-          "minUp": 0.9849633442101741
+          "minUp": 0.9849633414256335
         },
         {
           "route": "creek-102-west-east",
@@ -68,7 +68,7 @@
         {
           "route": "creek-102-east-west",
           "fullRouteSeconds": 61.05,
-          "minUp": 0.984963324854703
+          "minUp": 0.9849633370639946
         }
       ]
     },
@@ -107,7 +107,7 @@
           "route": "center-B-A",
           "firstContactSeconds": 59.93333333333333,
           "fullRouteSeconds": 122.3,
-          "minUp": 0.9904897614939239
+          "minUp": 0.9904897635092099
         },
         {
           "route": "east-A-B",
@@ -129,7 +129,7 @@
         {
           "route": "creek--102-east-west",
           "fullRouteSeconds": 61.083333333333336,
-          "minUp": 0.9842618909382699
+          "minUp": 0.98426190845429
         },
         {
           "route": "creek-102-west-east",
@@ -139,7 +139,7 @@
         {
           "route": "creek-102-east-west",
           "fullRouteSeconds": 61.083333333333336,
-          "minUp": 0.9842618959491515
+          "minUp": 0.9842618861810708
         }
       ]
     }

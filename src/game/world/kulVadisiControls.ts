@@ -24,10 +24,16 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
     }
   };
   toggle.addEventListener('click', view);
+  const factory = document.createElement('button'); factory.textContent = 'Fabrikaya bak';
+  const viewFactory = () => {
+    camera.overview(); camera.camera.position.set(-110, 48, -100); camera.camera.setTarget(new Vector3(-5, 2, -15));
+    camera.scene.fogDensity = 0.00035; toggle.textContent = 'Tanka dön';
+  };
+  factory.addEventListener('click', viewFactory);
   if (active) {
     document.title = 'IRON DUST · Kül Vadisi';
     const header = document.createElement('strong'); header.textContent = 'KÜL VADİSİ'; panel.append(header);
-    const note = document.createElement('span'); note.textContent = 'Geçici yapı hacimleri · W/A/S/D sürüş · R kurtar'; panel.append(note, toggle);
+    const note = document.createElement('span'); note.textContent = 'Merkezde hangar ve atölye · W/A/S/D sürüş · R kurtar'; panel.append(note, toggle, factory);
     const bases = document.createElement('div');
     for (const base of ['A', 'B']) {
       const link = document.createElement('a'); const url = new URL(location.href); url.searchParams.set('base', base);
@@ -56,5 +62,5 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
     const targets = document.createElement('span'); targets.textContent = 'D dış savunma · İ iç savunma · K komuta'; panel.append(targets);
   }
   document.body.append(panel);
-  return { follow, dispose() { select.removeEventListener('change', change); toggle.removeEventListener('click', view); panel.remove(); } };
+  return { follow, dispose() { select.removeEventListener('change', change); toggle.removeEventListener('click', view); factory.removeEventListener('click', viewFactory); panel.remove(); } };
 }

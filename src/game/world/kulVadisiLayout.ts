@@ -39,13 +39,13 @@ const base: Omit<KulStructure, 'team'>[] = [
 export const KUL_STRUCTURES: KulStructure[] = [
   ...base.map(s => ({ ...s, team: 'A' as const, id: `A-${s.id}` })),
   ...base.map(s => ({ ...s, ...mirror(s), team: 'B' as const, id: `B-${s.id}` })),
-  { id: 'factory-hangar', kind: 'hangar', x: -54, z: 0, width: 36, depth: 54, height: 13 },
-  { id: 'factory-workshop', kind: 'workshop', x: 60, z: -45, width: 24, depth: 30, height: 8 },
+  { id: 'factory-hangar', kind: 'hangar', x: -54, z: 0, width: 40, depth: 24, height: 11.74 },
+  { id: 'factory-workshop', kind: 'workshop', x: 60, z: -45, width: 23, depth: 14, height: 6.71 },
   { id: 'factory-store', kind: 'workshop', x: 72, z: 66, width: 24, depth: 24, height: 9 },
 ];
 
 /** K0 provisional heights in metres. Roads are graded, with a smooth base apron. */
-export function kulTerrainHeight(x: number, z: number) {
+function rawTerrainHeight(x: number, z: number) {
   const front = 1 - smooth((Math.abs(z) - 156) / 96);
   const west = 15 * Math.exp(-(((x + 210) / 100) ** 2));
   const quarry = -12 * Math.exp(-(((x - 210) / 95) ** 2));
@@ -55,4 +55,18 @@ export function kulTerrainHeight(x: number, z: number) {
   const creek = Math.max(...KUL_CONNECTIONS.map(c => 1 - smooth((Math.abs(z - c.points[2].z) - 9) / 24)));
   const rim = smooth((Math.max(Math.abs(x), Math.abs(z)) - 350) / 10) * 24;
   return front * (west + quarry + shelves * (1 - road) + bumps * (1 - road) - creek * 2) + rim;
+}
+
+/** Level building pads with a six-metre apron; keep terrain and Havok on one surface. */
+export function kulTerrainHeight(x: number, z: number) {
+  const height = rawTerrainHeight(x, z);
+  for (const s of KUL_STRUCTURES) {
+    if (s.id !== 'factory-hangar' && s.id !== 'factory-workshop') continue;
+    const edge = Math.max(Math.abs(x - s.x) - s.width / 2, Math.abs(z - s.z) - s.depth / 2);
+    if (edge < 6) {
+      const blend = smooth(Math.max(0, edge) / 6);
+      return rawTerrainHeight(s.x, s.z) * (1 - blend) + height * blend;
+    }
+  }
+  return height;
 }

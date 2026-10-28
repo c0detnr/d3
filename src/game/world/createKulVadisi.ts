@@ -1,9 +1,16 @@
 import { Color3, Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, StandardMaterial, Vector3, VertexData, type Scene } from '@babylonjs/core';
 import { KUL_LIMIT, KUL_STEP, KUL_ROAD_WIDTH, KUL_SPAWNS, KUL_STRUCTURES, kulRoadDistance, kulTerrainHeight } from './kulVadisiLayout.ts';
+import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
 import { createTerrainSurfaceTextures, TERRAIN_TEXTURE_METERS } from './terrainSurfaceTextures.ts';
 
-/** K1 blockout. Solid volumes are temporary hard cover; no objective/repair logic. */
-export function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A') {
+const factorySources = {
+  hangar: new URL('../../../assets/environment/maintenance_hangar_01/maintenance_hangar_01.glb', import.meta.url).href,
+  workshop: new URL('../../../assets/environment/maintenance_workshop_01/maintenance_workshop_01.glb', import.meta.url).href,
+};
+
+/** K1 terrain with B1 factory buildings; no objective/repair logic. */
+export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sources: { hangar: string | Uint8Array; workshop: string | Uint8Array } = factorySources) {
+  const buildings: Awaited<ReturnType<typeof loadFactoryBuilding>>[] = [];
   const meshes: Mesh[] = [], materials: StandardMaterial[] = [], bodies: PhysicsAggregate[] = [];
   const material = (id: string, color: string) => {
     const m = new StandardMaterial(id, scene);
@@ -36,6 +43,7 @@ export function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A') {
   const teams = { A: material('kul-team-A', '#84AEBC'), B: material('kul-team-B', '#BA7959') };
   const marker = material('kul-neutral-marker', '#D5C7AB');
   for (const s of KUL_STRUCTURES) {
+    if (s.id === 'factory-hangar' || s.id === 'factory-workshop') continue;
     const mesh = MeshBuilder.CreateBox(s.id, { width: s.width, depth: s.depth, height: s.height }, scene);
     // Base of large placeholders is embedded so sloped terrain leaves no underpass.
     const y = Math.min(...[-1, 1].flatMap(dx => [-1, 1].map(dz => kulTerrainHeight(s.x + dx * s.width / 2, s.z + dz * s.depth / 2))));
@@ -55,9 +63,17 @@ export function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A') {
     wall.position[axis] = sign * 360; wall.position.y = 30; wall.isVisible = false; meshes.push(wall); solid(wall);
   }
   const start = KUL_SPAWNS[team];
-  return {
+  const ground = {
     spawn: new Vector3(start.x, kulTerrainHeight(start.x, start.z), start.z), terrain, meshes,
     shadowCasters: meshes.filter(m => m.isVisible && m !== terrain),
-    dispose() { bodies.forEach(b => b.dispose()); meshes.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); surface.dispose(); },
+    dispose() { buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); surface.dispose(); },
   };
+  try {
+    for (const [id, source] of [['factory-hangar', sources.hangar], ['factory-workshop', sources.workshop]] as const) {
+      const building = await loadFactoryBuilding(scene, source, KUL_STRUCTURES.find(s => s.id === id)!);
+      buildings.push(building);
+      ground.shadowCasters.push(...building.shadowCasters);
+    }
+    return ground;
+  } catch (error) { ground.dispose(); throw error; }
 }

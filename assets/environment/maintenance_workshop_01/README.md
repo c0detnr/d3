@@ -1,6 +1,6 @@
 # Küçük askerî bakım atölyesi 01
 
-2026-10-28 — Kül Vadisi B1 atölyesi. Mevcut kapalı bakım hangarını tamamlayan alçak beton tesis: kapalı panelli servis kapısı, personel girişi, dar üst pencereler, yan sundurma ve iki çatı aspiratörü. Bağımsız model teslimidir; haritaya eklenmedi.
+2026-10-28 — Kül Vadisi B1 atölyesi. Mevcut kapalı bakım hangarını tamamlayan alçak beton tesis: kapalı panelli servis kapısı, personel girişi, dar üst pencereler, yan sundurma ve iki çatı aspiratörü. Kül Vadisi merkezine entegre edildi; aşağıdaki güncel entegrasyon kaydına bak.
 
 ## Dosyalar
 
@@ -31,3 +31,7 @@ Babylon/Havok/mermi entegrasyonu, oyun içi kamera, sürüş ve performans kontr
 ## Kaynak ve haklar
 
 Bu proje için özgün Blender geometrisi ve düz PBR malzemeler üretildi. Dış model veya doku kullanılmadı; yazılar Blender yerleşik Bfont'tan mesh'e çevrildi. Proje kaynaklarının hakları geçerlidir. Önizleme tankı mevcut proje varlığıdır.
+
+## Oyun entegrasyonu — 2026-10-28
+
+Kül Vadisi merkez fabrikaya GLB metre ölçeği korunarak yerleştirildi; alt arazi düzleştirildi. `collision_only` geometrisi gizlenip statik Havok fiziğine bağlandı. Gerçek GLB ile zemin/ölçek, mermi engelleme, yan açıklık ve kaynak temizliği kontrolleri; iki tankla mevcut rota sürüşleri ve `map:build` geçti. Chrome görünümü incelendi. Önceki bağımsız varlık tesliminin açık entegrasyon maddeleri bu kayıtla güncellendi; insan yakın sürüş/kamera kabulü ve performans ölçümü açık. [Ayrıntılar ve görüntü](../../../docs/KUL_VADISI_BLOCKOUT.md#b1--hangar-ve-atölye-entegrasyonu).

@@ -114,3 +114,5 @@ Haritada `0` ile serbest uçuş kamerasına geçip önceki görüşe dönebilirs
 ## Kül Vadisi — ilk kaba harita
 
 `/map-preview.html?map=kul` iki üs, üç koridor ve iki dere bağlantısını gerçek tankla açar. Sağdaki harita seçimiyle sürüş test sahasına dönülebilir; kuşbakışı ve A/B başlangıç seçimi mevcut. Yapılar geçici sert siper hacimleridir. [Ölçüler, sürüş sonuçları ve açık kabul](docs/KUL_VADISI_BLOCKOUT.md). Yeni harita kontrolü: `node --experimental-strip-types scripts/check-kul-vadisi.ts`.
+
+Kül Vadisi merkez fabrikasında gerçek Blender hangarı ve atölyesi yer alır; sağdaki **Fabrikaya bak** düğmesi ikisini yakından gösterir. Kapalı binalar statik sert siperdir. [Yerleşim, kontroller ve oyun görüntüsü](docs/KUL_VADISI_BLOCKOUT.md#b1--hangar-ve-atölye-entegrasyonu).

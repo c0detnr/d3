@@ -1,6 +1,6 @@
 # Askerî bakım hangarı 01
 
-2026-10-28 — Kül Vadisi B1 başlangıç varlığı. Kullanıcı seçimi: kapalı, hâlâ kullanılan askerî bakım tesisi. İçinden geçilmez; çevresinden dolaşılarak siper ve görüş engeli olarak kullanılmak üzere tasarlandı. Oyun entegrasyonu henüz yapılmadı.
+2026-10-28 — Kül Vadisi B1 başlangıç varlığı. Kullanıcı seçimi: kapalı, hâlâ kullanılan askerî bakım tesisi. İçinden geçilmez; çevresinden dolaşılarak siper ve görüş engeli olarak kullanılmak üzere tasarlandı. Kül Vadisi merkezine entegre edildi; aşağıdaki güncel entegrasyon kaydına bak.
 
 ## Dosyalar
 
@@ -33,3 +33,7 @@ Babylon.js görünümü, Havok/mermi çarpışması, kamera, sürüş ve perform
 ## Kaynak ve haklar
 
 Bu proje için özgün Blender geometrisi ve düz PBR malzemeler üretildi; dış model, doku veya üçüncü taraf font dosyası dağıtılmadı. Yazı Blender'ın yerleşik Bfont görünümünden mesh'e çevrildi. Ayrı bir üçüncü taraf varlık lisansı atanmadı; proje kaynaklarının hakları geçerlidir. Önizleme tankı mevcut proje varlığıdır.
+
+## Oyun entegrasyonu — 2026-10-28
+
+Kül Vadisi merkez fabrikaya GLB metre ölçeği korunarak yerleştirildi; alt arazi düzleştirildi. `collision_only` geometrisi gizlenip statik Havok fiziğine bağlandı. Gerçek GLB ile zemin/ölçek, mermi engelleme, yan açıklık ve kaynak temizliği kontrolleri; iki tankla mevcut rota sürüşleri ve `map:build` geçti. Chrome görünümü incelendi. Önceki bağımsız varlık tesliminin açık entegrasyon maddeleri bu kayıtla güncellendi; insan yakın sürüş/kamera kabulü ve performans ölçümü açık. [Ayrıntılar ve görüntü](../../../docs/KUL_VADISI_BLOCKOUT.md#b1--hangar-ve-atölye-entegrasyonu).

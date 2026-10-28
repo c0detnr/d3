@@ -55,3 +55,13 @@ Chrome görsel kontrolü: 1255 × 493 sayfa görünümünde tankın başlangıç
 Paralel Blender çalışmasında [bakım hangarı varlık teslimi](../assets/environment/maintenance_hangar_01/README.md) oluştu. Yukarıdaki geçici hangar hacimleri bu modelin ölçüsü olarak okunmamalı; gerçek modelle yerleşim K2 entegrasyonunda ele alınacak.
 
 B üssü bağlantısı açıldı; kamera yönü 180° olarak gözlendi. Tarayıcı otomasyonunda fare kilidi alınamadığından kısa klavye sürüşü doğrulanamadı; sürülebilirlik kanıtı yukarıdaki gerçek fizik testidir.
+
+## B1 — hangar ve atölye entegrasyonu
+
+2026-10-28: `factory-hangar` (x −54, z 0) ve `factory-workshop` (x 60, z −45) geçici kutuları gerçek Blender GLB'leriyle değiştirildi. Kaynak metre ölçeği korundu; görünür sınırların merkezi yerleşim noktasına hizalandı. Yerleşim zarfları sırasıyla 40 × 24 m ve 23 × 14 m; bina tabanları düzleştirildi, çevrelerine 6 m arazi geçişi verildi. Diğer yapı hacimleri geçicidir.
+
+Hangarın üç, atölyenin altı `collision_only` mesh'i görünmez statik Havok şekilleridir; tank, kamera ve mermi fizik sorgularına dahildir. Malzeme geri bildirimi metal; ayrıntılı yüzeye göre malzeme ayrımı yapılmadı. Kapılar kapalıdır; iç mekân/onarım/maç mantığı eklenmedi. GLB'ler Vite dağıtımına alınır, sahne kapanırken görsel ve fizik kaynakları temizlenir.
+
+Sağ panelde **Fabrikaya bak** iki modeli birlikte gösterir; **Tanka dön** mevcut üs tankına döner. [Gerçek oyun görünümü](previews/kul-vadisi-factory.png): Chrome, 1255 × 493 görüntü; görsel gözlem, FPS ölçümü değildir. Tarayıcı hata/uyarı kaydı boştu. Otomasyon fare kilidi alamadığından elle sürüş/kamera hissi kabulü yapılamadı.
+
+`node --experimental-strip-types scripts/check-kul-vadisi.ts` gerçek iki GLB ile zemin/ölçek, gizli çarpışma, mermi engelleme, yan açıklıklar, iki tankın bütün mevcut rotalarda iki yönlü sürüşü ve iki kur/temizle çevrimini geçti. `npm run map:build` geçti; mevcut büyük paket uyarısı sürüyor. Ham sürüş kaydı güncellendi; rota süreleri değişmedi. B2 savunma modeli, beton/doğa seti, insan yakın sürüş kabulü ve performans ölçümü olmadan K2 tamamlandı sayılmaz.

@@ -2,7 +2,7 @@
 
 İlk konsept: 2026-10-24. Son güncelleme: 2026-10-28.
 
-**Durum:** 5’e 5 üs saldırısı düzeni onaylı. K0 ölçü taslağı ve K1 sürülebilir kaba harita uygulandı; [ölçüler, kontroller ve açık kabul](KUL_VADISI_BLOCKOUT.md). Kullanıcı mevcut Babylon.js motorunun korunmasını, küçük parçaların kodla üretilmesini ve projeye eklediği Quaternius doğa paketinden yararlanılmasını istedi. K0–K7 harita uygulaması ve 5’e 5 maç sistemi bu model tesliminin kapsamı değil. Kullanıcının sonraki açık isteğiyle B1 kapalı askerî bakım hangarı bağımsız Blender varlığı olarak üretildi; [teslim ve kontroller](../assets/environment/maintenance_hangar_01/README.md). Harita yerleşiminde son ölçü ve oyun içi kabul bekliyor.
+**Durum:** 5’e 5 üs saldırısı düzeni onaylı. K0 ölçü taslağı ve K1 sürülebilir kaba harita uygulandı; [ölçüler, kontroller ve açık kabul](KUL_VADISI_BLOCKOUT.md). Kullanıcı mevcut Babylon.js motorunun korunmasını, küçük parçaların kodla üretilmesini ve projeye eklediği Quaternius doğa paketinden yararlanılmasını istedi. K0–K7 harita uygulaması ve 5’e 5 maç sistemi bu model tesliminin kapsamı değil. Kullanıcının sonraki açık isteğiyle B1 kapalı askerî bakım hangarı bağımsız Blender varlığı olarak üretildi; [teslim ve kontroller](../assets/environment/maintenance_hangar_01/README.md). Hangar ve atölye merkez fabrikaya gerçek GLB ve statik Havok çarpışmalarıyla yerleştirildi; [entegrasyon ve açık kabul](KUL_VADISI_BLOCKOUT.md#b1--hangar-ve-atölye-entegrasyonu). K2 bütün kesit kabulü bekliyor.
 
 ## Kesin kararlar ve önceki planla ilişki
 
@@ -190,7 +190,7 @@ Aşağıdaki dosyalar yerel `glTF/` klasöründe mevcut. Bunlar üretim adaylar�
 
 **İlk Blender işi:** B1 içindeki hangar ve atölye; ardından B2 dış savunma yapısı. Doğa paketinde uygun kaya/ağaç bulunduğu için eski 15 özgün çevre modeli önerisi artık başlangıç üretim listesi değildir.
 
-**2026-10-28 B1 başlangıcı:** Kullanıcı kapalı askerî bakım tesisi seçti ve Blender MCP ile modellemeyi açıkça istedi. İlk hangar 32 × 22 m ana hacim, alçak yan servis kanadı, kademeli çatı ve kapalı sürgülü kapıyla üretildi. Mat zeytin yeşili metal, beton kaide ve seyrek uyarı işaretleri kullanıldı. Bu ölçüler ilk model taslağıdır; K0/K1 harita yerleşimi sınanmadan bağımsız varlık üretimine geçilmesi bu isteğin kapsamıdır. Küçük atölye de sonraki kullanıcı isteğiyle üretildi; [kaynak, GLB ve kontroller](../assets/environment/maintenance_workshop_01/README.md). Savunma yapıları henüz üretilmedi; K2 kabulü tamamlanmadı.
+**2026-10-28 B1 başlangıcı:** Kullanıcı kapalı askerî bakım tesisi seçti ve Blender MCP ile modellemeyi açıkça istedi. İlk hangar 32 × 22 m ana hacim, alçak yan servis kanadı, kademeli çatı ve kapalı sürgülü kapıyla üretildi. Mat zeytin yeşili metal, beton kaide ve seyrek uyarı işaretleri kullanıldı. Bu ölçüler ilk model taslağıdır; K0/K1 harita yerleşimi sınanmadan bağımsız varlık üretimine geçilmesi bu isteğin kapsamıdır. Küçük atölye de sonraki kullanıcı isteğiyle üretildi; [kaynak, GLB ve kontroller](../assets/environment/maintenance_workshop_01/README.md). İki model merkez fabrikada metre ölçeği korunarak entegre edildi; bina altları düzleştirildi ve ayrı çarpışma geometrileri Havok’a bağlandı. Savunma yapıları henüz üretilmedi; K2 kabulü tamamlanmadı.
 
 ### Blender MCP üretim döngüsü
 
