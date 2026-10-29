@@ -1,3 +1,5 @@
+import { IRON_DUST_01_AMMO } from './WeaponDefinition.ts';
+
 /** Gameplay tuning, not a real vehicle damage simulation. HP and module integrity: 0..100. */
 export const DAMAGE = Object.freeze({ hp: 100, shell: 25, module: 50 });
 export const MODULES = ['leftTrack', 'rightTrack', 'engine', 'turret'] as const;
@@ -15,6 +17,12 @@ export function damageRegion(point: { x: number; y: number; z: number }, size: {
   if (point.y > 1.65) return 'turret';
   if (point.z < -size.z * 0.23) return 'engine';
   return null;
+}
+/** A shell striking steeper than the ammo's ricochet angle from the surface normal glances off and deals no damage. */
+export function ricochets(direction: { x: number; y: number; z: number }, normal: { x: number; y: number; z: number }) {
+  const along = Math.abs(direction.x * normal.x + direction.y * normal.y + direction.z * normal.z)
+    / ((Math.hypot(direction.x, direction.y, direction.z) * Math.hypot(normal.x, normal.y, normal.z)) || 1);
+  return Math.acos(Math.min(1, along)) > IRON_DUST_01_AMMO.ricochetAngle;
 }
 export function applyDamage(state: DamageState, module: DamageModule | null) {
   if (state.hp <= 0) return false;

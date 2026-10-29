@@ -19,7 +19,7 @@ export interface ProjectileState { id: number; position: number[] }
 export interface ImpactEvent {
   id: number; tick: number; shooter: Slot; target: Slot | null;
   point: number[]; normal: number[]; source: number[]; surface: ImpactSurface;
-  module: DamageModule | null; destroyed: boolean;
+  module: DamageModule | null; destroyed: boolean; ricochet?: boolean;
 }
 export interface ServerState {
   type: 'state'; tick: number; phase: MatchPhase; winner: Slot | null;

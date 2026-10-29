@@ -24,3 +24,8 @@ for (const module of MODULES) {
 const a = freshDamage(), b = freshDamage(); applyDamage(a, 'engine');
 assert.equal(b.modules.engine, 100, 'vehicles and resets never share mutable module state');
 console.log('Passed: hit regions, independent modules, two-hit failures, four-hit destruction, drive gating and dead-state idempotence.');
+import { ricochets } from '../src/game/combat/DamageModel.ts';
+assert.equal(ricochets({ x: 0, y: 0, z: -1 }, { x: 0, y: 0, z: 1 }), false, 'head-on hit is not a ricochet');
+assert.equal(ricochets({ x: 1, y: 0, z: -0.2 }, { x: 0, y: 0, z: 1 }), true, 'grazing hit ricochets');
+assert.equal(ricochets({ x: 0.5, y: 0, z: -1 }, { x: 0, y: 0, z: 1 }), false, 'moderate angle still hits');
+console.log('Passed: ricochet angle.');

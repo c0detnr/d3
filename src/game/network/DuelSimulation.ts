@@ -1,4 +1,4 @@
-import { applyDamage } from '../combat/DamageModel.ts';
+import { applyDamage, ricochets } from '../combat/DamageModel.ts';
 import { pickTankHit, tankDamageRegion } from '../combat/tankHit.ts';
 import { impactSurface } from '../combat/ImpactSurface.ts';
 import type { ImpactEvent } from './protocol.ts';
@@ -153,10 +153,11 @@ export class DuelSimulation {
       const other: Slot = slot === 0 ? 1 : 0;
       const target = hit.body === this.tanks[other].vehicle.body ? other : null;
       const module = target === null ? null : tankDamageRegion(this.tanks[target], hit.point);
-      const applied = target !== null && applyDamage(this.tanks[target].damage, module);
+      const ricochet = target !== null && ricochets(shell.velocity, hit.normal);
+      const applied = target !== null && !ricochet && applyDamage(this.tanks[target].damage, ricochet ? null : module);
       this.impacts.push({ id: this.nextImpactId++, tick: this.tick, shooter: slot, target,
         point: hit.point.asArray(), normal: hit.normal.asArray(), source: shell.previous.asArray(),
-        surface: target === null ? impactSurface(hit.body) : 'metal', module,
+        surface: target === null ? impactSurface(hit.body) : 'metal', module: ricochet ? null : module, ricochet,
         destroyed: !!applied && target !== null && this.tanks[target].damage.hp === 0 });
       // Repeat a bounded event tail in snapshots so 20 Hz delivery cannot miss a 60 Hz hit.
       this.impacts = this.impacts.slice(-32);
