@@ -1,4 +1,6 @@
 import { KUL_FIELD_COVER, KUL_FIELD_RELIEF } from './kulBattlefieldLayout.ts';
+import { kulCraterHeight } from './kulCraterLayout.ts';
+import { KUL_FIELD_LANDMARKS } from './kulLandmarkLayout.ts';
 import { smooth, terrainNoise } from './terrain.ts';
 
 export type MapPoint = { x: number; z: number };
@@ -62,12 +64,22 @@ function rawTerrainHeight(x: number, z: number) {
     const radius = Math.hypot((x - p.x) / p.rx, (z - p.z) / p.rz);
     return sum + p.height * (1 - smooth(radius));
   }, 0) * (1 - road);
-  return relief + front * (west + quarry + shelves * (1 - road) + bumps * (1 - road) - creek * 2) + rim;
+  const craters = kulCraterHeight(x, z) * (1 - road);
+  return relief + craters + front * (west + quarry + shelves * (1 - road) + bumps * (1 - road) - creek * 2) + rim;
 }
 
 /** Level building pads with a six-metre apron; keep terrain and Havok on one surface. */
 export function kulTerrainHeight(x: number, z: number) {
   const height = rawTerrainHeight(x, z);
+  // Landmark pads follow the yawed footprint (+0.5 m) with a four-metre blend.
+  for (const p of KUL_FIELD_LANDMARKS) {
+    const dx = x - p.x, dz = z - p.z, c = Math.cos(p.yaw), s = Math.sin(p.yaw);
+    const edge = Math.max(Math.abs(dx * c - dz * s) - (p.width + 1) / 2, Math.abs(dx * s + dz * c) - (p.depth + 1) / 2);
+    if (edge < 4) {
+      const blend = smooth(Math.max(0, edge) / 4);
+      return rawTerrainHeight(p.x, p.z) * (1 - blend) + height * blend;
+    }
+  }
   for (const p of KUL_FIELD_COVER) {
     const edge = Math.max(Math.abs(x - p.x) - (p.width + 1) / 2, Math.abs(z - p.z) - (p.depth + 1) / 2);
     if (edge < 3) {

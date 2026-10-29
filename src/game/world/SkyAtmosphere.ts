@@ -28,6 +28,11 @@ uniform vec3 uHorizon;
 uniform vec3 uCloudDark;
 uniform vec3 uCloudLight;
 uniform vec3 uFlashColor;
+uniform vec3 uSunDirection;
+uniform vec3 uBodyColor;
+uniform vec3 uBody;
+uniform float uCloudEdge;
+uniform float uStars;
 
 float hash(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -76,18 +81,26 @@ void main() {
     float lower = fbm(uv * 0.5 + vec2(uTime * 0.02, uTime * 0.005));
     float upper = fbm(uv * 1.6 + vec2(-uTime * 0.03, uTime * 0.016) + lower * 0.9);
     float density = lower * 0.58 + upper * 0.42;
-    density = smoothstep(0.34, 0.62, density);
+    density = smoothstep(uCloudEdge, uCloudEdge + 0.28, density);
     density = floor(density * 8.0 + 0.5) / 8.0;
 
     float underlight = smoothstep(0.2, 0.8, fbm(uv * 1.05 + vec2(3.1, -uTime * 0.024)) + 0.24);
     vec3 cloud = mix(uCloudDark, uCloudLight, underlight * (1.0 - height * 0.3));
     float sunSide = max(dot(normalize(vec3(direction.x, 0.08, direction.z)),
-      normalize(vec3(-0.58, 0.0, 0.53))), 0.0);
+      normalize(vec3(uSunDirection.x, 0.0, uSunDirection.z))), 0.0);
     cloud = mix(cloud, uHorizon * 1.08, pow(1.0 - height, 2.6) * (0.18 + sunSide * 0.5));
 
     float flashReach = max(dot(direction, uFlashDirection), 0.0);
     float flash = uFlash * (0.18 + pow(flashReach, 5.0) * 2.2);
     cloud += uFlashColor * flash * (0.32 + density * 1.3);
+
+    float clear = 1.0 - density;
+    float facing = max(dot(direction, uSunDirection), 0.0);
+    vec3 bodyLight = uBodyColor * (smoothstep(uBody.x, uBody.x + 0.0012, facing) * 1.6 + pow(facing, 14.0) * uBody.y);
+    sky += bodyLight * clear * step(0.0, direction.y + 0.02);
+    vec3 starCell = floor(direction * 260.0);
+    float star = step(0.9985, hash(starCell.xy + starCell.z * 37.1));
+    sky += vec3(star) * uStars * clear * smoothstep(0.08, 0.4, height);
 
     sky = mix(sky, cloud, density);
     sky += uFlashColor * uFlash * pow(max(direction.y, 0.0), 3.0) * 0.1;
@@ -98,14 +111,9 @@ void main() {
 }
 `;
 
-const ZENITH = Color3.FromHexString('#151A1D');
-const MID = Color3.FromHexString('#46504F');
-const HORIZON = Color3.FromHexString('#A87D50');
-const CLOUD_DARK = Color3.FromHexString('#1E2324');
-const CLOUD_LIGHT = Color3.FromHexString('#8E8878');
 const FLASH_COLOR = Color3.FromHexString('#EADDBF');
 
-/** Procedural storm sky with drifting turbulence and distant lightning flashes. */
+/** Procedural sky with drifting turbulence; storms add distant lightning flashes. */
 export function createChaoticSky(scene: Scene, diameter = 1800, atmosphere: AtmosphereSettings = TEST_GROUND_ATMOSPHERE) {
   const FOG_BASE = atmosphere.fog.color, FOG_FLASH = atmosphere.fog.flashColor;
   Effect.ShadersStore.chaoticSkyVertexShader = VERTEX;
@@ -120,15 +128,22 @@ export function createChaoticSky(scene: Scene, diameter = 1800, atmosphere: Atmo
       uniforms: [
         'worldViewProjection', 'uTime', 'uFlash', 'uFlashDirection',
         'uZenith', 'uMid', 'uHorizon', 'uCloudDark', 'uCloudLight', 'uFlashColor',
+        'uSunDirection', 'uBodyColor', 'uBody', 'uCloudEdge', 'uStars',
       ],
     });
   material.backFaceCulling = false;
   material.fogEnabled = false;
-  material.setColor3('uZenith', ZENITH);
-  material.setColor3('uMid', MID);
-  material.setColor3('uHorizon', HORIZON);
-  material.setColor3('uCloudDark', CLOUD_DARK);
-  material.setColor3('uCloudLight', CLOUD_LIGHT);
+  const palette = atmosphere.sky;
+  material.setColor3('uZenith', palette.zenith);
+  material.setColor3('uMid', palette.mid);
+  material.setColor3('uHorizon', palette.horizon);
+  material.setColor3('uCloudDark', palette.cloudDark);
+  material.setColor3('uCloudLight', palette.cloudLight);
+  material.setVector3('uSunDirection', Vector3.FromArray(atmosphere.sun.direction).normalize().scale(-1));
+  material.setColor3('uBodyColor', palette.body.color);
+  material.setVector3('uBody', new Vector3(Math.cos(palette.body.radius), palette.body.halo, 0));
+  material.setFloat('uCloudEdge', palette.cloudEdge);
+  material.setFloat('uStars', palette.stars);
   material.setColor3('uFlashColor', FLASH_COLOR);
   material.setFloat('uTime', 0);
   material.setFloat('uFlash', 0);
@@ -139,7 +154,7 @@ export function createChaoticSky(scene: Scene, diameter = 1800, atmosphere: Atmo
 
   scene.clearColor = new Color4(FOG_BASE.r, FOG_BASE.g, FOG_BASE.b, 1);
   scene.fogMode = Scene.FOGMODE_EXP2;
-  scene.fogDensity = atmosphere.fog.density;
+  scene.fogDensity = 0; // distance fog is disabled on every map; fog colour still drives clear colour and mountain tint
   scene.fogColor = FOG_BASE.clone();
 
   const flashDirection = new Vector3(0, 0.2, 1);
@@ -151,7 +166,7 @@ export function createChaoticSky(scene: Scene, diameter = 1800, atmosphere: Atmo
   const update = (dt: number) => {
     elapsed += dt;
     nextFlash -= dt;
-    if (nextFlash <= 0) {
+    if (atmosphere.sky.lightning && nextFlash <= 0) {
       flashAge = 0;
       nextFlash = 5.5 + Math.random() * 7.5;
       const azimuth = Math.random() * Math.PI * 2;

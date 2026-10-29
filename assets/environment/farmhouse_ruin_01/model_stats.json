@@ -1,0 +1,20 @@
+{
+  "stage": "export",
+  "method": "Blender 5.2 CLI background build",
+  "visible_meshes": 9,
+  "visible_triangles": 1206,
+  "materials": 8,
+  "collision_meshes": 20,
+  "collision_triangles": 464,
+  "bounds_min": [
+    -5.8050055503845215,
+    -4.369081974029541,
+    0.0
+  ],
+  "bounds_max": [
+    5.8050055503845215,
+    4.369081974029541,
+    6.091073989868164
+  ],
+  "background": true
+}

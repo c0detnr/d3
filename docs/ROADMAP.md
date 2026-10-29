@@ -281,3 +281,9 @@ Geçici `command` kutusunun yerine geçecek kapalı komuta sığınağı Blender
 İki üste geçici dış/iç savunma kutuları ve yüksek doğma duvarı kaldırıldı. Komuta merkezi hangar yanına/geriye, bakım atölyesi giriş yanına alındı; mevcut hasarlı beton mevzilerle 24 m ana kapı ve 40.8 m yan açıklık bırakıldı. Üs yolları iki çıkışa bağlandı. [Yerleşim, kontroller ve doğma güvenliği sınırı](BASE_ENTRANCE.md).
 
 Gerçek GLB/Havok ile çıkış açıklığı/görüş, mermi çarpışmaları, iki tankın iki yönlü rotaları ve kaynak temizliği; `map:build` geçti. Yalnız commit kapsamını içeren ayrı ağaçta fizik kontrolü ve derleme de geçti. Tarayıcı erişim sunucusu bulunmadığı için görsel/insan sürüş ve FPS kabulü açık; K2/M1/M2/M3 kapanmadı.
+
+### 2026-10-29 — Çevre ve hava çalışmalarının teslimi
+
+İki yıkık çiftlik evi ve iki zırhlı enkaz gerçek GLB olarak haritaya bağlandı. Simetrik kraterler, alan siperleri/dekoru, köşe ormanları, zemin lekeleri, enkaz dumanı ve toz eklendi. Beş gökyüzü/ışık önayarı URL üzerinden seçilebilir; mesafe sisi ve alçak sis yüzeyleri kapalıdır. Görsel dere suyu deneyseldir; DECISIONS içindeki öneri statüsü korunur.
+
+Krater, alan nesneleri, landmark, atmosfer ve iki tanklı Kül Vadisi Havok rota/temizlik kontrolleri geçti. `map:build` ve `lan:check` geçti; bağımsız commit ağacında da derleme ve atmosfer kontrolü geçti. Tarayıcı görsel/FPS kabulü yapılmadı. Devam eden tren sahası bu teslimin kapsamı dışındadır; K2/M1/M2/M3 genel kabulü kapanmadı.

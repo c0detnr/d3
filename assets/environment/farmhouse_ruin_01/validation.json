@@ -1,0 +1,41 @@
+{
+  "status": "passed",
+  "method": "Blender 5.2 CLI GLB reimport (factory scene)",
+  "visible_triangles": 1206,
+  "visible_meshes": 9,
+  "materials": 8,
+  "collision_meshes": 20,
+  "collision_triangles": 464,
+  "bounds_min": [
+    -5.8050055503845215,
+    -4.369081974029541,
+    0.0
+  ],
+  "bounds_max": [
+    5.8050055503845215,
+    4.369081974029541,
+    6.091073989868164
+  ],
+  "size_m": [
+    11.610011100769043,
+    8.738163948059082,
+    6.091073989868164
+  ],
+  "metre_scale": true,
+  "ground_origin": true,
+  "external_textures": false,
+  "tank_in_export": false,
+  "wall_collider_top_heights_m": [
+    2.001,
+    2.201,
+    2.401,
+    2.501,
+    2.621,
+    3.501,
+    3.951,
+    4.001
+  ],
+  "chimney_collider_top_m": 5.901,
+  "interior_blocked": true,
+  "collision_note": "Footing, 12 broken wall pieces, chimney base/stack, interior fill box, interior/corner/door rubble mounds. Wall colliders copy the visible jagged silhouette; window/door gaps are 1.2 m (no tank entry). Beams, tiles, quoins and loose blocks have no collider."
+}

@@ -38,10 +38,18 @@ const natureSources = {
   bush: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Bush_Common.glb', import.meta.url))),
   grass: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Grass_Wispy_Short.glb', import.meta.url))),
 };
+const propSources = {
+  bushFlowers: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Bush_Common_Flowers.glb', import.meta.url))),
+  tallGrass: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Grass_Common_Tall.glb', import.meta.url))),
+};
+const landmarkSources = {
+  ruin: new Uint8Array(await readFile(new URL('../assets/environment/farmhouse_ruin_01/farmhouse_ruin_01.glb', import.meta.url))),
+  wreck: new Uint8Array(await readFile(new URL('../assets/environment/armored_wreck_01/armored_wreck_01.glb', import.meta.url))),
+};
 const results: Record<string, unknown> = {};
 try {
   for (let cycle = 0; cycle < 2; cycle++) {
-    const map = await createKulVadisi(scene, 'A', factorySources, natureSources); scene.render();
+    const map = await createKulVadisi(scene, 'A', factorySources, natureSources, propSources, landmarkSources); scene.render();
     assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'outer').length, 0);
     assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'inner').length, 0);
     assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'command').length, 2);

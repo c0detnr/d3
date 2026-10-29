@@ -1,10 +1,8 @@
-import { Color3, Mesh, StandardMaterial, VertexData, type Scene } from '@babylonjs/core';
+import { Color3, Mesh, Scene as BabylonScene, StandardMaterial, VertexData, type Scene } from '@babylonjs/core';
 import { KUL_ATMOSPHERE } from './atmosphereSettings.ts';
 import { cellHash } from './facetedTerrain.ts';
 import { smooth, terrainNoise } from './terrain.ts';
 
-/** Fog tone of the sky horizon; distant layers are baked toward it (fog is off for this mesh). */
-const HAZE = KUL_ATMOSPHERE.fog.color;
 const hex = Color3.FromHexString;
 const ROCK = hex('#7E7B72'), ROCK_DARK = hex('#68665F'), FOREST = hex('#596340'), DIRT = hex('#8C7855');
 
@@ -20,6 +18,8 @@ export const KUL_MOUNTAIN_LAYERS = [
 
 /** Purely visual ridge ring around the playable square: no physics, not pickable, no shadows. */
 export function createKulMountains(scene: Scene, limit = 360) {
+  /** Distant layers are baked toward the scene fog tone (fog is off for this mesh); the active weather sets it. */
+  const HAZE = scene.fogMode === BabylonScene.FOGMODE_NONE ? KUL_ATMOSPHERE.fog.color : scene.fogColor.clone();
   const material = new StandardMaterial('kul-mountains', scene);
   material.diffuseColor = Color3.White(); material.specularColor = Color3.Black();
   material.emissiveColor = new Color3(0.08, 0.08, 0.07);

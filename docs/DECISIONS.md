@@ -211,3 +211,9 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 **İlk uygulama değerleri, son tasarım kararı değil:** 720 × 720 m, 18 m yol, 3 m arazi ağı ve [belgelenmiş geçici yapı ölçüleri](KUL_VADISI_BLOCKOUT.md). K0'da bütün yapı hacimleri statik sert siperdir; can/ateş/onarım/maç davranışı bağlı değildir.
 
 **Açık:** Son harita/yapı ölçüleri, insan sürüşü ve görüş kabulü, Blender modeliyle yerleşim, beş tankın avlusu, son sınır görseli ve 5'e 5 maç dengesi.
+
+## 2026-10-29 — Dere suyu
+
+**Öneri (onay bekliyor):** İki "Kuru dere" yatağına görsel sığ su şeridi (`createKulWater.ts`). Fizik, sürtünme ve çarpışma değişmez; tanklar suyun içinden geçer. Su yüzeyi yatağın en alçak noktasının 0,35 m üstünde, x = ±150 m arasında, uçlarda daralır. Göletler, sıçrama efekti ve sürtünme sonraya bırakıldı.
+
+**Açık:** Tarayıcıda görsel kabul (su yüksekliği, kıyı kesimleri, batı sırtı ve taş ocağı eğimlerinde görünüm).

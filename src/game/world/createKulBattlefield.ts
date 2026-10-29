@@ -135,6 +135,16 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
       nature('rock3', `quarry-rock-${i}`, x, z, 4 + i % 5, i * 1.7, true);
       if (i % 4 === 0) nature('deadTree', `quarry-tree-${i}`, x - 7, z, 9 + i % 5, i, false, true);
     }
+    // Dense woodland fills the four corner pockets outside the routes; one pattern, mirrored for A/B symmetry.
+    const species = ['pine', 'pineTall', 'broadTree'] as const;
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) for (let j = 0; j < 7; j++) for (let k = 0; k < 7; k++) {
+      const n = j * 7 + k, h = (n * 0.6180339) % 1, h2 = (n * 0.7548777) % 1;
+      if (h > 0.85) continue;
+      const x = sx * (246 + j * 15 + (h2 - 0.5) * 9), z = sz * (246 + k * 15 + (h - 0.5) * 9);
+      if (!clear(x, z)) continue;
+      nature(species[n % 3], `corner-tree-${sx}-${sz}-${n}`, x, z, 11 + h2 * 7, n * 2.3, false, true);
+      if (n % 4 === 0) nature('fern', `corner-fern-${sx}-${sz}-${n}`, x + 4, z + 3, 2, n, false);
+    }
     // Low creek-bank vegetation and pebbles leave the graded crossings unobstructed.
     for (const bank of [-1, 1]) for (let i = 0; i < 100; i++) {
       const x = -280 + i * 5.6, z = bank * 102 + Math.sin(x / 58) * 15 + (i % 2 ? 20 : -20);

@@ -2,9 +2,9 @@
   "description": "Gerçek GLB + Havok; otomatik rota takibi, insan sürüş/denge kabulü değildir. İlk temas orta hattın 15 m yakınına varıştır; düşmanla karşılaşma değildir.",
   "results": {
     "nature": {
-      "trees": 76,
+      "trees": 245,
       "quarryRocks": 20,
-      "decorativePlants": 360
+      "decorativePlants": 363
     },
     "01": {
       "visibleSizeMetres": [
@@ -17,87 +17,87 @@
         1.25,
         6.300000190734863
       ],
-      "turn180Seconds": 4.533333333333333,
+      "turn180Seconds": 2.8666666666666667,
       "drives": [
         {
           "route": "west-A-B",
-          "firstContactSeconds": 63.56666666666667,
-          "fullRouteSeconds": 129.15,
-          "minUp": 0.9760668558232938
+          "firstContactSeconds": 65.56666666666666,
+          "fullRouteSeconds": 129.8,
+          "minUp": 0.9770987738339889
         },
         {
           "route": "west-B-A",
-          "firstContactSeconds": 63.583333333333336,
-          "fullRouteSeconds": 129.15,
-          "minUp": 0.976191364631178
+          "firstContactSeconds": 62.86666666666667,
+          "fullRouteSeconds": 129.83333333333334,
+          "minUp": 0.9771344622444507
         },
         {
           "route": "center-A-B",
-          "firstContactSeconds": 58.43333333333333,
-          "fullRouteSeconds": 119.03333333333333,
-          "minUp": 0.9900347431651343
+          "firstContactSeconds": 44.86666666666667,
+          "fullRouteSeconds": 91.65,
+          "minUp": 0.9901088642644928
         },
         {
           "route": "center-B-A",
-          "firstContactSeconds": 58.43333333333333,
-          "fullRouteSeconds": 119.08333333333333,
-          "minUp": 0.9901049391794249
+          "firstContactSeconds": 44.86666666666667,
+          "fullRouteSeconds": 91.65,
+          "minUp": 0.9900232506649257
         },
         {
           "route": "east-A-B",
-          "firstContactSeconds": 63.333333333333336,
-          "fullRouteSeconds": 128.75,
-          "minUp": 0.9818344167278379
+          "firstContactSeconds": 62.38333333333333,
+          "fullRouteSeconds": 129.41666666666666,
+          "minUp": 0.982435375229736
         },
         {
           "route": "east-B-A",
-          "firstContactSeconds": 63.35,
-          "fullRouteSeconds": 128.75,
-          "minUp": 0.9819478726647399
+          "firstContactSeconds": 65.16666666666667,
+          "fullRouteSeconds": 129.53333333333333,
+          "minUp": 0.9836544199713196
         },
         {
           "route": "creek--102-west-east",
-          "fullRouteSeconds": 60.88333333333333,
-          "minUp": 0.9861126465215794
+          "fullRouteSeconds": 60.833333333333336,
+          "minUp": 0.9862723858919059
         },
         {
           "route": "creek--102-east-west",
           "fullRouteSeconds": 61.05,
-          "minUp": 0.9849633130018811
+          "minUp": 0.9865783240074866
         },
         {
           "route": "creek-102-west-east",
-          "fullRouteSeconds": 60.88333333333333,
-          "minUp": 0.986112646617188
+          "fullRouteSeconds": 60.833333333333336,
+          "minUp": 0.986608441772353
         },
         {
           "route": "creek-102-east-west",
-          "fullRouteSeconds": 61.05,
-          "minUp": 0.9849633999847599
+          "fullRouteSeconds": 61.06666666666667,
+          "minUp": 0.986882041930761
         },
         {
           "route": "field--35-A-B",
-          "firstContactSeconds": 20.666666666666668,
-          "fullRouteSeconds": 42.96666666666667,
-          "minUp": 0.9613783732953977
+          "firstContactSeconds": 20.633333333333333,
+          "fullRouteSeconds": 42.95,
+          "minUp": 0.9619097479254839
         },
         {
           "route": "field--35-B-A",
           "firstContactSeconds": 18.966666666666665,
           "fullRouteSeconds": 41.21666666666667,
-          "minUp": 0.9626375706752297
+          "minUp": 0.9632411642787879
         },
         {
           "route": "field-35-A-B",
           "firstContactSeconds": 22.383333333333333,
-          "fullRouteSeconds": 44.63333333333333,
-          "minUp": 0.9538110814401364
+          "fullRouteSeconds": 44.65,
+          "minUp": 0.9541659743397741
         },
         {
           "route": "field-35-B-A",
-          "firstContactSeconds": 20.633333333333333,
-          "fullRouteSeconds": 42.983333333333334,
-          "minUp": 0.9556790694470041
+          "firstContactSeconds": 20.616666666666667,
+          "fullRouteSeconds": 43,
+          "minUp": 0.9571081223872195
         }
       ]
     },
@@ -112,87 +112,87 @@
         1.0800000429153442,
         7.150000095367432
       ],
-      "turn180Seconds": 6.483333333333333,
+      "turn180Seconds": 3.8,
       "drives": [
         {
           "route": "west-A-B",
-          "firstContactSeconds": 65.2,
-          "fullRouteSeconds": 132.6,
-          "minUp": 0.9757616836109273
+          "firstContactSeconds": 66.13333333333334,
+          "fullRouteSeconds": 131.06666666666666,
+          "minUp": 0.9768279553163787
         },
         {
           "route": "west-B-A",
-          "firstContactSeconds": 65.18333333333334,
-          "fullRouteSeconds": 132.6,
-          "minUp": 0.975680333329999
+          "firstContactSeconds": 63.53333333333333,
+          "fullRouteSeconds": 131.05,
+          "minUp": 0.9769399723197271
         },
         {
           "route": "center-A-B",
-          "firstContactSeconds": 59.833333333333336,
-          "fullRouteSeconds": 122.16666666666667,
-          "minUp": 0.9904557414975573
+          "firstContactSeconds": 44.95,
+          "fullRouteSeconds": 91.85,
+          "minUp": 0.9904636292399817
         },
         {
           "route": "center-B-A",
-          "firstContactSeconds": 59.93333333333333,
-          "fullRouteSeconds": 122.3,
-          "minUp": 0.9904888872445125
+          "firstContactSeconds": 44.95,
+          "fullRouteSeconds": 91.83333333333333,
+          "minUp": 0.9904343507601937
         },
         {
           "route": "east-A-B",
-          "firstContactSeconds": 64.6,
-          "fullRouteSeconds": 131.65,
-          "minUp": 0.9833336048206476
+          "firstContactSeconds": 62.95,
+          "fullRouteSeconds": 130.55,
+          "minUp": 0.9831500127811733
         },
         {
           "route": "east-B-A",
-          "firstContactSeconds": 64.61666666666666,
-          "fullRouteSeconds": 131.66666666666666,
-          "minUp": 0.9833216003652748
+          "firstContactSeconds": 65.6,
+          "fullRouteSeconds": 130.56666666666666,
+          "minUp": 0.9849035325916029
         },
         {
           "route": "creek--102-west-east",
-          "fullRouteSeconds": 60.916666666666664,
-          "minUp": 0.985864384636438
+          "fullRouteSeconds": 60.85,
+          "minUp": 0.9862610842000225
         },
         {
           "route": "creek--102-east-west",
-          "fullRouteSeconds": 61.083333333333336,
-          "minUp": 0.9842618876828029
+          "fullRouteSeconds": 61.1,
+          "minUp": 0.9862257544210721
         },
         {
           "route": "creek-102-west-east",
-          "fullRouteSeconds": 60.916666666666664,
-          "minUp": 0.9858643770450118
+          "fullRouteSeconds": 60.833333333333336,
+          "minUp": 0.986545899227897
         },
         {
           "route": "creek-102-east-west",
-          "fullRouteSeconds": 61.083333333333336,
-          "minUp": 0.9842618110231314
+          "fullRouteSeconds": 61.1,
+          "minUp": 0.986740272473892
         },
         {
           "route": "field--35-A-B",
-          "firstContactSeconds": 20.666666666666668,
+          "firstContactSeconds": 20.65,
           "fullRouteSeconds": 42.96666666666667,
-          "minUp": 0.9627060174058305
+          "minUp": 0.9632451929111383
         },
         {
           "route": "field--35-B-A",
-          "firstContactSeconds": 18.966666666666665,
-          "fullRouteSeconds": 41.21666666666667,
-          "minUp": 0.9637816051429748
+          "firstContactSeconds": 18.983333333333334,
+          "fullRouteSeconds": 41.233333333333334,
+          "minUp": 0.9640613752203173
         },
         {
           "route": "field-35-A-B",
           "firstContactSeconds": 22.4,
           "fullRouteSeconds": 44.65,
-          "minUp": 0.9565959345596998
+          "minUp": 0.9570298111059252
         },
         {
           "route": "field-35-B-A",
-          "firstContactSeconds": 20.6,
+          "firstContactSeconds": 20.583333333333332,
           "fullRouteSeconds": 42.96666666666667,
-          "minUp": 0.958079144401577
+          "minUp": 0.9593268744710582
         }
       ]
     }

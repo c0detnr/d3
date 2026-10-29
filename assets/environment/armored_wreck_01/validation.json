@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "method": "Blender 5.2 CLI GLB reimport (factory scene)",
+  "visible_triangles": 2074,
+  "visible_meshes": 7,
+  "materials": 6,
+  "collision_meshes": 2,
+  "collision_triangles": 48,
+  "bounds_min": [
+    -3.6675891876220703,
+    -1.857287883758545,
+    0.0
+  ],
+  "bounds_max": [
+    3.6675891876220703,
+    1.857287883758545,
+    2.5091733932495117
+  ],
+  "size_m": [
+    7.335178375244141,
+    3.71457576751709,
+    2.5091733932495117
+  ],
+  "metre_scale": true,
+  "ground_origin": true,
+  "external_textures": false,
+  "tank_in_export": false,
+  "hull_collider_z_m": [
+    0.0,
+    1.62
+  ],
+  "collision_note": "Hull + running gear block (ground to deck) and turret copy. Barrel, fallen track links, plates and debris have no collider."
+}

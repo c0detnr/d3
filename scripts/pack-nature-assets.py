@@ -1,7 +1,8 @@
 """Seçili Quaternius glTF modellerini GLB'ye paketle (Python 3 + ImageMagick).
 
 Kaynak geometri korunur; yeni modellerin dokuları web için en çok 512 px olur.
-Kullanım: python scripts/pack-nature-assets.py 'Stylized Nature MegaKit[Standard]/glTF'
+Kullanım: python scripts/pack-nature-assets.py 'Stylized Nature MegaKit[Standard]/glTF' [Model ...]
+Model adı verilmezse ikinci teslimin sabit sekiz modeli üretilir; mevcut GLB'ler yalnız istenirse yenilenir.
 """
 import json
 from pathlib import Path
@@ -11,8 +12,9 @@ import sys
 
 source = Path(sys.argv[1])
 target = Path(__file__).resolve().parents[1] / 'assets/environment/quaternius_nature'
-for name in ['Pine_5', 'Pine_2', 'DeadTree_2', 'CommonTree_3', 'Rock_Medium_3',
-             'Pebble_Square_2', 'Grass_Common_Short', 'Fern_1']:
+names = sys.argv[2:] or ['Pine_5', 'Pine_2', 'DeadTree_2', 'CommonTree_3', 'Rock_Medium_3',
+                         'Pebble_Square_2', 'Grass_Common_Short', 'Fern_1']
+for name in names:
     model = json.loads((source / f'{name}.gltf').read_text())
     binary = bytearray()
     offsets = []
