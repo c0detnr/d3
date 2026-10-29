@@ -299,6 +299,10 @@ Gerçek GLB/Havok ile iki tankla 12 yeni çift yönlü sürüş, mermi/sert sipe
 
 Düşük hızda otomatik park freni, eğimde statik tutuş ve duruşta palet animasyon eşiği eklendi. Yerel/LAN kilitli fare yakalama çakışması giderildi. İki gerçek tankla düz/eğim duruşu ve palet animasyonu regresyonları, combat:test, lan:check; ayrı teslim ağacında drive:test, map:build ve lan:test geçti. [Kanıt ve sınırlar](VALIDATION.md#2026-10-29--duruşpalet-ve-kilitli-fare-düzeltmesi). Tarayıcı erişim sunucusu yok; etkileşimli sürüş/fare ve insan kabulü açık. M1/M2/M3 genel kabulü değişmedi.
 
+## 2026-10-29 — Sis mühimmatı loot prototipi
+
+[Sis mühimmatı](SMOKE_SUPPLY.md): özgün 2D envanter ikonu, 1594 üçgenlik Blender/GLB sandık ve ayrı kapsül, tanktan F ile toplama, G ile öne sis perdesi ve yerel AI görüş engeli eklendi. `smoke:test`, `map:build`, `combat:test` ve ayrı GLES2 shader piksel kontrolü geçti. Tarayıcı erişim host'u kullanılamadığı için oyun içi görsel/klavye kabulü ve performans ölçümü açık. LAN sis senkronizasyonu ve APK teslimi yok; M1/M2/M3 genel kabulü değişmez.
+
 
 ### 2026-10-29 — Düello AI görüş ve hareket davranışı
 

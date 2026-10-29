@@ -224,6 +224,16 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 
 **Uygulama:** [Tren sahası teslimi](RAIL_YARD.md). **Açık:** İnsan görsel/sürüş değerlendirmesi ve taktik denge; otomatik kontroller son oynanış kabulü değildir.
 
+## 2026-10-29 — Sis mühimmatı
+
+**Kesin kullanıcı seçimi:** Hem 2D envanter görünüşü hem dünya loot modeli hem mekanik hazırlanır. Sis tankın önünde perde oluşturur; sandık tanktan inmeden tuşla toplanır.
+
+**Uygulama:** [Sis mühimmatı](SMOKE_SUPPLY.md). F toplama, G kullanım; özgün sandık/ikon, üçlü salvo ve ana sahnede AI görüş engeli.
+
+**İlk deneme değerleri:** 3 kullanım taşıma, sandık başına 1 kullanım, 8 m toplama, 20 s bekleme, 0,7 s uçuş + 2 s büyüme + 15 s yoğun sis + 3 s dağılma. Bunlar onaylanmış oyun dengesi değildir.
+
+**Açık:** Tarayıcı görsel/gerçek girdi kabulü, düşük tavanlarda görsel kapsül kavisinin davranışı, performans ve denge. LAN senkronizasyonu bu teslimde yok.
+
 
 ## 2026-10-29 — 5’e 5 yerel AI düellosu
 

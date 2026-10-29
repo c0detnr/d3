@@ -33,6 +33,7 @@ Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağ�
 | [Kül Vadisi harita ve model planı](docs/MAP_AND_MODEL_PLAN.md) | Onaylı 5’e 5 üs saldırısı, üç koridor, savunma zinciri ve Blender çevre planı; henüz uygulanmadı |
 | [Görsel yön](docs/ART_DIRECTION.md) | Palet, ışık, tank, çevre ve varlık standardı |
 | [Hasar ve isabet geri bildirimi](docs/DAMAGE_FEEDBACK.md) | Yerel hedef ve LAN hasarı, modüller, HUD, duman/yangın ve ses |
+| [Sis mühimmatı ve loot](docs/SMOKE_SUPPLY.md) | Özgün envanter ikonu, Blender sandığı, F ile toplama, G ile sis perdesi; tarayıcı kabulü açık |
 | [Top atışı geri bildirimi](docs/SHOT_FEEDBACK.md) | Yeni namlu hareketi, küçük kamera sarsıntısı, gaz/toz ve stereo top sesi; insan kabulü açık |
 | [Hareket efektleri planı](docs/MOVEMENT_EFFECTS.md) | Palet/hız/dönüş tozu uygulaması; fren/iniş ve sonraki efektlerin planı |
 | [Kamera, nişan ve atış yenileme planı](docs/AIM_AND_FIRE_REWORK.md) | Sağ tuşla sağ yan yakın kamera, bağımsız serbest bakış ve görünür balistik; henüz uygulanmadı |
