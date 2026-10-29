@@ -195,3 +195,9 @@ NullEngine + gerçek GLB/Havok yapısal karşılaştırması: 643 doğa parças�
 Tarayıcı host erişilemedi; görsel karşılaştırma, gerçek FPS/kare süresi ve uzun sürüşte donma kabulü açık. M1/M2/M3 kapanmadı.
 
 Commit kapsamı ayrıca `/tmp/d3-render-optimization/staged-tree` içinde izole edildi: `map:check` geçti; HEAD doğa kodu ile optimize kod aynı commit arazisinde tekrar karşılaştırıldı (`staged-baseline.json`), aynı sayımlar ve yerleşim eşitliği geçti. Paralel harita/arazi/orman eklemeleri bu optimizasyon commit'inin dışındadır.
+
+## 2026-10-29 — Tren sahası
+
+`node --experimental-strip-types scripts/check-kul-rail-yard.ts` geçti: Havok ile vagon/depo/vinç mermi çarpışması, açık vagon tavan boşluğu, 10 m enine açıklık, ana yollar ve iki kur/kapat/tekrar dispose çevrimi. 8 görsel mesh / 15.392 üçgen / 25 statik gövde.
+
+`check-kul-vadisi.ts` ile gerçek GLB/Havok kullanılarak tüm haritada iki tankla giriş rampası + iki vagon koridorunda çift yönlü 12 yeni sürüş ve mevcut bütün rotalar geçti. `map:build` geçti. Derlemede mevcut büyük paket uyarısı var. [Genel](previews/rail-yard-overview.png) ve [yakın](previews/rail-yard-crane.png) görünümler gerçek geometriyi Blender 5.2 Cycles ile çevrimdışı gösterir; tarayıcı kanıtı değildir. Tarayıcı erişim sunucusu kullanılamadı; GPU/FPS, gerçek kamera/sürüş hissi ve insan kabulü açık.

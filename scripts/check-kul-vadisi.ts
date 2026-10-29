@@ -255,6 +255,14 @@ try {
           const points = [-150, -40, 40, 150].map(z => ({ x, z }));
           drive(points, `field-${x}-A-B`); drive([...points].reverse(), `field-${x}-B-A`);
         }
+        const railYardRoutes = [
+          [{ x: 218, z: 0 }, { x: 338, z: 0 }],
+          [{ x: 272, z: -70 }, { x: 272, z: 35 }],
+          [{ x: 296, z: -70 }, { x: 296, z: 40 }],
+        ];
+        for (const [i, points] of railYardRoutes.entries()) {
+          drive(points, `rail-yard-${i}-forward`); drive([...points].reverse(), `rail-yard-${i}-reverse`);
+        }
         vehicle.reset(map.spawn); for (let i = 0; i < 180; i++) tick();
         let yawTravel = 0, lastYaw = vehicle.current.rotation.toEulerAngles().y, turnSeconds = 0;
         for (let i = 0; i < 60 * 45; i++) {

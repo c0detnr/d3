@@ -1,3 +1,4 @@
+import { KUL_RAIL_DEPOT, KUL_RAIL_TRACKS, KUL_RAIL_WAGONS } from './kulRailYardLayout.ts';
 import { KUL_FIELD_COVER, KUL_FIELD_RELIEF } from './kulBattlefieldLayout.ts';
 import { Vector3 } from '@babylonjs/core';
 import type { FollowCamera } from '../camera/FollowCamera.ts';
@@ -31,10 +32,16 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
     camera.scene.fogDensity = 0.00035; toggle.textContent = 'Tanka dön';
   };
   factory.addEventListener('click', viewFactory);
+  const railYard = document.createElement('button'); railYard.textContent = 'Tren sahasına bak';
+  const viewRailYard = () => {
+    camera.overview(); camera.camera.position.set(218, 76, -120); camera.camera.setTarget(new Vector3(292, -4, 0));
+    camera.scene.fogDensity = 0; toggle.textContent = 'Tanka dön';
+  };
+  railYard.addEventListener('click', viewRailYard);
   if (active) {
     document.title = 'IRON DUST · Kül Vadisi';
     const header = document.createElement('strong'); header.textContent = 'KÜL VADİSİ'; panel.append(header);
-    const note = document.createElement('span'); note.textContent = 'Açık merkez · Siperler ve yan geçişler · W/A/S/D sürüş · R kurtar'; panel.append(note, toggle, factory);
+    const note = document.createElement('span'); note.textContent = 'Açık merkez · Siperler ve yan geçişler · W/A/S/D sürüş · R kurtar'; panel.append(note, toggle, factory, railYard);
     const bases = document.createElement('div');
     for (const base of ['A', 'B']) {
       const link = document.createElement('a'); const url = new URL(location.href); url.searchParams.set('base', base);
@@ -60,10 +67,13 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
     for (const [base, p] of Object.entries(KUL_SPAWNS)) {
       const text = node('text', { x: p.x + 22, y: p.z + 8, fill: '#fff', 'font-size': 26 }); text.textContent = base;
     }
+    for (const x of KUL_RAIL_TRACKS) node('line', { x1: x, y1: -76, x2: x, y2: 76, stroke: '#34383b', 'stroke-width': 3 });
+    for (const w of KUL_RAIL_WAGONS) node('rect', { x: w.x - 2, y: w.z - 8, width: 4, height: 16, fill: '#9d6f50', transform: `rotate(${-w.yaw * 180 / Math.PI} ${w.x} ${w.z})` });
+    node('rect', { x: KUL_RAIL_DEPOT.x - 7, y: KUL_RAIL_DEPOT.z - 11, width: 14, height: 22, fill: '#828575' });
     panel.append(svg);
-    const legend = document.createElement('span'); legend.textContent = 'Batı: sırt · Merkez: açık savaş alanı · Doğu: ocak'; panel.append(legend);
+    const legend = document.createElement('span'); legend.textContent = 'Batı: sırt · Merkez: açık savaş alanı · Doğu: tren sahası'; panel.append(legend);
     const targets = document.createElement('span'); targets.textContent = 'K komuta · Üslerde atölye ve iki açık çıkış'; panel.append(targets);
   }
   document.body.append(panel);
-  return { follow, dispose() { select.removeEventListener('change', change); toggle.removeEventListener('click', view); factory.removeEventListener('click', viewFactory); panel.remove(); } };
+  return { follow, dispose() { select.removeEventListener('change', change); toggle.removeEventListener('click', view); factory.removeEventListener('click', viewFactory); railYard.removeEventListener('click', viewRailYard); panel.remove(); } };
 }

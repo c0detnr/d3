@@ -1,3 +1,4 @@
+import { inKulRailYard } from './kulRailYardLayout.ts';
 import { Color3, LoadAssetContainerAsync, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, StandardMaterial, TransformNode, Vector3, type AbstractMesh, type AssetContainer, type Scene } from '@babylonjs/core';
 import { registerBuiltInLoaders } from '@babylonjs/loaders/dynamic.js';
 import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
@@ -105,7 +106,7 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
       nature(i % 2 ? 'rock2' : 'rock1', `field-rock-${i}`, p.x, p.z, p.scale, i * 1.7, true);
       nature(i % 2 ? 'rock1' : 'rock2', `field-rock-small-${i}`, p.x + 3, p.z + 3, p.scale * 0.6, i, true);
     });
-    const clear = (x: number, z: number) => kulRoadDistance(x, z) > 13 &&
+    const clear = (x: number, z: number) => !inKulRailYard(x, z, 10) && kulRoadDistance(x, z) > 13 &&
       KUL_STRUCTURES.every(s => Math.abs(x - s.x) > s.width / 2 + 8 || Math.abs(z - s.z) > s.depth / 2 + 8) &&
       KUL_FIELD_COVER.every(s => Math.abs(x - s.x) > s.width / 2 + 5 || Math.abs(z - s.z) > s.depth / 2 + 5) &&
       KUL_FIELD_ROCKS.every(s => Math.hypot(x - s.x, z - s.z) > s.scale + 2);

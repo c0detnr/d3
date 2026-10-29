@@ -217,3 +217,9 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 **Öneri (onay bekliyor):** İki "Kuru dere" yatağına görsel sığ su şeridi (`createKulWater.ts`). Fizik, sürtünme ve çarpışma değişmez; tanklar suyun içinden geçer. Su yüzeyi yatağın en alçak noktasının 0,35 m üstünde, x = ±150 m arasında, uçlarda daralır. Göletler, sıçrama efekti ve sürtünme sonraya bırakıldı.
 
 **Açık:** Tarayıcıda görsel kabul (su yüksekliği, kıyı kesimleri, batı sırtı ve taş ocağı eğimlerinde görünüm).
+
+## 2026-10-29 — Sağ uzantının tren sahası olması
+
+**Kesin karar:** Kullanıcı sağ uzantı için terk edilmiş yük treni sahasını onayladı ve uygulama istedi. Paslı vagonlar, küçük bakım deposu ve devrilmiş yükleme vinci bölgenin kimliğidir; tankın manevra/geçiş alanları açık kalır. Önceki taş ocağı teması bu bölümde yerini tren sahasına bırakır.
+
+**Uygulama:** [Tren sahası teslimi](RAIL_YARD.md). **Açık:** İnsan görsel/sürüş değerlendirmesi ve taktik denge; otomatik kontroller son oynanış kabulü değildir.

@@ -287,3 +287,9 @@ Gerçek GLB/Havok ile çıkış açıklığı/görüş, mermi çarpışmaları, 
 İki yıkık çiftlik evi ve iki zırhlı enkaz gerçek GLB olarak haritaya bağlandı. Simetrik kraterler, alan siperleri/dekoru, köşe ormanları, zemin lekeleri, enkaz dumanı ve toz eklendi. Beş gökyüzü/ışık önayarı URL üzerinden seçilebilir; mesafe sisi ve alçak sis yüzeyleri kapalıdır. Görsel dere suyu deneyseldir; DECISIONS içindeki öneri statüsü korunur.
 
 Krater, alan nesneleri, landmark, atmosfer ve iki tanklı Kül Vadisi Havok rota/temizlik kontrolleri geçti. `map:build` ve `lan:check` geçti; bağımsız commit ağacında da derleme ve atmosfer kontrolü geçti. Tarayıcı görsel/FPS kabulü yapılmadı. Devam eden tren sahası bu teslimin kapsamı dışındadır; K2/M1/M2/M3 genel kabulü kapanmadı.
+
+### 2026-10-29 — Sağ uzantıda terk edilmiş tren sahası
+
+Kullanıcının seçtiği doğu tren sahası uygulandı: üç hat, fabrikaya ray bağlantısı, yedi vagon, kapalı bakım deposu ve devrilmiş yükleme vinci. Ortak görsel/fizik arazi düzlemesi, derecelenmiş giriş, açık tank koridorları, statik sert siperler, kamera görünümü ve taktik kroki eklendi. [Kaynaklar, ölçüler ve kabul sınırı](RAIL_YARD.md).
+
+Gerçek GLB/Havok ile iki tankla 12 yeni çift yönlü sürüş, mermi/sert siper, açık vagon ve iki kaynak temizliği çevrimi geçti. Tam harita rota kontrolü ve `map:build` geçti; mevcut büyük paket uyarısı sürüyor. Çevrimdışı geometri render'ı incelendi. Tarayıcı erişim sunucusu kullanılamıyor; insan görsel/sürüş, kamera ve FPS kabulü açık. K2/M1/M2/M3 kapanmaz.

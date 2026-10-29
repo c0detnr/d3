@@ -1,3 +1,4 @@
+import { KUL_RAIL_YARD } from './kulRailYardLayout.ts';
 import { KUL_FIELD_COVER, KUL_FIELD_RELIEF } from './kulBattlefieldLayout.ts';
 import { kulCraterHeight } from './kulCraterLayout.ts';
 import { KUL_FIELD_LANDMARKS } from './kulLandmarkLayout.ts';
@@ -13,7 +14,7 @@ const mirror = (p: MapPoint) => point(-p.x, -p.z);
 export const KUL_ROUTES = [
   { id: 'west', name: 'Ormanlık sırt', points: [point(0, -309), point(0, -240), point(-90, -240), point(-180, -180), point(-210, -90), point(-186, 0), point(-210, 90), point(-180, 180), point(-90, 240), point(-78, 300), point(0, 309)] },
   { id: 'center', name: 'Açık savaş alanı', points: [point(0, -309), point(0, -252), point(-30, -198), point(-24, -132), point(-24, -66), point(0, 0), point(24, 66), point(24, 132), point(30, 198), point(0, 252), point(0, 309)] },
-  { id: 'east', name: 'Taş ocağı', points: [point(0, -309), point(78, -300), point(90, -240), point(180, -180), point(210, -90), point(186, 0), point(210, 90), point(180, 180), point(90, 240), point(0, 240), point(0, 309)] },
+  { id: 'east', name: 'Tren sahası', points: [point(0, -309), point(78, -300), point(90, -240), point(180, -180), point(210, -90), point(186, 0), point(210, 90), point(180, 180), point(90, 240), point(0, 240), point(0, 309)] },
 ];
 export const KUL_CONNECTIONS = [-102, 102].map(z => ({ id: `creek-${z}`, name: 'Kuru dere', points: [point(-210, z), point(-108, z + 18), point(0, z), point(108, z - 18), point(210, z)] }));
 export const KUL_PATHS = [...KUL_ROUTES, ...KUL_CONNECTIONS];
@@ -70,7 +71,18 @@ function rawTerrainHeight(x: number, z: number) {
 
 /** Level building pads with a six-metre apron; keep terrain and Havok on one surface. */
 export function kulTerrainHeight(x: number, z: number) {
-  const height = rawTerrainHeight(x, z);
+  const raw = rawTerrainHeight(x, z);
+  const yard = KUL_RAIL_YARD;
+  const yardEdge = Math.max(Math.abs(x - yard.x) - yard.width / 2, Math.abs(z - yard.z) - yard.depth / 2);
+  const yardBlend = smooth(Math.max(0, yardEdge) / yard.apron);
+  let height = yardEdge < yard.apron ? yard.height * (1 - yardBlend) + raw * yardBlend : raw;
+  // A wide graded entrance connects the depressed east route to the level rail apron.
+  if (x > 196 && x < 244 && Math.abs(z) < 17) {
+    const along = smooth((x - 196) / 48);
+    const across = 1 - smooth((Math.abs(z) - 7) / 10);
+    const ramp = raw * (1 - along) + yard.height * along;
+    height = height * (1 - across) + ramp * across;
+  }
   // Landmark pads follow the yawed footprint (+0.5 m) with a four-metre blend.
   for (const p of KUL_FIELD_LANDMARKS) {
     const dx = x - p.x, dz = z - p.z, c = Math.cos(p.yaw), s = Math.sin(p.yaw);

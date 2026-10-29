@@ -123,3 +123,5 @@ Kül Vadisi merkezinde açık arazi siperleri, beton/kaya mevzileri ve seyrek ç
 Kül Vadisi batı sırtında hazır ağaç grupları, doğudaki taş ocağında iri kayalar ve dere kıyılarında bitki/çakıl kümeleri bulunur. [Doğa yerleşimi ve doğrulama](docs/CENTER_BATTLEFIELD.md#2026-10-28--hazır-doğa-setiyle-harita-zenginleştirme).
 
 İlk özgün [hasarlı beton mevzi](assets/environment/concrete_emplacement_01/README.md) Blender MCP ile üretildi; GLB/çarpışma doğrulandı, oyun yerleşimi henüz yapılmadı.
+
+Kül Vadisi sağ/doğu uzantısında terk edilmiş tren sahası yer alır: üç ray, yedi yük vagonu, bakım deposu ve devrilmiş vinç. **Tren sahasına bak** düğmesi alanı gösterir. [Yerleşim, kaynaklar ve doğrulama](docs/RAIL_YARD.md).

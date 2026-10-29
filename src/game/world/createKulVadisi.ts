@@ -1,3 +1,4 @@
+import { createKulRailYard } from './createKulRailYard.ts';
 import { createKulBattlefield, type fieldSources } from './createKulBattlefield.ts';
 import { createKulAtmosphere } from './createKulAtmosphere.ts';
 import { createKulFieldProps, fieldPropSources } from './createKulFieldProps.ts';
@@ -49,6 +50,7 @@ function kulFacetShade(x: number, y: number, z: number, up: number, variation: n
 /** K1 terrain with ready-made base/factory buildings; no objective/repair logic. */
 export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sources: { hangar: string | Uint8Array; workshop: string | Uint8Array; command: string | Uint8Array; emplacement?: string | Uint8Array } = factorySources, natureSources?: Record<keyof typeof fieldSources, string | Uint8Array>, propSources: Record<keyof typeof fieldPropSources, string | Uint8Array> = fieldPropSources, landmarkSources?: Parameters<typeof createKulLandmarks>[1]) {
   let landmarks: Awaited<ReturnType<typeof createKulLandmarks>> | undefined;
+  let railYard: ReturnType<typeof createKulRailYard> | undefined;
   let battlefield: Awaited<ReturnType<typeof createKulBattlefield>> | undefined;
   let fieldProps: Awaited<ReturnType<typeof createKulFieldProps>> | undefined;
   let decals: ReturnType<typeof createKulGroundDecals> | undefined;
@@ -98,7 +100,7 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
   const ground = {
     spawn: new Vector3(start.x, kulTerrainHeight(start.x, start.z), start.z), terrain, meshes,
     shadowCasters: meshes.filter(m => m.isVisible && m !== terrain && m !== facets && !mountains.meshes.includes(m)) as AbstractMesh[],
-    dispose() { atmosphere?.dispose(); landmarks?.dispose(); fieldProps?.dispose(); decals?.dispose(); water?.dispose(); battlefield?.dispose(); buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); },
+    dispose() { railYard?.dispose(); atmosphere?.dispose(); landmarks?.dispose(); fieldProps?.dispose(); decals?.dispose(); water?.dispose(); battlefield?.dispose(); buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); },
   };
   try {
     for (const structure of KUL_STRUCTURES) {
@@ -107,6 +109,8 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
       buildings.push(building);
       ground.shadowCasters.push(...building.shadowCasters);
     }
+    railYard = createKulRailYard(scene);
+    ground.shadowCasters.push(...railYard.shadowCasters);
     battlefield = await createKulBattlefield(scene, natureSources, sources.emplacement);
     ground.shadowCasters.push(...battlefield.shadowCasters);
     landmarks = await createKulLandmarks(scene, landmarkSources);

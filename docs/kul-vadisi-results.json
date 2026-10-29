@@ -3,8 +3,8 @@
   "results": {
     "nature": {
       "trees": 245,
-      "quarryRocks": 20,
-      "decorativePlants": 363
+      "quarryRocks": 13,
+      "decorativePlants": 358
     },
     "01": {
       "visibleSizeMetres": [
@@ -46,13 +46,13 @@
         {
           "route": "east-A-B",
           "firstContactSeconds": 62.38333333333333,
-          "fullRouteSeconds": 129.41666666666666,
+          "fullRouteSeconds": 129.4,
           "minUp": 0.982435375229736
         },
         {
           "route": "east-B-A",
           "firstContactSeconds": 65.16666666666667,
-          "fullRouteSeconds": 129.53333333333333,
+          "fullRouteSeconds": 129.51666666666668,
           "minUp": 0.9836544199713196
         },
         {
@@ -62,8 +62,8 @@
         },
         {
           "route": "creek--102-east-west",
-          "fullRouteSeconds": 61.05,
-          "minUp": 0.9865783240074866
+          "fullRouteSeconds": 61.06666666666667,
+          "minUp": 0.9865900234950853
         },
         {
           "route": "creek-102-west-east",
@@ -98,6 +98,42 @@
           "firstContactSeconds": 20.616666666666667,
           "fullRouteSeconds": 43,
           "minUp": 0.9571081223872195
+        },
+        {
+          "route": "rail-yard-0-forward",
+          "firstContactSeconds": 0,
+          "fullRouteSeconds": 23.383333333333333,
+          "minUp": 0.9562426394146993
+        },
+        {
+          "route": "rail-yard-0-reverse",
+          "firstContactSeconds": 0,
+          "fullRouteSeconds": 17.066666666666666,
+          "minUp": 0.9631674077551453
+        },
+        {
+          "route": "rail-yard-1-forward",
+          "firstContactSeconds": 9.15,
+          "fullRouteSeconds": 14.9,
+          "minUp": 0.9993475350961187
+        },
+        {
+          "route": "rail-yard-1-reverse",
+          "firstContactSeconds": 4.133333333333334,
+          "fullRouteSeconds": 14.9,
+          "minUp": 0.9993475360381202
+        },
+        {
+          "route": "rail-yard-2-forward",
+          "firstContactSeconds": 9.15,
+          "fullRouteSeconds": 15.6,
+          "minUp": 0.9993475350961187
+        },
+        {
+          "route": "rail-yard-2-reverse",
+          "firstContactSeconds": 4.85,
+          "fullRouteSeconds": 15.6,
+          "minUp": 0.9993475360381202
         }
       ]
     },
@@ -141,7 +177,7 @@
         {
           "route": "east-A-B",
           "firstContactSeconds": 62.95,
-          "fullRouteSeconds": 130.55,
+          "fullRouteSeconds": 130.53333333333333,
           "minUp": 0.9831500127811733
         },
         {
@@ -158,7 +194,7 @@
         {
           "route": "creek--102-east-west",
           "fullRouteSeconds": 61.1,
-          "minUp": 0.9862257544210721
+          "minUp": 0.986226800980061
         },
         {
           "route": "creek-102-west-east",
@@ -193,6 +229,42 @@
           "firstContactSeconds": 20.583333333333332,
           "fullRouteSeconds": 42.96666666666667,
           "minUp": 0.9593268744710582
+        },
+        {
+          "route": "rail-yard-0-forward",
+          "firstContactSeconds": 0,
+          "fullRouteSeconds": 23.383333333333333,
+          "minUp": 0.9577150119543151
+        },
+        {
+          "route": "rail-yard-0-reverse",
+          "firstContactSeconds": 0,
+          "fullRouteSeconds": 17.066666666666666,
+          "minUp": 0.9644081767938688
+        },
+        {
+          "route": "rail-yard-1-forward",
+          "firstContactSeconds": 9.15,
+          "fullRouteSeconds": 14.883333333333333,
+          "minUp": 0.9995475936082242
+        },
+        {
+          "route": "rail-yard-1-reverse",
+          "firstContactSeconds": 4.133333333333334,
+          "fullRouteSeconds": 14.883333333333333,
+          "minUp": 0.9995475952890795
+        },
+        {
+          "route": "rail-yard-2-forward",
+          "firstContactSeconds": 9.15,
+          "fullRouteSeconds": 15.6,
+          "minUp": 0.9995475936082242
+        },
+        {
+          "route": "rail-yard-2-reverse",
+          "firstContactSeconds": 4.85,
+          "fullRouteSeconds": 15.6,
+          "minUp": 0.9995475952890795
         }
       ]
     }
