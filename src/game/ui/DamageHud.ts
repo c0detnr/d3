@@ -12,6 +12,8 @@ export class DamageHud {
   private noticeLife = 0;
   private confirmLife = 0;
   private pulseLife = 0;
+  private pulseSpan = 0.22;
+  private pulsePeak = 0.32;
   private bearings: { angle: number; life: number; node: HTMLDivElement }[] = [];
   private parts: Record<DamageModule, Element>;
   private lastHp = -1;
@@ -76,7 +78,9 @@ export class DamageHud {
     node.innerHTML = '<svg viewBox="0 0 240 240"><path d="M83 25 A102 102 0 0 1 157 25"/></svg>';
     this.directions.append(node);
     this.bearings.push({ angle, life: 1.4, node });
-    this.pulseLife = 0.22;
+    // Severe hits flash longer and brighter than a glancing module hit.
+    this.pulseSpan = severe ? 0.7 : 0.35; this.pulsePeak = severe ? 0.75 : 0.45;
+    this.pulseLife = this.pulseSpan;
     this.noticeLife = this.lastHp === 0 ? 0 : 2.5;
     this.notice.textContent = this.lastHp === 0 ? 'ARAÇ İMHA EDİLDİ' : module ? `${MODULE_LABELS[module]} ${disabled ? 'devre dışı' : 'hasar aldı'}` : 'Gövde hasar aldı';
   }
@@ -84,7 +88,7 @@ export class DamageHud {
     this.confirmLife = Math.max(0, this.confirmLife - dt);
     this.pulseLife = Math.max(0, this.pulseLife - dt);
     this.confirm.style.opacity = String(Math.min(1, this.confirmLife * 4));
-    this.element.style.setProperty('--damage-pulse', String(this.pulseLife / 0.22 * 0.32));
+    this.element.style.setProperty('--damage-pulse', String(this.pulseLife / this.pulseSpan * this.pulsePeak));
     for (const marker of this.bearings) {
       marker.life -= dt;
       marker.node.style.transform = `rotate(${marker.angle - cameraYaw}rad)`;

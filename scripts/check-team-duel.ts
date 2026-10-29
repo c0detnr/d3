@@ -93,6 +93,17 @@ try {
     assert.ok(duel.canSee(observer, target), 'clear sight in courtyard exit');
     duel.blocksSight = () => true; assert.equal(duel.canSee(observer, target), false, 'smoke/perception blocker');
     duel.blocksSight = () => false; target.vehicle.reset(target.vehicle.spawn, teamYaw(target.team));
+    // The shared ray query must hit a friendly turret before the enemy behind it.
+    ally.actor.vehicle.reset(new Vector3(0, 0, team === 'A' ? -255 : 255), teamYaw(team)); ally.actor.render(1);
+    foe.actor.vehicle.reset(new Vector3(0, 0, team === 'A' ? -225 : 225), teamYaw(foe.member.team)); foe.actor.render(1);
+    const origin = human.vehicle.node.position.add(new Vector3(0, 1.15, 0));
+    const end = foe.actor.vehicle.node.position.add(new Vector3(0, 1.15, 0));
+    const intercepted = duel.raycast(human.vehicle.body, origin, end);
+    assert.equal(intercepted?.body, ally.actor.vehicle.body, 'friendly hull/turret intercepts first');
+    duel.playerImpact(intercepted!); assert.equal(ally.member.damage.hp, 100); assert.equal(foe.member.damage.hp, 100);
+    const building = duel.raycast(human.vehicle.body, new Vector3(0, 2, -310), new Vector3(0, 2, -350));
+    assert.ok(building && !duel.members.some(m => m.vehicle.body === building.body), 'hangar blocks the shell');
+    duel.reset(); human.vehicle.reset(human.vehicle.spawn, teamYaw(team)); human.render(1);
     const tick = (dt: number) => {
       human.beforeStep(dt); duel.beforeStep(dt); physics._step(dt); human.afterStep(dt); duel.afterStep(dt); duel.finishStep();
     };

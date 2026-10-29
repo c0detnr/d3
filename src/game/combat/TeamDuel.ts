@@ -93,7 +93,7 @@ export class TeamDuel {
       }
       const position = bot.actor.vehicle.node.position;
       let destination = bot.route[bot.waypoint];
-      if (Vector3.DistanceSquared(position, destination) < 8 ** 2 && bot.waypoint < bot.route.length - 1) destination = bot.route[++bot.waypoint];
+      if (Math.hypot(position.x - destination.x, position.z - destination.z) < 8 && bot.waypoint < bot.route.length - 1) destination = bot.route[++bot.waypoint];
       // A hidden target's current coordinates never enter navigation or aim.
       const visible = !!bot.target && this.canSee(bot.member, bot.target);
       bot.state = bot.ai.update(bot.actor, bot.target ?? this.player, visible, dt, destination);

@@ -4,7 +4,9 @@ export const SHOT_CAMERA = Object.freeze({ duration: 0.5, decay: 13, pitch: 0.01
 export class ShotCameraMotion {
   private age = Infinity;
   private side = 0;
-  impulse(side = 0) { this.age = 0; this.side = Math.max(-1, Math.min(1, side)); }
+  private strength = 1;
+  /** `strength` scales the cannon-shot amplitudes; incoming hits use a larger value. */
+  impulse(side = 0, strength = 1) { this.age = 0; this.side = Math.max(-1, Math.min(1, side)); this.strength = strength; }
   update(dt: number) {
     this.age += Math.max(0, dt);
     const t = this.age;
@@ -12,9 +14,9 @@ export class ShotCameraMotion {
     const attack = 1 - Math.exp(-t * 160);
     const decay = Math.exp(-t * SHOT_CAMERA.decay) * (1 - t / SHOT_CAMERA.duration) ** 2;
     return {
-      pitch: SHOT_CAMERA.pitch * attack * decay * Math.cos(t * 27),
-      yaw: SHOT_CAMERA.yaw * attack * decay * Math.sin(t * 39 + this.side),
-      roll: SHOT_CAMERA.roll * attack * decay * Math.sin(t * 31) * (0.35 + this.side * 0.65),
+      pitch: SHOT_CAMERA.pitch * this.strength * attack * decay * Math.cos(t * 27),
+      yaw: SHOT_CAMERA.yaw * this.strength * attack * decay * Math.sin(t * 39 + this.side),
+      roll: SHOT_CAMERA.roll * this.strength * attack * decay * Math.sin(t * 31) * (0.35 + this.side * 0.65),
     };
   }
   reset() { this.age = Infinity; }

@@ -32,9 +32,9 @@ export class FollowCamera {
   }
   follow(yaw = 0) { this.overviewMode = false; this.yaw = yaw; this.pitch = -0.09; this.aiming = false; this.blend = 0; this.shotMotion.reset(); this.desiredRadius = 15; this.positioned = false; }
   overview() { this.overviewMode = true; this.aiming = false; this.camera.position.set(0, 120, -130); this.camera.setTarget(Vector3.Zero()); }
-  impulse(direction = this.direction) {
+  impulse(direction = this.direction, strength = 1) {
     const right = Vector3.Cross(Vector3.Up(), this.direction).normalize();
-    this.shotMotion.impulse(Vector3.Dot(direction, right));
+    this.shotMotion.impulse(Vector3.Dot(direction, right), strength);
   }
   /** Five offset rays approximate the camera volume; sweep the transition as well as the boom. */
   private safePosition(from: Vector3, to: Vector3, vehicle: TankVehicle) {
