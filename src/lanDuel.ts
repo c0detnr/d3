@@ -356,7 +356,8 @@ canvas.addEventListener('pointerdown', event => {
   canvas.focus();
   if (event.button === 2) zoom = true;
   else fire = true;
-  pointerId = event.pointerId; canvas.setPointerCapture(event.pointerId);
+  pointerId = event.pointerId;
+  if (!document.pointerLockElement) canvas.setPointerCapture(event.pointerId);
 }, options);
 canvas.addEventListener('pointermove', event => {
   if (!active()) return;

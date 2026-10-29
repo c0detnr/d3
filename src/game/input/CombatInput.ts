@@ -45,7 +45,9 @@ export class CombatInput {
     if (e.pointerType !== 'mouse') return;
     if (!this.canAim()) return;
     e.preventDefault(); this.pointerId = e.pointerId;
-    this.canvas.setPointerCapture?.(e.pointerId); this.buttons(e.buttons);
+    // Pointer Lock already routes events here; capture throws while it is active.
+    if (!document.pointerLockElement) this.canvas.setPointerCapture?.(e.pointerId);
+    this.buttons(e.buttons);
   };
   private move = (e: PointerEvent) => {
     if (e.pointerType !== 'mouse') return;

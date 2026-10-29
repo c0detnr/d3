@@ -20,6 +20,7 @@ const doc = Object.assign(new Surface(), {
 Object.assign(globalThis, { window: win, document: doc });
 let allowed = true, requests = 0, moves = 0;
 const canvas = Object.assign(new Surface(), {
+  setPointerCapture() { assert.fail('locked mouse must not request pointer capture'); },
   requestPointerLock() { requests++; doc.pointerLockElement = canvas; doc.dispatchEvent(new Event('pointerlockchange')); },
 });
 const lock = new GamePointerLock(canvas as unknown as HTMLCanvasElement, () => { combat.clear(); keys.clear(); }, () => allowed, true);
@@ -35,6 +36,12 @@ assert.equal(keys.keys.forward, false); assert.equal(combat.turretTurn, 0); asse
 allowed = false; prompt.dispatchEvent(new Event('click')); assert.equal(requests, 0, 'loading cannot enter');
 allowed = true; pointer('pointerdown', 1); assert.equal(requests, 1);
 assert.equal(lock.active, true); assert.equal(prompt.hidden, true); assert.equal(combat.consumeFire(), false, 'entry cannot fire');
+pointer('pointerdown', 1); assert.equal(combat.consumeFire(), true, 'locked left click fires');
+pointer('pointerup', 0);
+pointer('pointerdown', 2); assert.equal(combat.aiming, true, 'locked right click aims');
+pointer('pointermove', 3); assert.equal(combat.consumeFire(), true, 'locked chord fires');
+pointer('pointermove', 1); assert.equal(combat.aiming, false, 'right release keeps left held');
+pointer('pointerup', 0); moves = 0;
 key('KeyW'); key('KeyQ'); pointer('pointerdown', 3); pointer('pointermove', 3);
 assert.equal(keys.keys.forward, true); assert.equal(combat.turretTurn, -1); assert.equal(combat.aiming, true); assert.equal(moves, 1);
 key('Escape');

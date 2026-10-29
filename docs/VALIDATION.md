@@ -201,3 +201,14 @@ Commit kapsamı ayrıca `/tmp/d3-render-optimization/staged-tree` içinde izole 
 `node --experimental-strip-types scripts/check-kul-rail-yard.ts` geçti: Havok ile vagon/depo/vinç mermi çarpışması, açık vagon tavan boşluğu, 10 m enine açıklık, ana yollar ve iki kur/kapat/tekrar dispose çevrimi. 8 görsel mesh / 15.392 üçgen / 25 statik gövde.
 
 `check-kul-vadisi.ts` ile gerçek GLB/Havok kullanılarak tüm haritada iki tankla giriş rampası + iki vagon koridorunda çift yönlü 12 yeni sürüş ve mevcut bütün rotalar geçti. `map:build` geçti. Derlemede mevcut büyük paket uyarısı var. [Genel](previews/rail-yard-overview.png) ve [yakın](previews/rail-yard-crane.png) görünümler gerçek geometriyi Blender 5.2 Cycles ile çevrimdışı gösterir; tarayıcı kanıtı değildir. Tarayıcı erişim sunucusu kullanılamadı; GPU/FPS, gerçek kamera/sürüş hissi ve insan kabulü açık.
+
+
+### 2026-10-29 — Duruş/palet ve kilitli fare düzeltmesi
+
+Gaz ve direksiyon yokken 0,5 m/s altı hızda ortak TankVehicle park freni uygulanır. Eğimde yerçekiminin yüzeye paralel bileşeni mevcut fren/tutuş sınırları içinde karşılanır. Park hâlindeki temas hızı gövdenin sabit adım konum farkından ölçülür; süspansiyonun hız örneklemesi aracı yavaşça sürüklemez. 0,02 m/s altındaki palet görsel hızı birikmez. İleri/geri ve yerinde dönüş komutları park frenini hemen kaldırır.
+
+CombatInput ve LAN fare kilitliyken setPointerCapture çağırmaz: bu çağrı [Pointer Events standardına göre InvalidStateError üretir](https://www.w3.org/TR/pointerevents/#setting-pointer-capture), yerel oyunda buttons() çağrısını kesiyordu. İlk giriş tıkının ateş etmemesi, dolum sırasında tıkın atılması ve odak kaybında temizleme korunur. Kilitli sol/sağ tık, birlikte basma ve sağ tuşu bırakma regresyonları check-pointer-lock.ts içindedir.
+
+Gerçek iki GLB ve Havok ile drive:test geçti: düz zeminde düşük hız darbesinden sonra beş saniyede yaklaşık 0,00000036 m, eğimde parkta beş saniyede 0,00045 m altı yer değiştirme; her iki durumda tekerlek/palet animasyon mesafesi sabit. İleri/fren/geri, hareketli/yerinde dönüş, rampa, yan eğim, 30/60/120 FPS ve kaynak temizliği de geçti. Yeni duruş/palet regresyonu eski kodda başarısız oldu. Sonuçlar docs/driving-results.json ve assets/tanks/iron_dust_02/driving-results.json içinde.
+
+combat:test ve lan:check geçti. Yalnız bu düzeltmenin kaynaklarını içeren ayrı HEAD kopyasında map:build, drive:test ve lan:test geçti; mevcut büyük paket uyarısı sürüyor. Ortak çalışma ağacında ilk derleme, paralel src/game/items/SmokeScreen.ts çalışmasındaki API hatasında durdu; bu dosyaya müdahale edilmedi. Tarayıcı erişim sunucusu kullanılamadığı için etkileşimli fare/sürüş ve görsel insan kabulü yapılmadı; FPS sonucu verilmedi.

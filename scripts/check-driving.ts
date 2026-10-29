@@ -5,6 +5,7 @@ import { HavokPlugin, MeshBuilder, NullEngine, PhysicsAggregate, PhysicsShapeTyp
 import { loadTankModel } from '../src/game/vehicle/loadTankModel.ts';
 import { extractTankRig } from '../src/game/vehicle/tankRig.ts';
 import { TankVehicle } from '../src/game/vehicle/TankVehicle.ts';
+import { TankVisual } from '../src/game/vehicle/TankVisual.ts';
 import { DriveInput, releasedKeys, type DriveKeys } from '../src/game/input/DriveInput.ts';
 import { FixedStep } from '../src/game/core/fixedStep.ts';
 
@@ -24,11 +25,12 @@ const tank = await loadTankModel(scene, new Uint8Array(await readFile(new URL(`.
 const rig = extractTankRig(tank);
 const vehicle = new TankVehicle(scene, rig, Vector3.Zero());
 const input = new DriveInput();
+const visual = new TankVisual(tank, rig);
 const results: Record<string, unknown> = {};
 const idle = releasedKeys();
 function tick(keys = idle) {
   const command = input.resolve(keys, vehicle.speed, 1 / 60);
-  vehicle.beforeStep(1 / 60, command); physics._step(1 / 60); vehicle.afterStep();
+  vehicle.beforeStep(1 / 60, command); physics._step(1 / 60); vehicle.afterStep(); visual.fixedUpdate(vehicle, 1 / 60);
 }
 function run(seconds: number, keys = idle) { for (let i = 0; i < Math.round(seconds * 60); i++) tick(keys); }
 function reset(position = Vector3.Zero(), yaw = 0) { vehicle.reset(position, yaw); input.reset(); }
@@ -102,6 +104,18 @@ try {
   const poweredSpeed = vehicle.speed; run(3);
   assert.ok(vehicle.speed > 0 && vehicle.speed < poweredSpeed - 0.4, 'Gaz bırakınca yuvarlanma direnciyle yavaşlamalı');
   results.coast = { poweredSpeed, speedAfterThreeSeconds: vehicle.speed };
+  run(45);
+  assert.ok(Math.abs(vehicle.speed) < 0.02, 'Gaz bırakınca düşük hızda park freni devreye girmeli');
+  vehicle.body.setLinearVelocity(new Vector3(0, 0, 0.1)); run(2);
+  const parkedPosition = vehicle.node.position.clone();
+  visual.render(vehicle, 1);
+  const parkedWheels = rig.wheels.map(wheel => wheel.node.rotationQuaternion!.clone());
+  run(5); visual.render(vehicle, 1);
+  rig.wheels.forEach((wheel, i) => assert.ok(wheel.node.rotationQuaternion!.equalsWithEpsilon(parkedWheels[i], 1e-8),
+    'Duruşta palet tekerlek animasyonu ilerlememeli'));
+  assert.ok(Vector3.Distance(parkedPosition, vehicle.node.position) < 0.01, 'Gazsız araç tamamen durmalı');
+  assert.ok(vehicle.contacts.every(c => Math.abs(c.speed) < 0.02), 'Duruşta palet hızı kalmamalı');
+  results.parked = { drift: Vector3.Distance(parkedPosition, vehicle.node.position), speed: vehicle.speed };
   reset(); run(3); run(18, { ...idle, forward: true });
   assert.ok(vehicle.speed <= vehicle.definition.forwardSpeed && vehicle.speed > vehicle.definition.forwardSpeed * 0.9, 'İleri hız yumuşak sınıra yaklaşmalı');
   results.sustainedForwardSpeed = vehicle.speed;
@@ -145,6 +159,14 @@ try {
   console.log('ramp', results.ramp);
   assert.ok(maxHeight > 2.8 && vehicle.node.position.z > 54, 'İki yönlü rampayı aşmalı');
   assert.ok(vehicle.current.rotation.toEulerAngles().x < 0.5 && Math.abs(vehicle.current.rotation.toEulerAngles().z) < 0.5);
+  reset(new Vector3(0, 3, 22)); run(8, { ...idle, brake: true });
+  const slopePosition = vehicle.node.position.clone(); visual.render(vehicle, 1);
+  const slopeWheels = rig.wheels.map(wheel => wheel.node.rotationQuaternion!.clone());
+  run(5); visual.render(vehicle, 1);
+  rig.wheels.forEach((wheel, i) => assert.ok(wheel.node.rotationQuaternion!.equalsWithEpsilon(slopeWheels[i], 1e-8),
+    'Eğimde park hâlinde palet animasyonu ilerlememeli'));
+  assert.ok(Vector3.Distance(slopePosition, vehicle.node.position) < 0.003, 'Gazsız araç eğimde park etmeli');
+  results.slopeParking = { drift: Vector3.Distance(slopePosition, vehicle.node.position), speed: vehicle.speed };
   reset(new Vector3(30, 3, 30)); run(5);
   results.sideSlope = { roll: vehicle.current.rotation.toEulerAngles().z, velocity: vehicle.body.getLinearVelocity().length() };
   assert.ok(Math.abs(vehicle.current.rotation.toEulerAngles().z) > 0.06, 'Gövde yan eğime oturmalı');
@@ -175,7 +197,7 @@ try {
   console.log(JSON.stringify(results, null, 2));
   await writeFile(new URL(tankId === '02' ? '../assets/tanks/iron_dust_02/driving-results.json' : '../docs/driving-results.json', import.meta.url), JSON.stringify(results, null, 2) + '\n');
 } finally {
-  vehicle.dispose(); tank.dispose(); floor.dispose(); ground.dispose();
+  visual.dispose(); vehicle.dispose(); tank.dispose(); floor.dispose(); ground.dispose();
   assert.equal(physics.getBodies().length, 0, 'Fizik kaynakları temizlenmeli');
   scene.dispose(); engine.dispose();
 }

@@ -43,7 +43,8 @@ export class TankVisual {
   fixedUpdate(vehicle: TankVehicle, dt: number) {
     vehicle.contacts.forEach((contact, i) => {
       this.previousDistances[i] = this.distances[i];
-      this.distances[i] += contact.speed * dt;
+      // Suspension settling must not crawl the tread at rest.
+      this.distances[i] += (Math.abs(contact.speed) < 0.02 ? 0 : contact.speed) * dt;
       this.previousCompression[i] = this.currentCompression[i];
       this.currentCompression[i] = contact.compression;
     });

@@ -50,6 +50,7 @@ export class TankVehicle {
     return linear.add(Vector3.Cross(angular, point.subtract(this.node.position)));
   }
   beforeStep(dt: number, command: DriveCommand) {
+    const measuredLinear = this.current.position.subtract(this.previous.position).scale(1 / dt);
     this.previous = pose(this.node);
     const d = this.definition;
     const pointMass = d.mass / this.contacts.length;
@@ -61,6 +62,10 @@ export class TankVehicle {
     const forward = Vector3.TransformNormal(Vector3.Forward(), matrix).normalize();
     this.speed = Vector3.Dot(linear, forward);
     this.driveForce = 0;
+    const parking = command.throttle === 0 && command.steer === 0
+      && linear.length() < 0.5 && angular.length() < 0.2;
+    // Havok's sampled velocity includes suspension settling even when its pose is still.
+    const trackLinear = parking ? measuredLinear : linear;
     const steer = command.steer / (1 + Math.abs(this.speed) / 20);
     // Normalize mixed commands to retain the total engine force and power budget.
     const normalization = Math.max(1, Math.abs(command.throttle) + Math.abs(steer));
@@ -80,8 +85,9 @@ export class TankVehicle {
       const load = clamp(spring * compression - damper * Vector3.Dot(velocity, normal), 0, pointMass * 9.81 * 4);
       const tangent = forward.subtract(normal.scale(Vector3.Dot(forward, normal))).normalize();
       const lateral = Vector3.Cross(normal, tangent).normalize();
-      const speed = Vector3.Dot(velocity, tangent);
-      const sideSpeed = Vector3.Dot(velocity, lateral);
+      const trackVelocity = parking ? this.velocityAt(point, trackLinear, angular) : velocity;
+      const speed = Vector3.Dot(trackVelocity, tangent);
+      const sideSpeed = Vector3.Dot(trackVelocity, lateral);
       Object.assign(contact, { grounded: true, compression, load, speed, sideSpeed,
         surfaceName: hit.body?.transformNode.name ?? '' });
       contact.point.copyFrom(point); contact.normal.copyFrom(normal); contact.lateral.copyFrom(lateral);
@@ -96,11 +102,15 @@ export class TankVehicle {
         : Math.min(d.traction, d.power / Math.max(1, Math.abs(speed)));
       drive *= available / this.contacts.length * taper;
       const rolling = d.rollingResistance * load * Math.tanh(speed / 0.2);
-      const braking = command.brake * clamp(speed * pointMass * 10, -d.brakeForce / this.contacts.length, d.brakeForce / this.contacts.length);
+      // Static hold cancels downhill gravity inside the same traction/brake limits.
+      const holdForce = parking ? Vector3.Dot(this.physics.gravity, tangent) * pointMass : 0;
+      const braking = Math.max(command.brake, Number(parking)) * clamp(speed * pointMass * 10 + holdForce,
+        -d.brakeForce / this.contacts.length, d.brakeForce / this.contacts.length);
       let longitudinalForce = drive - rolling - braking;
       // Skid steering needs lateral track slip instead of resisting its own yaw.
       const lateralResponse = d.lateralResponse * (1 - 0.55 * Math.abs(command.steer));
       let lateralForce = -sideSpeed * pointMass * lateralResponse;
+      if (parking) lateralForce -= Vector3.Dot(this.physics.gravity, lateral) * pointMass;
       const magnitude = Math.hypot(longitudinalForce, lateralForce);
       const scale = magnitude > 0 ? Math.min(1, load * d.grip / magnitude) : 1;
       longitudinalForce *= scale; lateralForce *= scale;

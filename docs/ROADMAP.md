@@ -293,3 +293,8 @@ Krater, alan nesneleri, landmark, atmosfer ve iki tanklı Kül Vadisi Havok rota
 Kullanıcının seçtiği doğu tren sahası uygulandı: üç hat, fabrikaya ray bağlantısı, yedi vagon, kapalı bakım deposu ve devrilmiş yükleme vinci. Ortak görsel/fizik arazi düzlemesi, derecelenmiş giriş, açık tank koridorları, statik sert siperler, kamera görünümü ve taktik kroki eklendi. [Kaynaklar, ölçüler ve kabul sınırı](RAIL_YARD.md).
 
 Gerçek GLB/Havok ile iki tankla 12 yeni çift yönlü sürüş, mermi/sert siper, açık vagon ve iki kaynak temizliği çevrimi geçti. Tam harita rota kontrolü ve `map:build` geçti; mevcut büyük paket uyarısı sürüyor. Çevrimdışı geometri render'ı incelendi. Tarayıcı erişim sunucusu kullanılamıyor; insan görsel/sürüş, kamera ve FPS kabulü açık. K2/M1/M2/M3 kapanmaz.
+
+
+### 2026-10-29 — Duruş, palet ve fare girdisi
+
+Düşük hızda otomatik park freni, eğimde statik tutuş ve duruşta palet animasyon eşiği eklendi. Yerel/LAN kilitli fare yakalama çakışması giderildi. İki gerçek tankla düz/eğim duruşu ve palet animasyonu regresyonları, combat:test, lan:check; ayrı teslim ağacında drive:test, map:build ve lan:test geçti. [Kanıt ve sınırlar](VALIDATION.md#2026-10-29--duruşpalet-ve-kilitli-fare-düzeltmesi). Tarayıcı erişim sunucusu yok; etkileşimli sürüş/fare ve insan kabulü açık. M1/M2/M3 genel kabulü değişmedi.
