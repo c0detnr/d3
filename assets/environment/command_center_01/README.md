@@ -24,4 +24,4 @@ Blender MCP araçları bu oturuma bağlı olmadığı ve açık bir köprü bulu
 - Önizleme: `blender -b assets/environment/command_center_01/command_center_01.blend -P scripts/blender/render_command_center.py -- front|rear|comparison`; Cycles CPU, 4 iş parçacığı, 16 örnek, 1100 × 750.
 - GLB kontrolü: `blender -b --factory-startup -P scripts/blender/validate_command_center.py` boş sahnede yeniden içe aktarır; metre/zemin/merkez, sınırlar, üçgen/malzeme, 5 collider ve yükseklikleri, kamera/ışık/tank ve dış doku bulunmaması geçti.
 
-Haritaya bağlama (`kulVadisiLayout.ts` `command` kutusunun yerine), Havok/mermi kontrolü, yakın sürüş/kamera ve performans kabulü açık.
+2026-10-29: İki üste gerçek GLB ve ayrı statik Havok çarpışmalarıyla yerleştirildi; metre/zemin, kapı yönü, mermi engelleme ve bina dışı açıklık kontrolleri geçti. [Üs giriş avlusu](../../../docs/BASE_ENTRANCE.md). Yakın insan sürüş/kamera, tarayıcı görüntüsü ve performans kabulü açık.

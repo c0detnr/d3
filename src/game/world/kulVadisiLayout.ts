@@ -9,9 +9,9 @@ export const KUL_SPAWNS = { A: { x: 0, z: -309 }, B: { x: 0, z: 309 } };
 const point = (x: number, z: number): MapPoint => ({ x, z });
 const mirror = (p: MapPoint) => point(-p.x, -p.z);
 export const KUL_ROUTES = [
-  { id: 'west', name: 'Ormanlık sırt', points: [point(0, -309), point(-78, -300), point(-90, -240), point(-180, -180), point(-210, -90), point(-186, 0), point(-210, 90), point(-180, 180), point(-90, 240), point(-78, 300), point(0, 309)] },
-  { id: 'center', name: 'Açık savaş alanı', points: [point(0, -309), point(-78, -300), point(-78, -252), point(-30, -198), point(-24, -132), point(-24, -66), point(0, 0), point(24, 66), point(24, 132), point(30, 198), point(78, 252), point(78, 300), point(0, 309)] },
-  { id: 'east', name: 'Taş ocağı', points: [point(0, -309), point(78, -300), point(90, -240), point(180, -180), point(210, -90), point(186, 0), point(210, 90), point(180, 180), point(90, 240), point(78, 300), point(0, 309)] },
+  { id: 'west', name: 'Ormanlık sırt', points: [point(0, -309), point(0, -240), point(-90, -240), point(-180, -180), point(-210, -90), point(-186, 0), point(-210, 90), point(-180, 180), point(-90, 240), point(-78, 300), point(0, 309)] },
+  { id: 'center', name: 'Açık savaş alanı', points: [point(0, -309), point(0, -252), point(-30, -198), point(-24, -132), point(-24, -66), point(0, 0), point(24, 66), point(24, 132), point(30, 198), point(0, 252), point(0, 309)] },
+  { id: 'east', name: 'Taş ocağı', points: [point(0, -309), point(78, -300), point(90, -240), point(180, -180), point(210, -90), point(186, 0), point(210, 90), point(180, 180), point(90, 240), point(0, 240), point(0, 309)] },
 ];
 export const KUL_CONNECTIONS = [-102, 102].map(z => ({ id: `creek-${z}`, name: 'Kuru dere', points: [point(-210, z), point(-108, z + 18), point(0, z), point(108, z - 18), point(210, z)] }));
 export const KUL_PATHS = [...KUL_ROUTES, ...KUL_CONNECTIONS];
@@ -28,18 +28,20 @@ export function kulRoadDistance(x: number, z: number) {
   return distance;
 }
 export type KulStructure = MapPoint & { id: string; team?: 'A' | 'B'; kind: 'outer' | 'inner' | 'command' | 'hangar' | 'workshop' | 'berm' | 'emplacement'; width: number; depth: number; height: number; yaw?: number };
+// Two 24+ m openings: main gate at x=0 and a breached side exit at x=78.
 const base: Omit<KulStructure, 'team'>[] = [
-  { id: 'outer-west', kind: 'outer', x: -132, z: -183, width: 24, depth: 21, height: 9 },
-  { id: 'outer-center', kind: 'outer', x: 9, z: -201, width: 24, depth: 21, height: 9 },
-  { id: 'outer-east', kind: 'outer', x: 132, z: -183, width: 24, depth: 21, height: 9 },
-  { id: 'inner', kind: 'inner', x: 0, z: -249, width: 30, depth: 24, height: 11 },
-  { id: 'command', kind: 'command', x: -42, z: -282, width: 30, depth: 24, height: 14 },
+  { id: 'command', kind: 'command', x: -48, z: -330, width: 29, depth: 23.05, height: 14.55 },
   { id: 'hangar', kind: 'hangar', x: 0, z: -336, width: 40, depth: 24, height: 11.74 },
-  { id: 'spawn-screen', kind: 'berm', x: 0, z: -279, width: 51, depth: 9, height: 8 },
+  { id: 'workshop', kind: 'workshop', x: 42, z: -282, width: 23, depth: 14, height: 6.71 },
+  ...[-66.6, -58.2, -49.8, -41.4, -33, -24.6, -16.2, 16.2, 24.6, 33, 41.4, 49.8, 99, 107.4].map((x, i) => ({
+    id: `gate-wall-${i}`, kind: 'emplacement' as const, x, z: -264, width: 8.4, depth: 3.5, height: 2.672,
+    // Rear buttresses face the protected courtyard.
+    yaw: 0,
+  })),
 ];
 export const KUL_STRUCTURES: KulStructure[] = [
   ...base.map(s => ({ ...s, team: 'A' as const, id: `A-${s.id}` })),
-  ...base.map(s => ({ ...s, ...mirror(s), team: 'B' as const, id: `B-${s.id}`, yaw: Math.PI })),
+  ...base.map(s => ({ ...s, ...mirror(s), team: 'B' as const, id: `B-${s.id}`, yaw: (s.yaw ?? 0) + Math.PI })),
   { id: 'factory-hangar', kind: 'hangar', x: -135, z: -36, width: 40, depth: 24, height: 11.74 },
   { id: 'factory-workshop', kind: 'workshop', x: 132, z: -48, width: 23, depth: 14, height: 6.71 },
   { id: 'factory-store', kind: 'workshop', x: 138, z: 66, width: 23, depth: 14, height: 6.71 },
@@ -74,7 +76,7 @@ export function kulTerrainHeight(x: number, z: number) {
     }
   }
   for (const s of KUL_STRUCTURES) {
-    if (s.kind !== 'hangar' && s.kind !== 'workshop') continue;
+    if (s.kind !== 'hangar' && s.kind !== 'workshop' && s.kind !== 'command') continue;
     const edge = Math.max(Math.abs(x - s.x) - s.width / 2, Math.abs(z - s.z) - s.depth / 2);
     if (edge < 6) {
       const blend = smooth(Math.max(0, edge) / 6);

@@ -22,6 +22,7 @@ const factorySources = {
   emplacement: new Uint8Array(await readFile(new URL('../assets/environment/concrete_emplacement_01/concrete_emplacement_01.glb', import.meta.url))),
   hangar: new Uint8Array(await readFile(new URL('../assets/environment/maintenance_hangar_01/maintenance_hangar_01.glb', import.meta.url))),
   workshop: new Uint8Array(await readFile(new URL('../assets/environment/maintenance_workshop_01/maintenance_workshop_01.glb', import.meta.url))),
+  command: new Uint8Array(await readFile(new URL('../assets/environment/command_center_01/command_center_01.glb', import.meta.url))),
 };
 const natureSources = {
   rock1: new Uint8Array(await readFile(new URL('../assets/environment/quaternius_nature/Rock_Medium_1.glb', import.meta.url))),
@@ -41,8 +42,8 @@ const results: Record<string, unknown> = {};
 try {
   for (let cycle = 0; cycle < 2; cycle++) {
     const map = await createKulVadisi(scene, 'A', factorySources, natureSources); scene.render();
-    assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'outer').length, 6);
-    assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'inner').length, 2);
+    assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'outer').length, 0);
+    assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'inner').length, 0);
     assert.equal(KUL_STRUCTURES.filter(s => s.kind === 'command').length, 2);
     const pos = map.terrain.getVerticesData('position')!, ids = map.terrain.getIndices()!;
     for (let i = 456; i < ids.length; i += 1818) {
@@ -66,21 +67,27 @@ try {
       }
     }
     for (const [team, spawn] of Object.entries(KUL_SPAWNS)) {
-      for (const x of [-210, 0, 210]) {
-        const from = new Vector3(x, kulTerrainHeight(x, 0) + 2.5, 0);
-        const to = new Vector3(spawn.x, 2.5, spawn.z);
-        const hit = physics.raycast(from, to);
-        assert.ok(hit.hasHit && Vector3.Distance(hit.hitPointWorld, to) > 8, `${team}: doğma çıkışına düz atış`);
+      const sign = team === 'A' ? 1 : -1;
+      assert.equal(scene.getMeshByName(`${team}-spawn-screen`), null, 'Yüksek doğma duvarı kaldırıldı');
+      // Sweep the tank-width openings at hull height; both exits and the forward view stay clear.
+      for (const gateX of [0, 78]) for (const dx of [-3, 0, 3]) {
+        const x = sign * (gateX + dx);
+        const hit = physics.raycast(new Vector3(x, 1.5, sign * -276), new Vector3(x, 1.5, sign * -252));
+        assert.ok(!hit.hasHit, `${team}: ${gateX} çıkışı tank genişliğinde açık`);
+      }
+      assert.ok(!physics.raycast(new Vector3(spawn.x, 3, spawn.z), new Vector3(0, 3, sign * -210)).hasHit, `${team}: ileri görüş açık`);
+      for (const s of KUL_STRUCTURES.filter(s => s.team === team && s.kind === 'emplacement')) {
+        const meshes = scene.meshes.filter(m => m.metadata?.structure === s.id);
+        const colliders = meshes.filter(m => m.metadata?.gltf?.extras?.collision_only);
+        assert.equal(colliders.length, 7);
+        assert.ok(colliders.every(m => !m.isVisible && !m.isPickable));
+        const hit = physics.raycast(new Vector3(s.x, 1.5, s.z - 5), new Vector3(s.x, 1.5, s.z + 5));
+        assert.equal(hit.body?.transformNode.metadata?.structure, s.id, `${s.id}: siper mermiyi durdurur`);
+        const buttress = colliders.find(m => m.name.startsWith('COL_RearButtress'))!;
+        assert.equal(Math.sign(buttress.getBoundingInfo().boundingBox.centerWorld.z - s.z), -sign, 'Payandalar avluya bakar');
       }
     }
-    for (const id of ['A-outer-west', 'B-command']) {
-      const mesh = scene.getMeshByName(id)!;
-      const from = mesh.position.add(new Vector3(0, 0, -60));
-      const hit = physics.raycast(from, mesh.position);
-      assert.ok(hit.hasHit && hit.body?.transformNode.name === id, `${id}: mermiyi durduran siper`);
-      assert.equal(hit.body?.transformNode.metadata.surface, id === 'factory-hangar' ? 'metal' : 'concrete');
-    }
-    for (const id of ['A-hangar', 'B-hangar', 'factory-hangar', 'factory-workshop', 'factory-store']) {
+    for (const id of ['A-hangar', 'B-hangar', 'A-workshop', 'B-workshop', 'factory-hangar', 'factory-workshop', 'factory-store']) {
       assert.equal(scene.getMeshByName(`${id}-mark`), null, 'No placeholder roof marker');
       const structure = KUL_STRUCTURES.find(s => s.id === id)!;
       const meshes = scene.meshes.filter(m => m.metadata?.structure === id);
@@ -88,7 +95,7 @@ try {
       const colliders = meshes.filter(m => m.metadata?.gltf?.extras?.collision_only);
       assert.equal(colliders.length, structure.kind === 'hangar' ? 3 : 6);
       assert.ok(colliders.every(m => !m.isVisible && !m.isPickable), 'Collision geometry is hidden');
-      if (structure.team) {
+      if (structure.team && structure.kind === 'hangar') {
         const facade = visible.find(m => m.name === 'MH01_Recess_Geometry')!;
         assert.ok((facade.getBoundingInfo().boundingBox.centerWorld.z - structure.z) * (structure.team === 'B' ? -1 : 1) > 0, `${id}: hangar courtyard orientation`);
       }
@@ -108,6 +115,37 @@ try {
         const x = structure.x + side * (structure.width / 2 + 3);
         const hit = physics.raycast(new Vector3(x, minY + 2, structure.z - structure.depth / 2 - 3), new Vector3(x, minY + 2, structure.z + structure.depth / 2 + 3));
         assert.ok(!hit.hasHit, `${id}: no invisible box outside building`);
+      }
+    }
+    for (const id of ['A-command', 'B-command']) {
+      assert.equal(scene.getMeshByName(id), null, 'Komuta merkezi artık geçici kutu değil');
+      const structure = KUL_STRUCTURES.find(s => s.id === id)!;
+      const meshes = scene.meshes.filter(m => m.metadata?.structure === id);
+      const visible = meshes.filter(m => m.isVisible);
+      const colliders = meshes.filter(m => m.metadata?.gltf?.extras?.collision_only);
+      assert.equal(colliders.length, 5);
+      assert.ok(colliders.every(m => !m.isVisible && !m.isPickable), 'Collision geometry is hidden');
+      const bounds = visible.map(m => m.getBoundingInfo().boundingBox);
+      const minY = Math.min(...bounds.map(b => b.minimumWorld.y));
+      const sizeX = Math.max(...bounds.map(b => b.maximumWorld.x)) - Math.min(...bounds.map(b => b.minimumWorld.x));
+      const sizeZ = Math.max(...bounds.map(b => b.maximumWorld.z)) - Math.min(...bounds.map(b => b.minimumWorld.z));
+      assert.ok(Math.abs(minY - kulTerrainHeight(structure.x, structure.z)) < 0.001, `${id}: zemine oturur`);
+      assert.ok(Math.abs(sizeX - structure.width) < 0.01 && Math.abs(sizeZ - structure.depth) < 0.01, `${id}: metre ölçeği`);
+      for (const dx of [-structure.width / 2, 0, structure.width / 2]) for (const dz of [-structure.depth / 2, 0, structure.depth / 2]) {
+        assert.ok(Math.abs(kulTerrainHeight(structure.x + dx, structure.z + dz) - minY) < 0.001, `${id}: düz taban`);
+      }
+      // The armoured door faces the battlefield (toward z = 0), like the hangar facade.
+      const door = visible.find(m => m.name === 'Recess_Geometry')!.getBoundingInfo().boundingBox.centerWorld.z;
+      assert.ok((door - structure.z) * (structure.team === 'B' ? -1 : 1) > 0, `${id}: kapı savaş alanına bakar`);
+      const toward = structure.team === 'B' ? -1 : 1;
+      const from = new Vector3(structure.x, minY + 3, structure.z + toward * (structure.depth / 2 + 8));
+      const hit = physics.raycast(from, new Vector3(structure.x, minY + 3, structure.z));
+      assert.ok(hit.hasHit && hit.body?.transformNode.metadata?.structure === id, `${id}: mermiyi durduran gövde`);
+      assert.equal(hit.body?.transformNode.metadata.surface, 'concrete');
+      for (const side of [-1, 1]) {
+        const x = structure.x + side * (structure.width / 2 + 3);
+        const miss = physics.raycast(new Vector3(x, minY + 3, structure.z - structure.depth / 2 - 3), new Vector3(x, minY + 3, structure.z + structure.depth / 2 + 3));
+        assert.ok(miss.body?.transformNode.metadata?.structure !== id, `${id}: bina dışında görünmez kutu yok`);
       }
     }
     for (const [i, p] of KUL_FIELD_COVER.entries()) {

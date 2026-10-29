@@ -7,8 +7,10 @@ import { terrainNoise } from './terrain.ts';
 import { createKulMountains } from './createKulMountains.ts';
 
 const factorySources = {
+  emplacement: new URL('../../../assets/environment/concrete_emplacement_01/concrete_emplacement_01.glb', import.meta.url).href,
   hangar: new URL('../../../assets/environment/maintenance_hangar_01/maintenance_hangar_01.glb', import.meta.url).href,
   workshop: new URL('../../../assets/environment/maintenance_workshop_01/maintenance_workshop_01.glb', import.meta.url).href,
+  command: new URL('../../../assets/environment/command_center_01/command_center_01.glb', import.meta.url).href,
 };
 
 const hex = Color3.FromHexString;
@@ -40,7 +42,7 @@ function kulFacetShade(x: number, y: number, z: number, up: number, variation: n
 }
 
 /** K1 terrain with ready-made base/factory buildings; no objective/repair logic. */
-export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sources: { hangar: string | Uint8Array; workshop: string | Uint8Array; emplacement?: string | Uint8Array } = factorySources, natureSources?: Record<keyof typeof fieldSources, string | Uint8Array>) {
+export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sources: { hangar: string | Uint8Array; workshop: string | Uint8Array; command: string | Uint8Array; emplacement?: string | Uint8Array } = factorySources, natureSources?: Record<keyof typeof fieldSources, string | Uint8Array>) {
   let battlefield: Awaited<ReturnType<typeof createKulBattlefield>> | undefined;
   const buildings: Awaited<ReturnType<typeof loadFactoryBuilding>>[] = [];
   const meshes: Mesh[] = [], materials: StandardMaterial[] = [], bodies: PhysicsAggregate[] = [];
@@ -63,7 +65,7 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
   const teams = { A: material('kul-team-A', '#84AEBC'), B: material('kul-team-B', '#BA7959') };
   const marker = material('kul-neutral-marker', '#D5C7AB');
   for (const s of KUL_STRUCTURES) {
-    if (s.kind === 'hangar' || s.kind === 'workshop') continue;
+    if (s.kind === 'hangar' || s.kind === 'workshop' || s.kind === 'command' || s.kind === 'emplacement') continue;
     const mesh = MeshBuilder.CreateBox(s.id, { width: s.width, depth: s.depth, height: s.height }, scene);
     // Base of large placeholders is embedded so sloped terrain leaves no underpass.
     const y = Math.min(...[-1, 1].flatMap(dx => [-1, 1].map(dz => kulTerrainHeight(s.x + dx * s.width / 2, s.z + dz * s.depth / 2))));
@@ -90,8 +92,8 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
   };
   try {
     for (const structure of KUL_STRUCTURES) {
-      if (structure.kind !== 'hangar' && structure.kind !== 'workshop') continue;
-      const building = await loadFactoryBuilding(scene, sources[structure.kind], structure);
+      if (structure.kind !== 'hangar' && structure.kind !== 'workshop' && structure.kind !== 'command' && structure.kind !== 'emplacement') continue;
+      const building = await loadFactoryBuilding(scene, sources[structure.kind] ?? factorySources.emplacement, structure);
       buildings.push(building);
       ground.shadowCasters.push(...building.shadowCasters);
     }

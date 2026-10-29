@@ -62,7 +62,7 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
     }
     panel.append(svg);
     const legend = document.createElement('span'); legend.textContent = 'Batı: sırt · Merkez: açık savaş alanı · Doğu: ocak'; panel.append(legend);
-    const targets = document.createElement('span'); targets.textContent = 'D dış savunma · İ iç savunma · K komuta'; panel.append(targets);
+    const targets = document.createElement('span'); targets.textContent = 'K komuta · Üslerde atölye ve iki açık çıkış'; panel.append(targets);
   }
   document.body.append(panel);
   return { follow, dispose() { select.removeEventListener('change', change); toggle.removeEventListener('click', view); factory.removeEventListener('click', viewFactory); panel.remove(); } };

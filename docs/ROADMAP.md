@@ -275,3 +275,9 @@ Gerçek GLB başlangıç/son yerleşim eşitliği ve iki temizleme çevrimi, iki
 ### 2026-10-29 — Komuta merkezi 01 varlığı
 
 Geçici `command` kutusunun yerine geçecek kapalı komuta sığınağı Blender 5.2 CLI ile üretildi: eğimli kaide, zırhlı salon, arkaya kaydırılmış komuta katı, zırhlı kapı ve payandalar, çatıda direk/çanak. [Kaynak, GLB, önizlemeler ve kontroller](../assets/environment/command_center_01/README.md). 29 × 23,05 × 14,55 m, 1.580 görünür üçgen, 8 malzeme; ayrı 5 çarpışma mesh'i / 108 üçgen. GLB yeniden aktarım doğrulaması (ölçek/zemin/sınır, üçgen sayımı, collider yükseklikleri, doku bağımsızlığı) geçti; ön/arka/tank ölçek önizlemeleri incelendi. Blender MCP bu oturumda bağlı olmadığından CLI yolu kullanıldı. Oyun entegrasyonu, Havok/mermi kontrolü ve performans kabulü yapılmadı; K2/M1/M2/M3 kapanmadı.
+
+### 2026-10-29 — İki çıkışlı üs giriş avlusu
+
+İki üste geçici dış/iç savunma kutuları ve yüksek doğma duvarı kaldırıldı. Komuta merkezi hangar yanına/geriye, bakım atölyesi giriş yanına alındı; mevcut hasarlı beton mevzilerle 24 m ana kapı ve 40.8 m yan açıklık bırakıldı. Üs yolları iki çıkışa bağlandı. [Yerleşim, kontroller ve doğma güvenliği sınırı](BASE_ENTRANCE.md).
+
+Gerçek GLB/Havok ile çıkış açıklığı/görüş, mermi çarpışmaları, iki tankın iki yönlü rotaları ve kaynak temizliği; `map:build` geçti. Yalnız commit kapsamını içeren ayrı ağaçta fizik kontrolü ve derleme de geçti. Tarayıcı erişim sunucusu bulunmadığı için görsel/insan sürüş ve FPS kabulü açık; K2/M1/M2/M3 kapanmadı.
