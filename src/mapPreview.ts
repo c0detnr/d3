@@ -1,7 +1,9 @@
+import { LaneDrones } from './game/combat/LaneDrones.ts';
+import { LANE_DRONES } from './game/combat/LaneDroneModel.ts';
 import './game/input/gamePointerLock.css';
 import { GamePointerLock } from './game/input/GamePointerLock.ts';
 import { DamageHud } from './game/ui/DamageHud.ts';
-import { freshDamage, applyDamage, driveDisabled } from './game/combat/DamageModel.ts';
+import { freshDamage, applyDamage, driveDisabled, trackPower, ricochets } from './game/combat/DamageModel.ts';
 import { pickTankHit, tankDamageRegion } from './game/combat/tankHit.ts';
 import { IRON_DUST_01_AMMO } from './game/combat/WeaponDefinition.ts';
 import { DuelTank } from './game/combat/DuelTank.ts';
@@ -16,6 +18,10 @@ import { addMapControls } from './game/world/kulVadisiControls.ts';
 import { TouchControls } from './game/input/TouchControls.ts';
 import './mapPreview.css';
 import { TacticalHud } from './game/ui/TacticalHud.ts';
+import { SmokeSupply } from './game/items/SmokeSupply.ts';
+import { SmokeInventory } from './game/ui/SmokeInventory.ts';
+import smokeSupplyUrl from '../assets/items/smoke_supply_01/smoke_supply_01.glb?url';
+import smokeCapsuleUrl from '../assets/items/smoke_supply_01/smoke_capsule_01.glb?url';
 import { MachineGun, MG } from './game/combat/MachineGun.ts';
 import mgUrl from '../assets/weapons/iron_dust_mg_02/iron_dust_mg_02.glb?url';
 import { MovementEffects } from './game/effects/MovementEffects.ts';
@@ -52,28 +58,16 @@ import { createChaoticSky } from './game/world/SkyAtmosphere.ts';
 import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
 import secondTankUrl from '../assets/tanks/iron_dust_02/iron_dust_02.glb?url';
 
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const HIT_SHAKE = 5, DESTROYED_SHAKE = 9; // camera shake relative to a cannon shot
+const HIT_IMPULSE_SCALE = 0.6; // incoming shell momentum relative to the cannon recoil impulse
+
 const teamDuelMode = new URLSearchParams(location.search).get('duel') === '5v5';
 const kulVadisi = teamDuelMode || new URLSearchParams(location.search).get('map') === 'kul';
 const kulTeam = new URLSearchParams(location.search).get('base') === 'B' ? 'B' : 'A';
 const mapHeight = kulVadisi ? kulTerrainHeight : terrainHeight;
 const twoTankTest = !teamDuelMode && new URLSearchParams(location.search).has('duel');
 const secondTank = new URLSearchParams(location.search).get('tank') === '02';
-const duelToggle = document.createElement('a');
-const duelUrl = new URL(location.href);
-if (twoTankTest) duelUrl.searchParams.delete('duel');
-else duelUrl.searchParams.set('duel', '1');
-duelToggle.href = duelUrl.href;
-duelToggle.textContent = twoTankTest ? 'Serbest sürüşe dön' : 'Kolay mod · düello başlat';
-duelToggle.className = 'duel-toggle';
-document.body.append(duelToggle);
-const tankChoice = document.querySelector<HTMLSelectElement>('#tank-choice')!;
-tankChoice.value = secondTank ? '02' : '01';
-const changeTank = () => {
-  const url = new URL(location.href);
-  url.searchParams.set('tank', tankChoice.value);
-  location.assign(url);
-};
-tankChoice.addEventListener('change', changeTank);
 if (secondTank) document.querySelector<HTMLButtonElement>('[data-action="weapon"]')!.hidden = true;
 
 const canvas = document.querySelector<HTMLCanvasElement>('#map')!;
@@ -96,6 +90,7 @@ const clock = new FixedStep();
 const input = new DriveInput();
 let teamDuel: TeamDuel | undefined;
 let teamDuelHud: TeamDuelHud | undefined;
+let laneDrones: LaneDrones | undefined;
 let opponent: DuelTank | undefined;
 let opponentAI: EasyDuelAI | undefined;
 let opponentProjectiles: ProjectileSystem | undefined;
@@ -112,6 +107,7 @@ let mgMode = false;
 let projectiles: ProjectileSystem | undefined;
 let combatRange: ArmorRange | undefined;
 let combatEffects: CombatEffects | undefined;
+let smokeSupply: SmokeSupply | undefined;
 let lastCombatResult = '';
 let combatResultTime = 0;
 const damageHud = new DamageHud();
@@ -159,6 +155,32 @@ const touch = new TouchControls(document.querySelector<HTMLElement>('#touch-cont
     void toggleSound(); },
 });
 const tacticalHud = new TacticalHud(!secondTank, useMG => selectWeapon(useMG));
+const smokeInventory = new SmokeInventory(() => useSmoke(), () => collectSmoke());
+function smokeEnabled() {
+  return !!vehicle && !!smokeSupply && !paused && !freeCamera.active && !followCamera.isOverview && damageHudState.hp > 0;
+}
+function clearLootPath(to: Vector3) {
+  if (!vehicle) return false;
+  const from = vehicle.node.position.add(new Vector3(0, 1.2, 0));
+  return !scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle.body }).hasHit;
+}
+function collectSmoke() {
+  if (smokeEnabled()) smokeSupply!.collect(vehicle!.node.position, clearLootPath);
+}
+function useSmoke() {
+  if (!smokeEnabled()) return;
+  const from = vehicle!.node.position.add(new Vector3(0, 2, 0));
+  smokeSupply!.fire(from, vehicle!.node.getDirection(Vector3.Forward()), (origin, to) => {
+    const hit = scene.getPhysicsEngine()!.raycast(origin, to, { ignoreBody: vehicle!.body });
+    return hit.hasHit ? hit.hitPointWorld.subtract(to.subtract(origin).normalize().scale(.6)) : to;
+  });
+}
+const smokeKey = (event: KeyboardEvent) => {
+  if (!pointerLock.active || event.repeat || (event.target as HTMLElement)?.closest?.('input, textarea, select, button, [contenteditable="true"]')) return;
+  if (event.code === 'KeyF') { event.preventDefault(); collectSmoke(); }
+  if (event.code === 'KeyG') { event.preventDefault(); useSmoke(); }
+};
+window.addEventListener('keydown', smokeKey);
 const ammoState = document.querySelector<HTMLElement>('#ammo-state')!;
 const rangeReadout = document.querySelector<HTMLElement>('#range-readout')!;
 const hitResult = document.querySelector<HTMLElement>('#hit-result')!;
@@ -181,7 +203,11 @@ function updateCombatHud() {
   hitResult.className = '';
   document.querySelector<HTMLProgressElement>('#reload-progress')!.value = mgMode ? 1 : weapon.reloadFraction;
 }
+function hitShake(direction: Vector3, destroyed: boolean) {
+  if (!reducedMotion.matches) followCamera.impulse(direction, destroyed ? DESTROYED_SHAKE : HIT_SHAKE);
+}
 function teamImpact(event: TeamImpact) {
+  if (laneDrones?.hit(event.hit, event.shooter.team, 25)) return;
   const { hit, victim, applied, module, disabled, destroyed, playerShot } = event;
   if (victim) combatEffects!.armorImpact(hit.point, hit.normal, applied);
   else combatEffects!.impact(hit.point, hit.normal, impactSurface(hit.body));
@@ -194,6 +220,7 @@ function teamImpact(event: TeamImpact) {
   if (victim === teamDuel?.player && applied) {
     damageHud.setState(damageHudState);
     damageHud.incoming(Math.atan2(hit.point.x - vehicle!.node.position.x, hit.point.z - vehicle!.node.position.z), module, disabled, destroyed);
+    hitShake(vehicle!.node.position.subtract(hit.point).normalize(), destroyed);
   }
   if (playerShot) {
     if (victim) damageHud.outgoing(module, disabled, destroyed, applied);
@@ -202,6 +229,8 @@ function teamImpact(event: TeamImpact) {
   }
 }
 function reset() {
+  laneDrones?.reset();
+  smokeSupply?.reset();
   if (freeCamera.active) freeCamera.toggle();
   teamDuel?.reset();
   opponent?.reset(); opponentAI?.reset(); opponentProjectiles?.reset(); damageHudState.hp = 100;
@@ -313,7 +342,7 @@ async function start() {
   }
   mgProjectiles = new ProjectileSystem(scene, (from, to) => {
     if (teamDuel) return teamDuel.raycast(vehicle!.body, from, to);
-    const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body });
+    const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body, shouldHitTriggers: true });
     const worldHit = hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
     return opponent ? pickTankHit(scene, opponent, from, to, worldHit) : worldHit;
   }, 40, { gravity: -9.81, maxRange: 600, maxAge: 3, trailSeconds: 0.015, trailLength: 2.2, diameter: 0.035 });
@@ -323,14 +352,19 @@ async function start() {
     combatRange.targets.forEach(target => target.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh)));
   }
   combatEffects = new CombatEffects(scene);
+  smokeSupply = await SmokeSupply.load(scene, smokeSupplyUrl, smokeCapsuleUrl, ground.spawn, mapHeight,
+    kulVadisi && kulTeam === 'B' ? Math.PI : 0);
+  if (disposed) { smokeSupply.dispose(); smokeSupply = undefined; return; }
+  smokeSupply.supplies.forEach(supply => supply.nodes.rootNodes.forEach(node =>
+    node.getChildMeshes().forEach(mesh => shadows.addShadowCaster(mesh))));
   projectiles = new ProjectileSystem(scene, (from, to) => {
     if (teamDuel) return teamDuel.raycast(vehicle!.body, from, to);
-    const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body });
+    const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body, shouldHitTriggers: true });
     const worldHit = hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
     return opponent ? pickTankHit(scene, opponent, from, to, worldHit) : worldHit;
   });
   opponentProjectiles = new ProjectileSystem(scene, (from, to) => {
-    const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: opponent!.vehicle.body });
+    const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: opponent!.vehicle.body, shouldHitTriggers: true });
     const worldHit = hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
     const playerTarget = { tank: tank!, vehicle: vehicle! };
     return pickTankHit(scene, playerTarget, from, to, worldHit);
@@ -360,6 +394,7 @@ async function start() {
   if (teamDuelMode) {
     status.textContent = '5’e 5 takımlar yükleniyor…';
     teamDuel = new TeamDuel(scene, { tank, vehicle, damage: damageHudState, team: kulTeam });
+    teamDuel.blocksSight = (from, to) => smokeSupply!.model.blocksSight(from, to);
     teamDuel.onImpact = teamImpact;
     teamDuel.onShot = (origin, direction) => {
       combatEffects!.muzzleFlash(origin, direction);
@@ -369,6 +404,25 @@ async function start() {
     if (disposed) { teamDuel.dispose(); return; }
     for (const bot of teamDuel.bots) bot.actor.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
     teamDuelHud = new TeamDuelHud(teamDuel, reset);
+  }
+  if (kulVadisi) {
+    laneDrones = new LaneDrones(scene, () => teamDuel?.members ?? [
+      { vehicle: vehicle!, damage: damageHudState, team: kulTeam },
+      ...(opponent ? [{ vehicle: opponent.vehicle, damage: opponent.damage, team: kulTeam === 'A' ? 'B' as const : 'A' as const }] : []),
+    ]);
+    laneDrones.blocksSight = (from, to) => smokeSupply!.model.blocksSight(from, to) || (teamDuel?.blocksSight(from, to) ?? false);
+    laneDrones.onImpact = (point, destroyed) => {
+      combatEffects!.armorImpact(point, Vector3.Up(), true);
+      if (destroyed) combatEffects!.destruction(point);
+    };
+    laneDrones.onTankHit = (member, point, destroyed) => {
+      combatEffects!.armorImpact(point, Vector3.Up(), true);
+      if (destroyed) combatEffects!.destruction(point);
+      if (member.damage === damageHudState) {
+        damageHud.setState(damageHudState);
+        damageHud.incoming(Math.atan2(point.x - vehicle!.node.position.x, point.z - vehicle!.node.position.z), null, false, destroyed);
+      }
+    };
   }
   status.hidden = true;
   lastTime = performance.now();
@@ -384,20 +438,22 @@ async function start() {
     sun.intensity = atmosphere.sun.intensity + stormFlash * 0.25;
     followCamera.aiming = !mgMode && (combatInput.aiming || touch.aiming);
     const alpha = clock.advance(dt, step => {
+      smokeSupply!.fixedUpdate(step);
       const command = freeCamera.active || teamDuel?.finished || driveDisabled(damageHudState) ? { throttle: 0, steer: 0, brake: 1 }
         : input.resolve(observation?.keys() ?? Object.fromEntries(Object.entries(keys.keys).map(([key, value]) => [key, value || touch.keys[key as keyof typeof touch.keys]])) as typeof keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
-      vehicle!.beforeStep(step, command);
+      vehicle!.beforeStep(step, command, trackPower(damageHudState));
       movementEffects!.fixedUpdate(vehicle!, step);
       const aiState = opponentAI && opponent && vehicle ? (() => {
         const from = opponent!.vehicle.node.position.add(new Vector3(0, 1.2, 0));
         const to = vehicle!.node.position.add(new Vector3(0, 1.2, 0));
-        const sight = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: opponent!.vehicle.body });
-        const visible = !sight.hasHit || sight.body === vehicle!.body;
+        const sight = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: opponent!.vehicle.body, shouldHitTriggers: true });
+        const visible = (!sight.hasHit || sight.body === vehicle!.body) && !smokeSupply!.model.blocksSight(from, to);
         return opponentAI!.update(opponent!, { vehicle: vehicle! },
           visible && damageHudState.hp > 0, step);
       })() : undefined;
       opponent?.beforeStep(step, opponent?.damage.hp === 0 || damageHudState.hp === 0 ? undefined : aiState?.drive);
       teamDuel?.beforeStep(step);
+      laneDrones?.fixedUpdate(step, teamDuel?.finished);
       scene.getPhysicsEngine()!._step(step);
       vehicle!.afterStep();
       opponent?.afterStep(step, aiState?.target ?? null);
@@ -454,6 +510,7 @@ async function start() {
         lastCombatResult = 'MG · ATEŞ'; combatResultTime = 0.4;
       });
       mgProjectiles!.fixedUpdate(step, hit => {
+        if (laneDrones?.hit(hit, kulTeam, LANE_DRONES.mgDamage)) return;
         if (teamDuel) {
           const tankHit = teamDuel.members.some(m => m.vehicle.body === hit.body);
           if (tankHit) { combatEffects!.armorImpact(hit.point, hit.normal, false); damageHud.outgoing(null, false, false, false); }
@@ -467,24 +524,26 @@ async function start() {
         lastCombatResult = 'MG · İSABET'; combatResultTime = 0.4;
       });
       projectiles!.fixedUpdate(step, (hit, shell) => {
+        if (laneDrones?.hit(hit, kulTeam, 25)) return;
         if (teamDuel) { teamDuel.playerImpact(hit); return; }
         const tankHit = opponent && hit.body === opponent.vehicle.body;
         const armor = tankHit ? undefined : combatRange?.resolve(IRON_DUST_01_AMMO, hit, shell.velocity, shell.traveled);
         const surface = tankHit || armor ? 'metal' : impactSurface(hit.body);
-        const penetrated = tankHit || armor?.result.kind === 'penetrated';
+        const glanced = !!tankHit && ricochets(shell.velocity, hit.normal);
+        const penetrated = (tankHit && !glanced) || armor?.result.kind === 'penetrated';
         const offset = hit.point.subtract(followCamera.camera.position);
         const right = Vector3.Cross(Vector3.Up(), followCamera.direction).normalize();
         const pan = Vector3.Dot(offset.normalizeToNew(), right);
         if (tankHit || armor) {
           combatEffects!.armorImpact(hit.point, hit.normal, !!penetrated);
           const module = tankHit ? tankDamageRegion(opponent!, hit.point) : null;
-          const applied = tankHit && applyDamage(opponent!.damage, module);
+          const applied = tankHit && !glanced && applyDamage(opponent!.damage, module);
           const destroyed = !!applied && opponent!.damage.hp === 0;
           const disabled = !!module && opponent!.damage.modules[module] === 0;
           if (destroyed) combatEffects!.destruction(hit.point);
           damageHud.outgoing(module, disabled, destroyed, !!penetrated);
           if (!audio.muted) combatAudio?.armorHit(!!penetrated, offset.length(), pan, destroyed);
-          lastCombatResult = tankHit ? `HEDEF · ${opponent!.damage.hp} / 100` : armor!.result.kind === 'ricochet' ? 'SEKTİ' : penetrated ? 'ZIRH DELİNDİ' : 'ZIRH DELİNMEDİ';
+          lastCombatResult = glanced ? 'SEKTİ' : tankHit ? `HEDEF · ${opponent!.damage.hp} / 100` : armor!.result.kind === 'ricochet' ? 'SEKTİ' : penetrated ? 'ZIRH DELİNDİ' : 'ZIRH DELİNMEDİ';
         } else {
           combatEffects!.impact(hit.point, hit.normal, surface);
           if (!audio.muted) combatAudio?.impact(surface, offset.length(), pan);
@@ -492,16 +551,26 @@ async function start() {
         }
         combatResultTime = 4;
       });
-      opponentProjectiles?.fixedUpdate(step, hit => {
+      opponentProjectiles?.fixedUpdate(step, (hit, shell) => {
+        if (laneDrones?.hit(hit, kulTeam === 'A' ? 'B' : 'A', 25)) return;
         if (hit.body !== vehicle!.body) {
           combatEffects!.impact(hit.point, hit.normal, impactSurface(hit.body)); return;
         }
+        if (ricochets(shell.velocity, hit.normal)) {
+          combatEffects!.armorImpact(hit.point, hit.normal, false);
+          if (!audio.muted) combatAudio?.armorHit(false, Vector3.Distance(hit.point, followCamera.camera.position), 0, false);
+          lastCombatResult = 'MERMİ SEKTİ'; combatResultTime = 4;
+          return;
+        }
         const module = tank && vehicle ? tankDamageRegion({ tank, vehicle }, hit.point) : null;
         const applied = applyDamage(damageHudState, module);
+        // The shell's momentum jolts the hull at the contact point, so the hit also yaws and pitches it.
+        vehicle!.body.applyImpulse(shell.velocity.normalizeToNew().scale(SHOT_FEEDBACK.hullImpulse * HIT_IMPULSE_SCALE), hit.point);
         const disabled = !!module && damageHudState.modules[module] === 0;
         const destroyed = applied && damageHudState.hp === 0;
         damageHud.setState(damageHudState);
-        damageHud.incoming(Math.atan2(hit.point.x - vehicle!.node.position.x, hit.point.z - vehicle!.node.position.z), module, disabled, destroyed);
+        damageHud.incoming(Math.atan2(hit.point.x - vehicle!.node.position.x, hit.point.z - vehicle!.node.position.z), module, disabled, !!destroyed);
+        hitShake(shell.velocity, !!destroyed);
         combatEffects!.armorImpact(hit.point, hit.normal, true);
         if (destroyed) combatEffects!.destruction(hit.point);
         if (!audio.muted) combatAudio?.armorHit(true, Vector3.Distance(hit.point, followCamera.camera.position), 0, destroyed);
@@ -516,6 +585,7 @@ async function start() {
           const deck = Vector3.TransformCoordinates(new Vector3(0, 1.95, -2), member.tank.anchor.computeWorldMatrix(true));
           combatEffects!.damageTrail(deck, member.damage);
         }
+        if (tank) combatEffects!.damageTrail(Vector3.TransformCoordinates(new Vector3(0, 1.95, -2), tank.anchor.computeWorldMatrix(true)), damageHudState);
         if (opponent) {
           const deck = Vector3.TransformCoordinates(new Vector3(0, 1.95, -2), opponent.tank.anchor.computeWorldMatrix(true));
           combatEffects!.damageTrail(deck, opponent.damage);
@@ -529,6 +599,7 @@ async function start() {
       if (damageSoundTime >= 0.4) damageSoundTime = 0;
       combatEffects!.fixedUpdate(step);
     });
+    laneDrones?.render(alpha);
     teamDuel?.render(alpha);
     opponent?.render(alpha);
     visual.render(vehicle, alpha);
@@ -542,6 +613,7 @@ async function start() {
     followCamera.update(vehicle, tank.anchor.position, Math.min(dt, 0.1), turret);
     if (mgMode) machineGun!.updateCamera();
     freeCamera.update(dt);
+    smokeSupply!.render();
     const cameraDirection = scene.activeCamera!.getForwardRay().direction;
     damageHud.update(Math.min(dt, 0.1), Math.atan2(cameraDirection.x, cameraDirection.z));
     hudElapsed += dt;
@@ -550,6 +622,8 @@ async function start() {
     if (hudElapsed >= 0.1) {
       updateCombatHud();
       teamDuelHud?.update();
+      const nearSupply = smokeSupply!.nearest(vehicle.node.position);
+      smokeInventory.update(smokeSupply!.model, smokeEnabled() && !!nearSupply && clearLootPath(nearSupply.position.add(new Vector3(0, .6, 0))), damageHudState.hp > 0);
       hudElapsed = 0;
     }
     if (vehicleAudio && audioSnapshot) {
@@ -572,11 +646,11 @@ function dispose() {
   if (disposed) return;
   disposed = true;
   window.removeEventListener('pagehide', dispose);
-  tankChoice.removeEventListener('change', changeTank);
-  duelToggle.remove();
   engine.stopRenderLoop();
   window.removeEventListener('resize', resize);
   window.removeEventListener('keydown', weaponKey);
+  window.removeEventListener('keydown', smokeKey);
+  smokeInventory.dispose(); smokeSupply?.dispose();
   tacticalHud.dispose();
   touch.dispose();
   freeCamera.dispose();
@@ -584,6 +658,7 @@ function dispose() {
   combatInput.dispose();
   window.removeEventListener('pointerdown', unlockOnGesture);
   window.removeEventListener('keydown', unlockOnGesture);
+  laneDrones?.dispose();
   shadows.dispose();
   keys.dispose();
   document.removeEventListener('visibilitychange', visibility);

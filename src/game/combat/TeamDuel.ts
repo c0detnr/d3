@@ -11,7 +11,7 @@ export interface DuelParticipant {
   tank: DuelTank['tank']; vehicle: DuelTank['vehicle']; damage: DamageState; team: DuelTeam;
 }
 export interface TeamImpact {
-  hit: ProjectileHit; victim?: DuelParticipant; playerShot: boolean;
+  hit: ProjectileHit; victim?: DuelParticipant; playerShot: boolean; shooter: DuelParticipant;
   applied: boolean; module: DamageModule | null; disabled: boolean; destroyed: boolean;
 }
 interface Bot {
@@ -52,7 +52,7 @@ export class TeamDuel {
   }
 
   raycast(shooter: PhysicsBody, from: Vector3, to: Vector3): ProjectileHit | undefined {
-    const hit = this.scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: shooter });
+    const hit = this.scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: shooter, shouldHitTriggers: true });
     let closest: ProjectileHit | undefined = hit.hasHit
       ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
     const segment = to.subtract(from), lengthSquared = segment.lengthSquared();
@@ -149,7 +149,7 @@ export class TeamDuel {
     const victim = this.members.find(m => m.vehicle.body === hit.body);
     const module = victim ? tankDamageRegion(victim, hit.point) : null;
     const applied = !!victim && victim.team !== shooter.team && applyDamage(victim.damage, module);
-    this.onImpact?.({ hit, victim, playerShot: shooter === this.player, module, applied,
+    this.onImpact?.({ hit, victim, shooter, playerShot: shooter === this.player, module, applied,
       disabled: applied && !!module && victim!.damage.modules[module] === 0,
       destroyed: applied && victim!.damage.hp === 0 });
   }

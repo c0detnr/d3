@@ -15,9 +15,9 @@
  body{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
  #touch-controls{display:block;position:fixed;inset:0;pointer-events:none;z-index:5;--size:clamp(112px,24vh,156px)}
  #touch-controls button,.touch-stick{pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent}
- #touch-controls button{font:600 10px Arial;color:#efe6cf;letter-spacing:1.5px;border:1px solid #c6b79380;background:linear-gradient(145deg,#323b33df,#141b18d9);box-shadow:0 3px 10px #0005;outline-offset:4px}
+ #touch-controls button{font:600 10px Arial;color:#efe6cf;letter-spacing:1.5px;border:1px solid #c6b79380;background:#141b18a6;box-shadow:none;outline-offset:4px}
  .touch-tools{position:absolute;right:max(20px,env(safe-area-inset-right));top:max(14px,env(safe-area-inset-top));display:flex;gap:8px}
- .touch-tools button{border-radius:8px;min-width:52px;height:44px;padding:0 12px}
+ .touch-tools button{border-radius:0;min-width:52px;height:44px;padding:0 12px}
  .touch-stick{position:absolute;bottom:max(28px,env(safe-area-inset-bottom));width:var(--size);height:var(--size);border:1px solid #d6c8a766;border-radius:50%;background:radial-gradient(circle,#222d2666 0 48%,#bcb08b16 49% 51%,#18231d55 52%);box-shadow:inset 0 0 24px #0003}
  .drive-stick{left:max(28px,env(safe-area-inset-left))}.aim-stick{right:max(110px,calc(env(safe-area-inset-right) + 96px))}
  .touch-stick i{position:absolute;left:30%;top:30%;width:40%;height:40%;border:1px solid #e7d7ac99;border-radius:50%;background:linear-gradient(145deg,#6c7463cf,#303c32e6);transform:translate(var(--x,0px),var(--y,0px));box-shadow:0 4px 14px #0006}
@@ -33,8 +33,4 @@
 }
 @media (pointer:coarse) and (orientation:portrait){#rotate-hint{display:block;position:fixed;top:35%;left:50%;transform:translateX(-50%);background:#19201bee;padding:16px 20px;border:1px solid #bdab8b;color:#eee8db;z-index:9;white-space:nowrap}#combat-hud{top:74px;max-width:95vw}.touch-stick{--size:112px}.aim-stick{right:100px}.brake-button{bottom:178px;left:40px}}
 
-.duel-toggle{position:fixed;top:calc(max(12px,env(safe-area-inset-top)) + 54px);left:max(12px,env(safe-area-inset-left));z-index:20;padding:12px;color:#eee6d6;background:#232b2c;border:1px solid #62685f;border-radius:4px;font:12px system-ui;text-decoration:none}
-
-#tank-selector{position:fixed;top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));z-index:20;display:flex;align-items:center;gap:8px;color:#d5c7ab;font:11px system-ui;letter-spacing:.08em;background:#13191de8;padding:8px 10px;border:1px solid #5b625d;border-radius:4px}
-#tank-choice{color:#eee6d6;background:#232b2c;border:1px solid #62685f;padding:6px;font:12px system-ui}
 [hidden]{display:none!important}
