@@ -255,3 +255,12 @@ Kenardaki 24 m'lik `rim` duvarı 5 m'lik yumuşak bir kenara indirildi (352–36
 ### 2026-10-28 — Kül Vadisi ışık ve sis
 
 Işık/sis değerleri tek ayar nesnesinde toplandı ([atmosphereSettings.ts](../src/game/world/atmosphereSettings.ts)); test zemini eski değerleri korur. Kül Vadisi: ~20° yükseklikte sıcak güneş (daha alçak, uzun gölge, faset yüz tonu farkı), soğuk mavi gökyüzü dolgusu ve koyu toprak tonlu zemin yansıması, daha açık ve ince sis (yoğunluk 0,0039 → 0,0028; yakın savaş alanı okunur). Sis rengi dağ katmanlarının pişirilmiş ufuk rengiyle aynı kaynaktan gelir. Kaynak eklenmedi; mevcut `dispose` yolu aynı. `tsc -p tsconfig.map.json` ve `check-kul-vadisi.ts` geçti. Tarayıcıda görsel inceleme yapılmadı; ton, sis mesafesi ve gölge kalitesi kabulü açık.
+
+
+### 2026-10-29 — Hareketli dönüş yarıçapı
+
+Hızla azalan direksiyon girdisi yumuşatıldı; iç palet karışık komutun hedef hızını aşınca fren kapasitesiyle yavaşlatılıyor. Dönüş sırasında paletlerin yanal kayma direnci azaltılıyor; fiziksel kuvvet/tutuş sınırları ve sabit adım korunur. Yerel oyuncu, AI ve LAN ortak TankVehicle hesabını kullanır.
+
+`drive:test` iki gerçek GLB/Havok tankta geçti: üç saniye ileri gazdan sonra dört saniye tam dönüş, tank 01'de 14° → 127°, tank 02'de 10° → 88°. Yaklaşık 47 km/sa başlangıçtan iki saniye dönüş sonunda anlık yarıçaplar 19,8 / 29,5 m; devrilme sınırı, direksiyon bırakınca durulma, fren/geri, rampa ve 30/60/120 FPS kontrolleri geçti. Sonuçlar driving-results.json dosyalarında. Tarayıcı erişim sunucusu kullanılamadığından etkileşimli sürüş hissi doğrulanmadı; insan kabulü ve M2 son kabulü açık.
+
+`map:build` ve `lan:test` geçti; mevcut büyük paket uyarısı sürüyor.

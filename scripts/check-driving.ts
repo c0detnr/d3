@@ -80,7 +80,24 @@ try {
   console.log('movingTurns', movingTurns);
   assert.ok(movingTurns[0].x > 2 && movingTurns[1].x < -2, 'Hareketli dönüş yönleri');
   assert.ok(Math.abs(movingTurns[0].x + movingTurns[1].x) < 0.1, 'Hareketli dönüş simetrisi');
+  assert.ok(movingTurns[0].yaw > 1.2 && movingTurns[1].yaw < -1.2, 'Gaz basılıyken dört saniyede en az 69° dönmeli');
   results.movingTurns = movingTurns;
+  const fastTurns = [];
+  for (const right of [true, false]) {
+    reset(); run(3); run(18, { ...idle, forward: true });
+    const entrySpeed = vehicle.speed;
+    run(2, { ...idle, forward: true, right, left: !right });
+    const yawRate = vehicle.body.getAngularVelocity().y;
+    const radius = Math.abs(vehicle.speed / yawRate);
+    assert.ok(Math.abs(yaw()) > 0.45, 'Azami hızdan iki saniyede en az 26° dönmeli');
+    assert.ok(radius < 30, `Hızlı dönüş yarıçapı 30 m altında olmalı: ${radius}`);
+    assert.ok(vehicle.speed > 2, 'Dönüş sırasında ileri hareket sürmeli');
+    assert.ok(Math.abs(vehicle.current.rotation.toEulerAngles().z) < 0.3, 'Dönüşte gövde devrilmemeli');
+    fastTurns.push({ entrySpeed, yaw: yaw(), speed: vehicle.speed, radius });
+    run(2, { ...idle, forward: true });
+    assert.ok(Math.abs(vehicle.body.getAngularVelocity().y) < 0.05, 'Direksiyon bırakılınca dönüş durmalı');
+  }
+  results.fastTurns = fastTurns;
   reset(); run(3); run(4, { ...idle, forward: true });
   const poweredSpeed = vehicle.speed; run(3);
   assert.ok(vehicle.speed > 0 && vehicle.speed < poweredSpeed - 0.4, 'Gaz bırakınca yuvarlanma direnciyle yavaşlamalı');

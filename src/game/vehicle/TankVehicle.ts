@@ -61,7 +61,7 @@ export class TankVehicle {
     const forward = Vector3.TransformNormal(Vector3.Forward(), matrix).normalize();
     this.speed = Vector3.Dot(linear, forward);
     this.driveForce = 0;
-    const steer = command.steer / (1 + Math.abs(this.speed) / 7);
+    const steer = command.steer / (1 + Math.abs(this.speed) / 20);
     // Normalize mixed commands to retain the total engine force and power budget.
     const normalization = Math.max(1, Math.abs(command.throttle) + Math.abs(steer));
     for (let index = 0; index < this.contacts.length; index++) {
@@ -89,14 +89,18 @@ export class TankVehicle {
       let drive = (command.throttle - wheel.side * steer) / normalization;
       const limit = drive < 0 ? d.reverseSpeed : d.forwardSpeed;
       const directionalSpeed = Math.max(0, speed * Math.sign(drive));
-      // Smooth taper over the last 15% of the target speed; never clip velocity.
-      const taper = clamp((limit - directionalSpeed) / (limit * 0.15), 0, 1);
-      const available = Math.min(d.traction, d.power / Math.max(1, Math.abs(speed)));
+      // Brake the inner track above its mixed target speed so steering still works at full throttle.
+      const targetSpeed = limit * Math.abs(drive);
+      const taper = clamp((targetSpeed - directionalSpeed) / (limit * 0.15), -1, 1);
+      const available = taper < 0 ? d.brakeForce
+        : Math.min(d.traction, d.power / Math.max(1, Math.abs(speed)));
       drive *= available / this.contacts.length * taper;
       const rolling = d.rollingResistance * load * Math.tanh(speed / 0.2);
       const braking = command.brake * clamp(speed * pointMass * 10, -d.brakeForce / this.contacts.length, d.brakeForce / this.contacts.length);
       let longitudinalForce = drive - rolling - braking;
-      let lateralForce = -sideSpeed * pointMass * d.lateralResponse;
+      // Skid steering needs lateral track slip instead of resisting its own yaw.
+      const lateralResponse = d.lateralResponse * (1 - 0.55 * Math.abs(command.steer));
+      let lateralForce = -sideSpeed * pointMass * lateralResponse;
       const magnitude = Math.hypot(longitudinalForce, lateralForce);
       const scale = magnitude > 0 ? Math.min(1, load * d.grip / magnitude) : 1;
       longitudinalForce *= scale; lateralForce *= scale;

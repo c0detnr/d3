@@ -173,3 +173,12 @@ Taret için 0,08 s hız tepkisi; namlu için 0,10 s hedefe yaklaşım ve sönüm
 - Android API 37.2 x86_64 Pixel 6 emülatörü / SwiftShader / WebView, yatay 2400×1080 fiziksel, 914×411 CSS: imzalı APK kuruldu, paket içinden GLB/Havok sahnesi açıldı ve WebGL2 doğrulandı. Fiziksel telefon bağlı değildi. Emülatör kaydı bir FPS veya performans kabulü değildir.
 - İlk Gradle bin indirmesi zaman aşımı verdi; aynı sürümün yerelde bulunan all dağıtımıyla build tamamlandı. İlk WebView otomasyonunda Playwright tap bağlamı dokunmatik değildi; gerçek CDP touch olaylarına geçildi.
 - Gerçek telefon ısınma/pil/FPS ve uzun kullanım testi açık. Debug imza yerel kurulum içindir.
+
+
+### 2026-10-29 — Hareketli dönüş yarıçapı
+
+Hızla azalan direksiyon girdisi yumuşatıldı; iç palet karışık komutun hedef hızını aşınca fren kapasitesiyle yavaşlatılıyor. Dönüş sırasında paletlerin yanal kayma direnci azaltılıyor; fiziksel kuvvet/tutuş sınırları ve sabit adım korunur. Yerel oyuncu, AI ve LAN ortak TankVehicle hesabını kullanır.
+
+`drive:test` iki gerçek GLB/Havok tankta geçti: üç saniye ileri gazdan sonra dört saniye tam dönüş, tank 01'de 14° → 127°, tank 02'de 10° → 88°. Yaklaşık 47 km/sa başlangıçtan iki saniye dönüş sonunda anlık yarıçaplar 19,8 / 29,5 m; devrilme sınırı, direksiyon bırakınca durulma, fren/geri, rampa ve 30/60/120 FPS kontrolleri geçti. Sonuçlar driving-results.json dosyalarında. Tarayıcı erişim sunucusu kullanılamadığından etkileşimli sürüş hissi doğrulanmadı; insan kabulü ve M2 son kabulü açık.
+
+`map:build` ve `lan:test` geçti; mevcut büyük paket uyarısı sürüyor.
