@@ -271,3 +271,7 @@ Hızla azalan direksiyon girdisi yumuşatıldı; iç palet karışık komutun he
 643 doğa parçası korunarak 611 dekor parçası ortak instance kaynağına geçirildi; sabit doğa/bina matrisleri donduruldu, boş anchor mesh'leri TransformNode oldu, gereksiz fare picking taraması kapatıldı. NullEngine'de ayrı doğa render kaynağı 643 → 44, gölge kaynağı 244 → 117; fizik gövdesi 150 olarak kaldı. GPU/FPS ölçümü değildir.
 
 Gerçek GLB başlangıç/son yerleşim eşitliği ve iki temizleme çevrimi, iki tankla bütün Havok rotaları ve `map:build` geçti. [Doğrulama ayrıntısı](VALIDATION.md#2026-10-29--kül-vadisi-çevre-çizim-optimizasyonu). Tarayıcı bağlantısı yok; görsel/kare süresi ve insan sürüş kabulü açık. M1/M2/M3 kapanmaz.
+
+### 2026-10-29 — Komuta merkezi 01 varlığı
+
+Geçici `command` kutusunun yerine geçecek kapalı komuta sığınağı Blender 5.2 CLI ile üretildi: eğimli kaide, zırhlı salon, arkaya kaydırılmış komuta katı, zırhlı kapı ve payandalar, çatıda direk/çanak. [Kaynak, GLB, önizlemeler ve kontroller](../assets/environment/command_center_01/README.md). 29 × 23,05 × 14,55 m, 1.580 görünür üçgen, 8 malzeme; ayrı 5 çarpışma mesh'i / 108 üçgen. GLB yeniden aktarım doğrulaması (ölçek/zemin/sınır, üçgen sayımı, collider yükseklikleri, doku bağımsızlığı) geçti; ön/arka/tank ölçek önizlemeleri incelendi. Blender MCP bu oturumda bağlı olmadığından CLI yolu kullanıldı. Oyun entegrasyonu, Havok/mermi kontrolü ve performans kabulü yapılmadı; K2/M1/M2/M3 kapanmadı.

@@ -1,0 +1,37 @@
+{
+  "status": "passed",
+  "method": "Blender 5.2 CLI GLB reimport (factory scene)",
+  "visible_triangles": 1580,
+  "visible_meshes": 8,
+  "materials": 8,
+  "collision_meshes": 5,
+  "collision_triangles": 108,
+  "bounds_min": [
+    -14.5,
+    -11.524999618530273,
+    0.0
+  ],
+  "bounds_max": [
+    14.5,
+    11.524999618530273,
+    14.550000190734863
+  ],
+  "size_m": [
+    29.0,
+    23.049999237060547,
+    14.550000190734863
+  ],
+  "metre_scale": true,
+  "ground_origin": true,
+  "external_textures": false,
+  "tank_in_export": false,
+  "collider_top_heights_m": {
+    "COL_ButtressL": 7.0,
+    "COL_ButtressR": 7.0,
+    "COL_Hall": 7.5,
+    "COL_Plinth": 0.8,
+    "COL_Tier": 11.1
+  },
+  "enterable": false,
+  "collision_note": "Sloped plinth, hall, command tier and two door buttresses. Closed and not enterable. Mast, dish, vents, roof units, ribs, door details, light poles and fuel tank have no collider."
+}
