@@ -73,6 +73,7 @@ W ileri, S fren ve durduktan 0,25 saniye sonra geri; A/D palet farkıyla dönü�
 - `npm run combat:test`: gerçek GLB namlu ağzı, dolum/geri tepme, mermi düşüşü ve süpürülmüş isabet, zırh açısı/mesafe delmesi, sekme ve sabit hedefler.
 - `npm run map:check`: harita TypeScript kontrolü.
 - `npm run map:test`: gerçek Havok ile arazi/görsel yüzey eşleşmesi, başlangıç açıklığı, orman/patika yerleşimi, ağaç çarpışması ve kaynak temizleme kontrolü.
+- `npm run world:render:test`: Kül Vadisi doğa modellerinde ortak çizim kaynakları, statik instance ve iki kur/kapat çevriminde kaynak temizliği; GPU/FPS ölçümü değildir.
 - `npm run map:build`: `dist-map/` altında dağıtılabilir harita önizlemesi.
 
 Harita kodla, tank Blender MCP ile bu projede üretildi. Palet tozu için CC0 lisanslı [Brackeys VFX Bundle](assets/vfx/brackeys/README.md) dokusu kullanılır. Havok bildirimi `public/licenses/HAVOK.txt` içinde ve derleme çıktısında korunur.

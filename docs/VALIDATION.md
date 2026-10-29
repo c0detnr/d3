@@ -182,3 +182,16 @@ Hızla azalan direksiyon girdisi yumuşatıldı; iç palet karışık komutun he
 `drive:test` iki gerçek GLB/Havok tankta geçti: üç saniye ileri gazdan sonra dört saniye tam dönüş, tank 01'de 14° → 127°, tank 02'de 10° → 88°. Yaklaşık 47 km/sa başlangıçtan iki saniye dönüş sonunda anlık yarıçaplar 19,8 / 29,5 m; devrilme sınırı, direksiyon bırakınca durulma, fren/geri, rampa ve 30/60/120 FPS kontrolleri geçti. Sonuçlar driving-results.json dosyalarında. Tarayıcı erişim sunucusu kullanılamadığından etkileşimli sürüş hissi doğrulanmadı; insan kabulü ve M2 son kabulü açık.
 
 `map:build` ve `lan:test` geçti; mevcut büyük paket uyarısı sürüyor.
+
+
+## 2026-10-29 — Kül Vadisi çevre çizim optimizasyonu
+
+Doğa dekorları ortak kaynaklı Babylon instance kullanır; sert kayalar bağımsız mesh/collider olarak kalır. Boş doğa anchor mesh'leri TransformNode oldu. Sabit bina ve doğa mesh matrisleri donduruldu; harita sayfasında otomatik pointer-move picking kapatıldı (nişan/fizik sorguları korunur). Kaynak GLB sınırları vertekslerden yenilenerek önceki model ölçeği ve yerleşimi korundu. Gölge çözünürlüğü ve sahne içeriği azaltılmadı.
+
+NullEngine + gerçek GLB/Havok yapısal karşılaştırması: 643 doğa parçası aynı; 611'i instance. Ayrı doğa render kaynağı 643 → 44, gölge kaynağı 244 → 117, sahne mesh sayısı 2235 → 1650; fizik gövdesi 150 → 150. Bu sayılar GPU draw-call veya FPS ölçümü değildir.
+
+`node --experimental-strip-types scripts/check-world-rendering.ts --compare /tmp/d3-render-optimization/baseline.json` başlangıçtaki 643 parçanın dünya matrisini, sınırlarını, materyalini, picking/gölge alma ayarını karşılaştırdı; iki kur/kapat çevriminde kaynak temizliği geçti. Başlangıç snapshot'ı yerel geçici dosyadır. `npm run world:render:test` bağımsız tekrar kontrolüdür. `node --experimental-strip-types scripts/check-kul-vadisi.ts` iki tankla iki yönlü bütün rotaları ve çarpışma/temizliği geçti. `npm run map:build` geçti; mevcut büyük paket uyarısı sürer.
+
+Tarayıcı host erişilemedi; görsel karşılaştırma, gerçek FPS/kare süresi ve uzun sürüşte donma kabulü açık. M1/M2/M3 kapanmadı.
+
+Commit kapsamı ayrıca `/tmp/d3-render-optimization/staged-tree` içinde izole edildi: `map:check` geçti; HEAD doğa kodu ile optimize kod aynı commit arazisinde tekrar karşılaştırıldı (`staged-baseline.json`), aynı sayımlar ve yerleşim eşitliği geçti. Paralel harita/arazi/orman eklemeleri bu optimizasyon commit'inin dışındadır.

@@ -32,6 +32,7 @@ export async function loadFactoryBuilding(scene: Scene, source: string | Uint8Ar
       mesh.isVisible = !collisionOnly; mesh.isPickable = !collisionOnly; mesh.receiveShadows = !collisionOnly;
       mesh.computeWorldMatrix(true);
       if (collisionOnly) bodies.push(new PhysicsAggregate(mesh, PhysicsShapeType.MESH, { mass: 0, friction: 0.85, restitution: 0 }, scene));
+      mesh.freezeWorldMatrix();
     }
     return { meshes, shadowCasters: visible, dispose };
   } catch (error) { dispose(); throw error; }

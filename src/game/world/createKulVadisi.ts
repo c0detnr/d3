@@ -1,5 +1,5 @@
 import { createKulBattlefield, type fieldSources } from './createKulBattlefield.ts';
-import { Color3, Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, StandardMaterial, Vector3, type Scene } from '@babylonjs/core';
+import { Color3, Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, StandardMaterial, Vector3, type AbstractMesh, type Scene } from '@babylonjs/core';
 import { KUL_CONNECTIONS, KUL_LIMIT, KUL_STEP, KUL_ROAD_WIDTH, KUL_SPAWNS, KUL_STRUCTURES, kulRoadDistance, kulTerrainHeight, segmentDistance } from './kulVadisiLayout.ts';
 import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
 import { buildFacetedTerrain } from './facetedTerrain.ts';
@@ -85,7 +85,7 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
   const start = KUL_SPAWNS[team];
   const ground = {
     spawn: new Vector3(start.x, kulTerrainHeight(start.x, start.z), start.z), terrain, meshes,
-    shadowCasters: meshes.filter(m => m.isVisible && m !== terrain && m !== facets && !mountains.meshes.includes(m)),
+    shadowCasters: meshes.filter(m => m.isVisible && m !== terrain && m !== facets && !mountains.meshes.includes(m)) as AbstractMesh[],
     dispose() { battlefield?.dispose(); buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); },
   };
   try {

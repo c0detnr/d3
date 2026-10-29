@@ -264,3 +264,10 @@ Hızla azalan direksiyon girdisi yumuşatıldı; iç palet karışık komutun he
 `drive:test` iki gerçek GLB/Havok tankta geçti: üç saniye ileri gazdan sonra dört saniye tam dönüş, tank 01'de 14° → 127°, tank 02'de 10° → 88°. Yaklaşık 47 km/sa başlangıçtan iki saniye dönüş sonunda anlık yarıçaplar 19,8 / 29,5 m; devrilme sınırı, direksiyon bırakınca durulma, fren/geri, rampa ve 30/60/120 FPS kontrolleri geçti. Sonuçlar driving-results.json dosyalarında. Tarayıcı erişim sunucusu kullanılamadığından etkileşimli sürüş hissi doğrulanmadı; insan kabulü ve M2 son kabulü açık.
 
 `map:build` ve `lan:test` geçti; mevcut büyük paket uyarısı sürüyor.
+
+
+### 2026-10-29 — Kül Vadisi doğa çizim yükü
+
+643 doğa parçası korunarak 611 dekor parçası ortak instance kaynağına geçirildi; sabit doğa/bina matrisleri donduruldu, boş anchor mesh'leri TransformNode oldu, gereksiz fare picking taraması kapatıldı. NullEngine'de ayrı doğa render kaynağı 643 → 44, gölge kaynağı 244 → 117; fizik gövdesi 150 olarak kaldı. GPU/FPS ölçümü değildir.
+
+Gerçek GLB başlangıç/son yerleşim eşitliği ve iki temizleme çevrimi, iki tankla bütün Havok rotaları ve `map:build` geçti. [Doğrulama ayrıntısı](VALIDATION.md#2026-10-29--kül-vadisi-çevre-çizim-optimizasyonu). Tarayıcı bağlantısı yok; görsel/kare süresi ve insan sürüş kabulü açık. M1/M2/M3 kapanmaz.

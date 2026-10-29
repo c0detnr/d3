@@ -1,4 +1,4 @@
-import { Color3, LoadAssetContainerAsync, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, StandardMaterial, TransformNode, Vector3, type AssetContainer, type Scene } from '@babylonjs/core';
+import { Color3, LoadAssetContainerAsync, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, StandardMaterial, TransformNode, Vector3, type AbstractMesh, type AssetContainer, type Scene } from '@babylonjs/core';
 import { registerBuiltInLoaders } from '@babylonjs/loaders/dynamic.js';
 import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
 import { KUL_FIELD_COVER, KUL_FIELD_ROCKS } from './kulBattlefieldLayout.ts';
@@ -22,7 +22,7 @@ export const fieldSources = {
 
 /** Central cover, wooded ridges and quarry dressing. Small details never receive physics bodies. */
 export async function createKulBattlefield(scene: Scene, sources: Record<keyof typeof fieldSources, string | Uint8Array> = fieldSources, emplacementSource: string | Uint8Array = new URL('../../../assets/environment/concrete_emplacement_01/concrete_emplacement_01.glb', import.meta.url).href) {
-  const meshes: Mesh[] = [], materials: StandardMaterial[] = [], bodies: PhysicsAggregate[] = [], assets: AssetContainer[] = [];
+  const meshes: AbstractMesh[] = [], materials: StandardMaterial[] = [], bodies: PhysicsAggregate[] = [], assets: AssetContainer[] = [];
   const roots: { dispose(): void }[] = [];
   const dispose = () => {
     bodies.forEach(b => b.dispose()); roots.forEach(r => r.dispose()); meshes.forEach(m => m.dispose());
@@ -35,7 +35,7 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
   const vegetation = material('field-dry-vegetation', '#777A50'); vegetation.backFaceCulling = false;
   const metal = material('field-rusted-steel', '#62554A');
   const scuff = material('field-track-scuff', '#514A3A'); scuff.alpha = 0.32;
-  const solid = (m: Mesh) => bodies.push(new PhysicsAggregate(m, PhysicsShapeType.MESH, { mass: 0, friction: 0.85, restitution: 0 }, scene));
+  const solid = (m: AbstractMesh) => bodies.push(new PhysicsAggregate(m, PhysicsShapeType.MESH, { mass: 0, friction: 0.85, restitution: 0 }, scene));
   const box = (name: string, x: number, z: number, width: number, depth: number, height: number, mat: StandardMaterial, hardCover = false) => {
     const mesh = MeshBuilder.CreateBox(name, { width, depth, height }, scene);
     const floor = Math.min(...[-1, 1].flatMap(dx => [-1, 1].map(dz => kulTerrainHeight(x + dx * width / 2, z + dz * depth / 2))));
@@ -61,12 +61,20 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
         // Keep the source alpha mask and bark/leaf textures while muting saturated greens.
         if (['pine', 'pineTall', 'broadTree', 'fern', 'shortGrass'].includes(key)) m.albedoColor.multiplyInPlace(Color3.FromHexString('#A6A783'));
       }
+      for (const mesh of container.meshes) {
+        // Recompute accessor bounds from vertices so clones and instances use the same footprint.
+        mesh.refreshBoundingInfo({});
+        if (key === 'bush' || key === 'grass') mesh.material = vegetation;
+        mesh.receiveShadows = true;
+        mesh.freezeWorldMatrix();
+      }
       templates[key] = container;
     }
     const nature = (key: keyof typeof sources, id: string, x: number, z: number, size: number, yaw: number, hardCover: boolean, tree = false) => {
-      const entry = templates[key].instantiateModelsToScene(name => `${id}-${name}`, false, { doNotInstantiate: true });
+      // Keep mesh colliders independent; decorative instances share the render and shadow geometry.
+      const entry = templates[key].instantiateModelsToScene(name => `${id}-${name}`, false, { doNotInstantiate: hardCover });
       roots.push(...entry.rootNodes);
-      const children = entry.rootNodes.flatMap(root => root.getChildMeshes()).filter((m): m is Mesh => m instanceof Mesh && m.getTotalVertices() > 0);
+      const children = entry.rootNodes.flatMap(root => root.getChildMeshes()).filter(m => m.getTotalVertices() > 0);
       if (!children.length) throw new Error(`Missing nature geometry: ${key}`);
       children.forEach(m => m.computeWorldMatrix(true));
       const min = children.reduce((v, m) => Vector3.Minimize(v, m.getBoundingInfo().boundingBox.minimumWorld), new Vector3(Infinity, Infinity, Infinity));
@@ -77,14 +85,13 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
         if (!(root instanceof TransformNode)) continue;
         root.scaling.scaleInPlace(scale);
         // glTF root owns handedness; use an additional parent to retain that transform.
-        const anchor = new Mesh(`${id}-anchor`, scene); roots.push(anchor); root.parent = anchor;
+        const anchor = new TransformNode(`${id}-anchor`, scene); roots.push(anchor); root.parent = anchor;
         root.position.subtractInPlace(new Vector3(center.x, min.y, center.z).scale(scale));
         anchor.metadata = { nature: true, key, tree, size }; anchor.rotation.y = yaw; anchor.position.set(x, kulTerrainHeight(x, z) - (hardCover ? 0.3 : 0.04), z);
       }
       for (const m of children) {
         m.computeWorldMatrix(true); m.metadata = { battlefield: true, hardCover, surface: hardCover ? 'concrete' : 'foliage', tree };
-        if (key === 'bush' || key === 'grass') m.material = vegetation;
-        m.isPickable = hardCover; m.receiveShadows = true; meshes.push(m); if (hardCover) solid(m);
+        m.isPickable = hardCover; meshes.push(m); if (hardCover) solid(m);
       }
       if (tree) {
         const trunk = MeshBuilder.CreateCylinder(`${id}-trunk-collider`, { height: size * 0.6, diameter: size * 0.045, tessellation: 8 }, scene);
@@ -150,6 +157,7 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
         mark.updateVerticesData('position', positions); mark.position.set(px, 0, z); mark.material = scuff; mark.isPickable = false; meshes.push(mark);
       }
     }
+    meshes.forEach(mesh => mesh.freezeWorldMatrix());
     return { meshes, shadowCasters: meshes.filter(m => m.isVisible && (m.metadata?.hardCover || m.metadata?.tree)), dispose };
   } catch (error) { dispose(); throw error; }
 }

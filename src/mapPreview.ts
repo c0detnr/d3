@@ -79,6 +79,7 @@ const engine = new Engine(canvas, !mobile);
 const scaleMobile = () => { if (mobile) engine.setHardwareScalingLevel(Math.max(1, innerWidth / 1280, innerHeight / 720)); };
 scaleMobile();
 const scene = new Scene(engine);
+scene.skipPointerMovePicking = true;
 scene.imageProcessingConfiguration.exposure = 1;
 scene.imageProcessingConfiguration.contrast = 1.15;
 const atmosphere = kulVadisi ? KUL_ATMOSPHERE : TEST_GROUND_ATMOSPHERE;

@@ -16,6 +16,7 @@
     "map:dev": "vite --config vite.map.config.ts --host 127.0.0.1 --open /map-preview.html",
     "map:check": "tsc -p tsconfig.map.json",
     "map:test": "node --experimental-strip-types scripts/check-test-ground.ts",
+    "world:render:test": "node --experimental-strip-types scripts/check-world-rendering.ts",
     "map:build": "npm run map:check && vite build --config vite.map.config.ts",
     "tank:test": "node --experimental-strip-types scripts/check-tank-model.ts && node --experimental-strip-types scripts/check-second-tank.ts",
     "turret:test": "node --experimental-strip-types scripts/check-turret.ts && node --experimental-strip-types scripts/check-turret.ts 02",
