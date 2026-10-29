@@ -298,3 +298,10 @@ Gerçek GLB/Havok ile iki tankla 12 yeni çift yönlü sürüş, mermi/sert sipe
 ### 2026-10-29 — Duruş, palet ve fare girdisi
 
 Düşük hızda otomatik park freni, eğimde statik tutuş ve duruşta palet animasyon eşiği eklendi. Yerel/LAN kilitli fare yakalama çakışması giderildi. İki gerçek tankla düz/eğim duruşu ve palet animasyonu regresyonları, combat:test, lan:check; ayrı teslim ağacında drive:test, map:build ve lan:test geçti. [Kanıt ve sınırlar](VALIDATION.md#2026-10-29--duruşpalet-ve-kilitli-fare-düzeltmesi). Tarayıcı erişim sunucusu yok; etkileşimli sürüş/fare ve insan kabulü açık. M1/M2/M3 genel kabulü değişmedi.
+
+
+### 2026-10-29 — Düello AI görüş ve hareket davranışı
+
+EasyDuelAI görüş kesilince ateş iznini hemen kapatır; görüş geri geldiğinde veya hedef değiştiğinde 0,85 s tepki süresi uygular. 30–55 m mesafede konum tutar, yakın hedeften geri açılır; iki saniye ilerleyemezse 1,4 s geri/dönüş kurtarması dener. Son görülen konum dört saniye korunur; gizli güncel konum okunmaz. Reset hafıza, dolum aralığı ve kurtarmayı temizler.
+
+`node --experimental-strip-types scripts/check-duel-ai.ts` ve `map:build` geçti. Kontrol, görüş/tepki/mesafe/kurtarma/reset kararlarını 30/60/120 FPS girdileriyle sınar; gerçek Havok engel kurtarması ve tarayıcı sürüş hissi doğrulanmadı. Tarayıcı erişim host'u kullanılamıyor. 5’e 5 takım entegrasyonu henüz yapılmadı: kullanıcı her takımın kendi üssünde doğmasını istedi; oyuncu/bot dağılımı açıklaması bekleniyor. M1/M2/M3 kabulü değişmez.

@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import { Quaternion, Vector3 } from '@babylonjs/core';
+import { EasyDuelAI } from '../src/game/combat/EasyDuelAI.ts';
+import type { DuelTank } from '../src/game/combat/DuelTank.ts';
+const actor = (x: number, z: number) => ({ vehicle: { node: { position: new Vector3(x, 0, z), rotationQuaternion: Quaternion.Identity() } } }) as Pick<DuelTank, 'vehicle'>;
+const self = actor(0, 0), target = actor(0, 45);
+const ai = new EasyDuelAI();
+assert.equal(ai.canShoot, false);
+assert.equal(ai.update(self, target, true, 1 / 60).drive.brake, 1, 'hold engagement distance');
+assert.equal(ai.canShoot, false, 'reaction gate');
+ai.update(self, target, true, 1); assert.ok(ai.canShoot);
+ai.shotFired(); assert.equal(ai.canShoot, false);
+ai.update(self, target, true, 5); assert.ok(ai.canShoot);
+assert.equal(ai.update(self, target, false, .01).target, undefined);
+assert.equal(ai.canShoot, false, 'smoke/obstruction blocks fire immediately');
+target.vehicle.node.position.set(100, 0, 100);
+const search = ai.update(self, target, false, .1);
+assert.equal(search.drive.steer, 0, 'hidden target movement is not read');
+ai.update(self, target, false, 5);
+assert.equal(ai.update(self, target, false, .1).drive.brake, 1, 'memory expires');
+ai.update(self, target, true, .01); assert.equal(ai.canShoot, false, 'reacquisition requires reaction');
+ai.update(self, target, true, 1); assert.ok(ai.canShoot);
+ai.update(self, actor(0, 40), true, .01); assert.equal(ai.canShoot, false, 'new target requires reaction');
+ai.reset(); target.vehicle.node.position.set(0, 0, 10);
+assert.ok(ai.update(self, target, true, .01).drive.throttle < 0, 'reverse away from close target');
+for (const fps of [30, 60, 120]) {
+  ai.reset(); target.vehicle.node.position.set(0, 0, 100);
+  let recovery = false;
+  for (let i = 0; i < fps * 3; i++) if (ai.update(self, target, true, 1 / fps).drive.throttle < 0) recovery = true;
+  assert.ok(recovery, `stuck recovery at ${fps} FPS`);
+  ai.reset(); assert.equal(ai.canShoot, false);
+  assert.equal(ai.update(self, target, false, 1 / fps).drive.brake, 1, 'reset clears memory and recovery');
+}
+console.log('DUEL AI PASS: reaction, target switch, immediate occlusion, last-seen memory, expiry, spacing, recovery, reset, 30/60/120 FPS.');
