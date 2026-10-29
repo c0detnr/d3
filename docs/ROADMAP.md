@@ -305,3 +305,10 @@ Düşük hızda otomatik park freni, eğimde statik tutuş ve duruşta palet ani
 EasyDuelAI görüş kesilince ateş iznini hemen kapatır; görüş geri geldiğinde veya hedef değiştiğinde 0,85 s tepki süresi uygular. 30–55 m mesafede konum tutar, yakın hedeften geri açılır; iki saniye ilerleyemezse 1,4 s geri/dönüş kurtarması dener. Son görülen konum dört saniye korunur; gizli güncel konum okunmaz. Reset hafıza, dolum aralığı ve kurtarmayı temizler.
 
 `node --experimental-strip-types scripts/check-duel-ai.ts` ve `map:build` geçti. Kontrol, görüş/tepki/mesafe/kurtarma/reset kararlarını 30/60/120 FPS girdileriyle sınar; gerçek Havok engel kurtarması ve tarayıcı sürüş hissi doğrulanmadı. Tarayıcı erişim host'u kullanılamıyor. 5’e 5 takım entegrasyonu henüz yapılmadı: kullanıcı her takımın kendi üssünde doğmasını istedi; oyuncu/bot dağılımı açıklaması bekleniyor. M1/M2/M3 kabulü değişmez.
+
+
+### 2026-10-29 — İki üsten 5’e 5 yerel takım düellosu
+
+[5’e 5 düello](TEAM_DUEL.md): oyuncu + 4 dost AI / 5 düşman AI; her takımın kendi üssünde beş ayrı doğuşu, üç koridor rotası, aralıklı çıkış, viraj freni, hedef seçimi/tepki, hareket önlemesi/yerçekimi telafisi, dost hasarı koruması, skor/işaretler, tüm takım imhasıyla sonuç ve tam maç reseti eklendi. Oyuncu imha olsa bile dostlar devam eder.
+
+`check-team-duel.ts`, `check-duel-ai.ts`, `damage:test` ve `map:build` geçti. Gerçek Kül Vadisi / on gerçek GLB / tek Havok dünyasında iki üs, dokuz AI’ın oyuncu park halindeyken çıkışı, 150 s hareket/36 atış/gerçek hasar, görüş engeli, beş reset, üç sonuç türü, sonuç kilidi, 30/60/120 sabit adımlama ve kaynak temizliği sınandı. Tarayıcı host erişimi yok; HUD/kamera, insan AI dengesi ve FPS kabulü açık. M1/M2/M3 genel kabulü değişmez.

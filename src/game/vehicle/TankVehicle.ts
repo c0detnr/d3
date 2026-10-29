@@ -49,7 +49,7 @@ export class TankVehicle {
   private velocityAt(point: Vector3, linear: Vector3, angular: Vector3) {
     return linear.add(Vector3.Cross(angular, point.subtract(this.node.position)));
   }
-  beforeStep(dt: number, command: DriveCommand) {
+  beforeStep(dt: number, command: DriveCommand, trackPower = { left: 1, right: 1 }) {
     const measuredLinear = this.current.position.subtract(this.previous.position).scale(1 / dt);
     this.previous = pose(this.node);
     const d = this.definition;
@@ -100,11 +100,13 @@ export class TankVehicle {
       const taper = clamp((targetSpeed - directionalSpeed) / (limit * 0.15), -1, 1);
       const available = taper < 0 ? d.brakeForce
         : Math.min(d.traction, d.power / Math.max(1, Math.abs(speed)));
-      drive *= available / this.contacts.length * taper;
+      const power = wheel.side < 0 ? trackPower.left : trackPower.right;
+      drive *= available / this.contacts.length * taper * power;
       const rolling = d.rollingResistance * load * Math.tanh(speed / 0.2);
       // Static hold cancels downhill gravity inside the same traction/brake limits.
       const holdForce = parking ? Vector3.Dot(this.physics.gravity, tangent) * pointMass : 0;
-      const braking = Math.max(command.brake, Number(parking)) * clamp(speed * pointMass * 10 + holdForce,
+      // A broken track is dead weight: it drags like a half-applied brake and pulls the tank to its side.
+      const braking = Math.max(command.brake, Number(parking), power === 0 ? 0.5 : 0) * clamp(speed * pointMass * 10 + holdForce,
         -d.brakeForce / this.contacts.length, d.brakeForce / this.contacts.length);
       let longitudinalForce = drive - rolling - braking;
       // Skid steering needs lateral track slip instead of resisting its own yaw.

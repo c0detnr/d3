@@ -17,7 +17,7 @@ export class EasyDuelAI {
   private recoverySide = 1;
   get canShoot() { return this.wasVisible && this.reaction <= 0 && this.reloadPause <= 0; }
 
-  update(opponent: Pick<DuelTank, 'vehicle'>, player: Pick<DuelTank, 'vehicle'>, visible: boolean, dt: number): { drive: DriveCommand; target?: Vector3 } {
+  update(opponent: Pick<DuelTank, 'vehicle'>, player: Pick<DuelTank, 'vehicle'>, visible: boolean, dt: number, destination?: Vector3): { drive: DriveCommand; target?: Vector3 } {
     this.reaction = Math.max(0, this.reaction - dt);
     this.reloadPause = Math.max(0, this.reloadPause - dt);
     if (visible && (!this.wasVisible || this.trackedVehicle !== player.vehicle)) this.reaction = 0.85;
@@ -25,11 +25,11 @@ export class EasyDuelAI {
     this.trackedVehicle = player.vehicle;
     if (visible) { this.lastSeen = player.vehicle.node.position.clone(); this.unseenFor = 0; }
     else this.unseenFor += dt;
-    const target = this.lastSeen?.clone();
+    const target = (this.unseenFor <= 4 ? this.lastSeen : undefined)?.clone() ?? destination?.clone();
     const position = opponent.vehicle.node.position;
     const moved = this.previousPosition ? Vector3.Distance(position, this.previousPosition) : Infinity;
     this.previousPosition = position.clone();
-    if (!target || this.unseenFor > 4) {
+    if (!target) {
       this.stuckFor = this.recovery = 0;
       return { drive: { throttle: 0, steer: 0, brake: 1 } };
     }
@@ -47,6 +47,12 @@ export class EasyDuelAI {
         ? { throttle: -0.4, steer: -steer, brake: 0 }
         : distance < 8 ? { throttle: 0, steer: 0, brake: 1 }
           : { throttle: Math.abs(error) > 1.1 ? 0 : 0.65, steer, brake: 0 };
+    const speed = Math.abs(opponent.vehicle.speed ?? 0);
+    const desiredSpeed = destination && !visible ? Math.min(8, Math.max(2, distance * .35)) : 12;
+    // Slow before a bend; coasting at full speed made route corners overshoot narrow gates.
+    if ((Math.abs(error) > .6 && speed > 3) || (drive.throttle > 0 && speed > desiredSpeed)) {
+      drive = { throttle: 0, steer, brake: 1 };
+    }
     if (this.recovery > 0) {
       this.recovery = Math.max(0, this.recovery - dt);
       drive = { throttle: -0.55, steer: this.recoverySide * 0.8, brake: 0 };

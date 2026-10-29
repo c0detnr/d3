@@ -223,3 +223,10 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 **Kesin karar:** Kullanıcı sağ uzantı için terk edilmiş yük treni sahasını onayladı ve uygulama istedi. Paslı vagonlar, küçük bakım deposu ve devrilmiş yükleme vinci bölgenin kimliğidir; tankın manevra/geçiş alanları açık kalır. Önceki taş ocağı teması bu bölümde yerini tren sahasına bırakır.
 
 **Uygulama:** [Tren sahası teslimi](RAIL_YARD.md). **Açık:** İnsan görsel/sürüş değerlendirmesi ve taktik denge; otomatik kontroller son oynanış kabulü değildir.
+
+
+## 2026-10-29 — 5’e 5 yerel AI düellosu
+
+**Kesin karar:** Kullanıcı onayıyla oyuncu + 4 dost AI ve karşıda 5 düşman AI. Her takım kendi üssünde doğar. Bu, yerel tek oyunculu moddur; LAN/çevrimiçi oyuncu sayısı genişletilmez.
+
+**Uygulama ayarları:** 180 m görüş, üç koridor, 0,85 s tepki, 30–55 m çatışma mesafesi, takım imhasıyla sonuç ve dost hasarı koruması ilk oynanabilir değerlerdir; insan dengeleme kabulü değildir. [Kurallar ve açık kabul](TEAM_DUEL.md). Üs saldırısı/savunma zinciri hedef mekanikleri bu düello teslimine eklenmedi.

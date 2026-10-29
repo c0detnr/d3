@@ -125,3 +125,8 @@ Kül Vadisi batı sırtında hazır ağaç grupları, doğudaki taş ocağında 
 İlk özgün [hasarlı beton mevzi](assets/environment/concrete_emplacement_01/README.md) Blender MCP ile üretildi; GLB/çarpışma doğrulandı, oyun yerleşimi henüz yapılmadı.
 
 Kül Vadisi sağ/doğu uzantısında terk edilmiş tren sahası yer alır: üç ray, yedi yük vagonu, bakım deposu ve devrilmiş vinç. **Tren sahasına bak** düğmesi alanı gösterir. [Yerleşim, kaynaklar ve doğrulama](docs/RAIL_YARD.md).
+
+
+## 5’e 5 takım düellosu
+
+`map-preview.html?map=kul&duel=5v5`: sen + 4 dost AI, karşıda 5 düşman AI. İki takım kendi üssünde doğar; koridor rotaları, görüşe bağlı hedef/atış, dost ateşi koruması, yaşayan araç sayısı, sonuç ve R ile tüm maçı sıfırlama mevcut. Görev menüsünden **5’e 5 · Takım düellosu** seçilebilir. [Kurallar, AI ve doğrulama sınırları](docs/TEAM_DUEL.md).

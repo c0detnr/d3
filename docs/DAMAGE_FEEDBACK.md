@@ -9,7 +9,7 @@
 - **Sabit zırhlı hedefler:** mevcut açı/mesafe delme hesabı geri bildirime bağlandı. Delme dar, koyu dumanlı bir darbe; delmeme/sekme daha geniş metal kıvılcımı üretir. Deneme mermisinin 180 m/s balistiği korunur; zırh hedeflerinde mevcut AP delme tablosu kullanılır. Bu tablo LAN tank hasarını değiştirmez.
 - **MG:** yerel tanka isabetinde metal saçılması ve “Zırh delinmedi”; can/modül hasarı yok. Görünür kule ve gövde aynı süpürülmüş sorgudan geçer.
 
-Her top isabeti gövdeden 25 can ve vurulan modülden 50 bütünlük götürür. İkinci aynı-bölge isabetinde palet, motor veya kule devre dışıdır. Palet/motor kaybında çekiş kesilir ve fren uygulanır; kule mekanizması kaybında dönüş/yükseliş girdisi kesilir. Tamir veya kendiliğinden iyileşme yoktur; sıfırlama/rövanş sistemi yeniler. Fiziksel palet parçalanması veya kopan kule geometrisi eklenmedi.
+Her top isabeti gövdeden 25 can ve vurulan modülden 50 bütünlük götürür. İkinci aynı-bölge isabetinde palet, motor veya kule devre dışıdır. Motor kaybında veya iki palet kaybında çekiş kesilir ve fren uygulanır; tek palet kaybında araç sağlam paletle topallar, kırık palet itki vermez ve yarım fren gibi sürükleyerek aracı kendi yanına çeker; kule mekanizması kaybında dönüş/yükseliş girdisi kesilir. Tamir veya kendiliğinden iyileşme yoktur; sıfırlama/rövanş sistemi yeniler. Fiziksel palet parçalanması veya kopan kule geometrisi eklenmedi.
 
 Bölge gövdenin yerel koordinatında belirlenir: alçak dış yanlar palet, üst bölüm kule, arka güverte motor. Hacim sınırları `DamageModel.ts` içindeki prototip ayarlardır; iki model aynı kuralı kullanır.
 
@@ -33,3 +33,5 @@ Sunucu en fazla 32 isabetlik bir kuyruğu artan kimlikle snapshot'larda tekrarla
 Tarayıcı kanıtı ve açık kabul maddeleri `VALIDATION.md` içinde tutulur. İnsan dinlemesi, darbe hissi, gerçek Android cihaz ve uzun süre performans kabulü ayrıca yapılmalıdır.
 
 2026-10-28 commit doğrulaması: `npm test`, `combat:test`, `damage:test`, `turret:test`, `mg:test`, `lan:check`, gerçek ağ simülasyonu ve `map:build` geçti. LAN sunucu kontrolü derleme ile çakışınca ENOENT verdi; derleme bittikten sonra tek başına tekrar geçti. Kolay mod AI için hedefsiz durma, görünür hedefe yaklaşma, tepki süresi, atış beklemesi, görüş kaybı ve sıfırlama doğrudan kontrol edildi. Bu turda yeni insan/tarayıcı oynanış kabulü yapılmadı.
+
+2026-10-29: Gelen mermi gövdeye çarpma noktasından momentum itmesi uygular (top geri tepmesinin 0,6 katı, yalnız yerel düello). Oyuncu tankı da duman/alev çıkarır. Tek palet kaybı artık aracı durdurmaz. `map:check`, `lan:check`, `damage:test`, `lan:test`, `drive:test` geçti; tarayıcıda his kabulü yapılmadı.

@@ -31,4 +31,9 @@ for (const fps of [30, 60, 120]) {
   ai.reset(); assert.equal(ai.canShoot, false);
   assert.equal(ai.update(self, target, false, 1 / fps).drive.brake, 1, 'reset clears memory and recovery');
 }
+ai.reset(); target.vehicle.node.position.set(0, 0, 100);
+const waypoint = new Vector3(0, 0, 60);
+const navigation = ai.update(self, target, false, 1 / 60, waypoint);
+assert.ok(navigation.drive.throttle > 0); assert.equal(navigation.target, undefined);
+assert.equal(ai.canShoot, false, 'route following does not grant target knowledge or firing');
 console.log('DUEL AI PASS: reaction, target switch, immediate occlusion, last-seen memory, expiry, spacing, recovery, reset, 30/60/120 FPS.');

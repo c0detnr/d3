@@ -5,6 +5,9 @@ import { freshDamage, applyDamage, driveDisabled } from './game/combat/DamageMod
 import { pickTankHit, tankDamageRegion } from './game/combat/tankHit.ts';
 import { IRON_DUST_01_AMMO } from './game/combat/WeaponDefinition.ts';
 import { DuelTank } from './game/combat/DuelTank.ts';
+import { TeamDuel, type TeamImpact } from './game/combat/TeamDuel.ts';
+import { teamSpawn } from './game/combat/teamDuelLayout.ts';
+import { TeamDuelHud, addTeamDuelLink } from './game/ui/TeamDuelHud.ts';
 import { EasyDuelAI } from './game/combat/EasyDuelAI.ts';
 import { terrainHeight } from './game/world/terrain.ts';
 import { createKulVadisi } from './game/world/createKulVadisi.ts';
@@ -49,10 +52,11 @@ import { createChaoticSky } from './game/world/SkyAtmosphere.ts';
 import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
 import secondTankUrl from '../assets/tanks/iron_dust_02/iron_dust_02.glb?url';
 
-const kulVadisi = new URLSearchParams(location.search).get('map') === 'kul';
+const teamDuelMode = new URLSearchParams(location.search).get('duel') === '5v5';
+const kulVadisi = teamDuelMode || new URLSearchParams(location.search).get('map') === 'kul';
 const kulTeam = new URLSearchParams(location.search).get('base') === 'B' ? 'B' : 'A';
 const mapHeight = kulVadisi ? kulTerrainHeight : terrainHeight;
-const twoTankTest = new URLSearchParams(location.search).has('duel');
+const twoTankTest = !teamDuelMode && new URLSearchParams(location.search).has('duel');
 const secondTank = new URLSearchParams(location.search).get('tank') === '02';
 const duelToggle = document.createElement('a');
 const duelUrl = new URL(location.href);
@@ -87,8 +91,11 @@ const sky = createChaoticSky(scene, kulVadisi ? 2800 : 1800, atmosphere);
 const followCamera = new FollowCamera(scene, canvas);
 followCamera.camera.maxZ = 1600;
 const mapControls = addMapControls(followCamera, kulVadisi, kulVadisi && kulTeam === 'B' ? Math.PI : 0);
+const removeTeamDuelLink = addTeamDuelLink();
 const clock = new FixedStep();
 const input = new DriveInput();
+let teamDuel: TeamDuel | undefined;
+let teamDuelHud: TeamDuelHud | undefined;
 let opponent: DuelTank | undefined;
 let opponentAI: EasyDuelAI | undefined;
 let opponentProjectiles: ProjectileSystem | undefined;
@@ -174,8 +181,29 @@ function updateCombatHud() {
   hitResult.className = '';
   document.querySelector<HTMLProgressElement>('#reload-progress')!.value = mgMode ? 1 : weapon.reloadFraction;
 }
+function teamImpact(event: TeamImpact) {
+  const { hit, victim, applied, module, disabled, destroyed, playerShot } = event;
+  if (victim) combatEffects!.armorImpact(hit.point, hit.normal, applied);
+  else combatEffects!.impact(hit.point, hit.normal, impactSurface(hit.body));
+  if (destroyed) combatEffects!.destruction(hit.point);
+  const distance = Vector3.Distance(hit.point, followCamera.camera.position);
+  if (!audio.muted) {
+    if (victim) combatAudio?.armorHit(applied, distance, 0, destroyed);
+    else combatAudio?.impact(impactSurface(hit.body), distance, 0);
+  }
+  if (victim === teamDuel?.player && applied) {
+    damageHud.setState(damageHudState);
+    damageHud.incoming(Math.atan2(hit.point.x - vehicle!.node.position.x, hit.point.z - vehicle!.node.position.z), module, disabled, destroyed);
+  }
+  if (playerShot) {
+    if (victim) damageHud.outgoing(module, disabled, destroyed, applied);
+    lastCombatResult = victim ? applied ? `HEDEF · ${victim.damage.hp} / 100` : 'DOST ARAÇ · HASAR YOK' : 'İSABET';
+    combatResultTime = 3;
+  }
+}
 function reset() {
   if (freeCamera.active) freeCamera.toggle();
+  teamDuel?.reset();
   opponent?.reset(); opponentAI?.reset(); opponentProjectiles?.reset(); damageHudState.hp = 100;
   Object.assign(damageHudState.modules, freshDamage().modules); damageHud.reset(); damageHud.setState(damageHudState); damageTrailTime = 0;
   touch.clear(); keys.clear(); input.reset(); clock.reset(); vehicle?.reset(undefined, kulVadisi && kulTeam === 'B' ? Math.PI : 0); visual?.reset(); movementEffects?.reset();
@@ -267,12 +295,13 @@ async function start() {
   if (disposed) { ground.dispose(); return; }
   ground.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh));
   status.textContent = 'Harita hazır, tank modeli yükleniyor…';
-  tank = await loadTankModel(scene, secondTank ? secondTankUrl : tankUrl, ground.spawn);
+  const playerSpawn = teamDuelMode ? teamSpawn(kulTeam, 0) : ground.spawn;
+  tank = await loadTankModel(scene, secondTank ? secondTankUrl : tankUrl, playerSpawn);
   if (disposed) { tank.dispose(); return; }
   tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
   const rig = extractTankRig(tank);
-  vehicle = new TankVehicle(scene, rig, ground.spawn);
-  if (kulVadisi && kulTeam === 'B') vehicle.reset(ground.spawn, Math.PI);
+  vehicle = new TankVehicle(scene, rig, playerSpawn);
+  if (kulVadisi && kulTeam === 'B') vehicle.reset(playerSpawn, Math.PI);
   visual = new TankVisual(tank, rig);
   movementEffects = new MovementEffects(scene, vehicle);
   turret = new TurretController(tank, vehicle.definition);
@@ -283,6 +312,7 @@ async function start() {
     machineGun.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
   }
   mgProjectiles = new ProjectileSystem(scene, (from, to) => {
+    if (teamDuel) return teamDuel.raycast(vehicle!.body, from, to);
     const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body });
     const worldHit = hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
     return opponent ? pickTankHit(scene, opponent, from, to, worldHit) : worldHit;
@@ -294,6 +324,7 @@ async function start() {
   }
   combatEffects = new CombatEffects(scene);
   projectiles = new ProjectileSystem(scene, (from, to) => {
+    if (teamDuel) return teamDuel.raycast(vehicle!.body, from, to);
     const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body });
     const worldHit = hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
     return opponent ? pickTankHit(scene, opponent, from, to, worldHit) : worldHit;
@@ -326,6 +357,19 @@ async function start() {
     opponent.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
     opponentAI = new EasyDuelAI();
   }
+  if (teamDuelMode) {
+    status.textContent = '5’e 5 takımlar yükleniyor…';
+    teamDuel = new TeamDuel(scene, { tank, vehicle, damage: damageHudState, team: kulTeam });
+    teamDuel.onImpact = teamImpact;
+    teamDuel.onShot = (origin, direction) => {
+      combatEffects!.muzzleFlash(origin, direction);
+      if (!audio.muted) combatAudio?.shot();
+    };
+    await teamDuel.load(secondTank ? tankUrl : secondTankUrl);
+    if (disposed) { teamDuel.dispose(); return; }
+    for (const bot of teamDuel.bots) bot.actor.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
+    teamDuelHud = new TeamDuelHud(teamDuel, reset);
+  }
   status.hidden = true;
   lastTime = performance.now();
   let hudElapsed = 0;
@@ -340,7 +384,7 @@ async function start() {
     sun.intensity = atmosphere.sun.intensity + stormFlash * 0.25;
     followCamera.aiming = !mgMode && (combatInput.aiming || touch.aiming);
     const alpha = clock.advance(dt, step => {
-      const command = freeCamera.active || driveDisabled(damageHudState) ? { throttle: 0, steer: 0, brake: 1 }
+      const command = freeCamera.active || teamDuel?.finished || driveDisabled(damageHudState) ? { throttle: 0, steer: 0, brake: 1 }
         : input.resolve(observation?.keys() ?? Object.fromEntries(Object.entries(keys.keys).map(([key, value]) => [key, value || touch.keys[key as keyof typeof touch.keys]])) as typeof keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
       vehicle!.beforeStep(step, command);
       movementEffects!.fixedUpdate(vehicle!, step);
@@ -353,6 +397,7 @@ async function start() {
           visible && damageHudState.hp > 0, step);
       })() : undefined;
       opponent?.beforeStep(step, opponent?.damage.hp === 0 || damageHudState.hp === 0 ? undefined : aiState?.drive);
+      teamDuel?.beforeStep(step);
       scene.getPhysicsEngine()!._step(step);
       vehicle!.afterStep();
       opponent?.afterStep(step, aiState?.target ?? null);
@@ -360,6 +405,7 @@ async function start() {
       visual!.fixedUpdate(vehicle!, step);
       // Joint calculations use the current physics pose; render interpolation follows below.
       visual!.syncHull(vehicle!, 1);
+      teamDuel?.afterStep(step);
       const turn = combatInput.turretTurn + touch.turn;
       const elevation = combatInput.consumeElevation() + touch.elevation * step * 15 * Math.PI / 180;
       if (turn || elevation || mgMode || followCamera.isOverview) alignDirection = undefined;
@@ -371,7 +417,7 @@ async function start() {
       const wasReady = weapon!.ready;
       weapon!.fixedUpdate(step);
       if (!wasReady && weapon!.ready && !audio.muted) combatAudio?.reload();
-      if ((combatInput.consumeFire() || touch.consumeFire()) && !mgMode && damageHudState.hp > 0) {
+      if ((combatInput.consumeFire() || touch.consumeFire()) && !mgMode && damageHudState.hp > 0 && !teamDuel?.finished) {
         const shot = weapon!.fire();
         if (shot) {
           projectiles!.spawn(shot.origin, shot.direction, IRON_DUST_01_WEAPON.ammo.muzzleVelocity);
@@ -401,13 +447,19 @@ async function start() {
           }
         }
       }
-      machineGun?.fixedUpdate(step, damageHudState.hp > 0 && mgMode && !followCamera.isOverview && (combatInput.fireHeld || touch.fireHeld), (origin, direction) => {
+      machineGun?.fixedUpdate(step, damageHudState.hp > 0 && !teamDuel?.finished && mgMode && !followCamera.isOverview && (combatInput.fireHeld || touch.fireHeld), (origin, direction) => {
         mgProjectiles!.spawn(origin, direction, MG.speed);
         combatEffects!.machineGunFlash(origin, direction);
         if (!audio.muted) combatAudio?.machineGunShot();
         lastCombatResult = 'MG · ATEŞ'; combatResultTime = 0.4;
       });
       mgProjectiles!.fixedUpdate(step, hit => {
+        if (teamDuel) {
+          const tankHit = teamDuel.members.some(m => m.vehicle.body === hit.body);
+          if (tankHit) { combatEffects!.armorImpact(hit.point, hit.normal, false); damageHud.outgoing(null, false, false, false); }
+          else combatEffects!.impact(hit.point, hit.normal, impactSurface(hit.body));
+          return;
+        }
         if (opponent && hit.body === opponent.vehicle.body) {
           combatEffects!.armorImpact(hit.point, hit.normal, false);
           damageHud.outgoing(null, false, false, false);
@@ -415,6 +467,7 @@ async function start() {
         lastCombatResult = 'MG · İSABET'; combatResultTime = 0.4;
       });
       projectiles!.fixedUpdate(step, (hit, shell) => {
+        if (teamDuel) { teamDuel.playerImpact(hit); return; }
         const tankHit = opponent && hit.body === opponent.vehicle.body;
         const armor = tankHit ? undefined : combatRange?.resolve(IRON_DUST_01_AMMO, hit, shell.velocity, shell.traveled);
         const surface = tankHit || armor ? 'metal' : impactSurface(hit.body);
@@ -440,6 +493,9 @@ async function start() {
         combatResultTime = 4;
       });
       opponentProjectiles?.fixedUpdate(step, hit => {
+        if (hit.body !== vehicle!.body) {
+          combatEffects!.impact(hit.point, hit.normal, impactSurface(hit.body)); return;
+        }
         const module = tank && vehicle ? tankDamageRegion({ tank, vehicle }, hit.point) : null;
         const applied = applyDamage(damageHudState, module);
         const disabled = !!module && damageHudState.modules[module] === 0;
@@ -452,9 +508,14 @@ async function start() {
         lastCombatResult = destroyed ? 'İMHA EDİLDİN · R İLE YENİDEN DENE' : `İSABET ALDIN · ${damageHudState.hp} / 100`;
         combatResultTime = 4;
       });
+      teamDuel?.finishStep();
       damageTrailTime += step; damageSoundTime += step;
       if (damageTrailTime >= 0.05) {
         damageTrailTime -= 0.05;
+        if (teamDuel) for (const member of teamDuel.members) {
+          const deck = Vector3.TransformCoordinates(new Vector3(0, 1.95, -2), member.tank.anchor.computeWorldMatrix(true));
+          combatEffects!.damageTrail(deck, member.damage);
+        }
         if (opponent) {
           const deck = Vector3.TransformCoordinates(new Vector3(0, 1.95, -2), opponent.tank.anchor.computeWorldMatrix(true));
           combatEffects!.damageTrail(deck, opponent.damage);
@@ -468,6 +529,7 @@ async function start() {
       if (damageSoundTime >= 0.4) damageSoundTime = 0;
       combatEffects!.fixedUpdate(step);
     });
+    teamDuel?.render(alpha);
     opponent?.render(alpha);
     visual.render(vehicle, alpha);
     movementEffects!.render(alpha);
@@ -487,6 +549,7 @@ async function start() {
     if (combatResultTime === 0 && lastCombatResult) lastCombatResult = '';
     if (hudElapsed >= 0.1) {
       updateCombatHud();
+      teamDuelHud?.update();
       hudElapsed = 0;
     }
     if (vehicleAudio && audioSnapshot) {
@@ -533,6 +596,7 @@ function dispose() {
   damageHud.dispose();
   aim.dispose(); turret?.dispose(); visual?.dispose(); vehicle?.dispose(); followCamera.dispose();
   mgProjectiles?.dispose(); machineGun?.dispose();
+  removeTeamDuelLink(); teamDuelHud?.dispose(); teamDuel?.dispose();
   opponent?.dispose();
   tank?.dispose();
   mapControls.dispose();

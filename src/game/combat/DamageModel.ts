@@ -22,6 +22,11 @@ export function applyDamage(state: DamageState, module: DamageModule | null) {
   if (module) state.modules[module] = Math.max(0, state.modules[module] - DAMAGE.module);
   return true;
 }
+/** A single lost track keeps the tank limping on the other one; it is immobile only when both are gone. */
 export function driveDisabled(state: DamageState) {
-  return state.hp === 0 || state.modules.engine === 0 || state.modules.leftTrack === 0 || state.modules.rightTrack === 0;
+  return state.hp === 0 || state.modules.engine === 0 || (state.modules.leftTrack === 0 && state.modules.rightTrack === 0);
+}
+/** Per-track drive share: a broken track delivers no thrust and drags instead. */
+export function trackPower(state: DamageState) {
+  return { left: state.modules.leftTrack === 0 ? 0 : 1, right: state.modules.rightTrack === 0 ? 0 : 1 };
 }

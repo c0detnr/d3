@@ -197,12 +197,16 @@ try {
   assert.equal(sim.snapshot().impacts.length, 0, 'rematch clears old events');
   assert.ok(sim.snapshot().tanks.every(t => Object.values(t.modules).every(hp => hp === 100)));
   const gated = fixture.tanks[0];
-  for (const module of ['leftTrack', 'rightTrack', 'engine'] as const) {
-    gated.damage.modules[module] = 0;
+  for (const modules of [['engine'], ['leftTrack', 'rightTrack']] as const) {
+    for (const module of modules) gated.damage.modules[module] = 0;
     send(0, { throttle: 1, brake: 0 }); run(5);
-    assert.equal(gated.vehicle.driveForce, 0, `${module} failure disables actual traction`);
-    gated.damage.modules[module] = 100;
+    assert.equal(gated.vehicle.driveForce, 0, `${modules.join('+')} failure disables actual traction`);
+    for (const module of modules) gated.damage.modules[module] = 100;
   }
+  gated.damage.modules.leftTrack = 0;
+  send(0, { throttle: 1, brake: 0 }); run(5);
+  assert.ok(gated.vehicle.driveForce > 0, 'a single broken track still limps on the other one');
+  gated.damage.modules.leftTrack = 100;
   gated.damage.modules.turret = 0;
   const heldYaw = gated.turret.angles.yaw;
   for (let i = 0; i < 60; i++) { send(0, { turn: 1, elevation: 0.1 }); sim.step(); }
