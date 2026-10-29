@@ -24,6 +24,8 @@ Bunlar rota takibi ve sınırlı kurtarmadır; genel amaçlı navmesh, takım ko
 
 `node --experimental-strip-types scripts/check-team-duel.ts`: gerçek Kül Vadisi, iki gerçek tank modeli ve tek Havok dünyasında on araç. İki üs/yön, doğuş aralığı, oyuncu beklerken dokuz botun çıkışı, gerçek karşılıklı atış/hasar, görüş engeli kancası, dost/dünya isabetleri, beş reset, üç sonuç türü, oyuncu ölümünden sonra devam, sonuç kilidi, 30/60/120 render girdileriyle sabit adımlama ve kaynak temizliği kontrol edilir.
 
-150 saniyelik otomatik A üssü senaryosunda 36 AI atışı gözlendi; insan girişi olmadan bitmiş tam maç dengesi veya FPS sonucu değildir. `check-duel-ai.ts`, `damage:test` ve `map:build` de çalıştırılır; teslim kaydı ROADMAP içindedir.
+150 saniyelik otomatik A üssü senaryosunda karşılıklı gerçek atış ve hasar gözlendi; insan girişi olmadan bitmiş tam maç dengesi veya FPS sonucu değildir. `check-duel-ai.ts`, `damage:test` ve `map:build` de çalıştırılır; teslim kaydı ROADMAP içindedir.
 
 Tarayıcı erişim host'u kullanılamıyor. Oyun içi HUD/kamera görünümü, insan sürüş ve AI adaleti, ses dengesi ve GPU/kare süresi doğrulanmadı. Genel M1/M2/M3 kabulü kapanmaz. LAN modu bu çalışmadan etkilenmez.
+
+Son teslim kontrolü, önceki yerel sis/arayüz dosyalarını içermeyen ayrı Git checkout’unda tekrarlandı. Ortak mermi sorgusunda öndeki dost tankın gövde/kulesi arkadaki düşmandan önce isabet alır; dostun canı azalmaz ve hangar duvarından atış geçmez. Sonuç/yeniden başlatma, iki üs ve kaynak temizliği kontrolleri aynı senaryoda korunur.
