@@ -1,0 +1,1 @@
+Harita paneli ayrı CSS ile kalıcı kart olarak çiziliyor. Araç seçimi native select, düello ayrı bağlantı. Taktik HUD zaten ortak amber/kemik beyazı çizgi dili kullanıyor. İlgisiz blend ve planning değişiklikleri korunacak.

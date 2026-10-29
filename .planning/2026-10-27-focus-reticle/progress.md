@@ -1,0 +1,2 @@
+- Mevcut HUD, kamera ve ışın hesapları incelendi. Yeni bağımlılık gerekmiyor.
+- İlk eksik zemin testi devre dışı mesh'in özel predicate ile hâlâ seçildiğini yakaladı; isEnabled filtresi eklendi.

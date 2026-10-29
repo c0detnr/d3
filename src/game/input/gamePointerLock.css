@@ -1,16 +1,4 @@
-.game-pointer-prompt {
-  position: fixed;
-  z-index: 100;
-  left: 50%;
-  top: 40%;
-  transform: translate(-50%, -50%);
-  max-width: 90vw;
-  padding: 18px 24px;
-  border: 1px solid #a5b49b;
-  background: #172019ed;
-  color: #eef1df;
-  font: 600 14px system-ui, sans-serif;
-  letter-spacing: .05em;
-  cursor: pointer;
-}
+.game-pointer-prompt { position: fixed; z-index: 25; left: 50%; top: 40%; transform: translate(-50%, -50%); max-width: 90vw; padding: 16px 28px; border: 0; border-top: 1px solid #e6b16470; border-bottom: 1px solid #e6b16470; border-radius: 0; background: linear-gradient(90deg, transparent, #111916d9 20% 80%, transparent); color: #eeeae0; font: 11px/1.5 'Arial Narrow', Arial, sans-serif; letter-spacing: .18em; text-shadow: 0 1px 4px #000; cursor: pointer; }
+.game-pointer-prompt:hover { color: #e6b164; }
+.game-pointer-prompt:focus-visible { outline: 1px solid #e6b164; outline-offset: 5px; }
 .game-pointer-prompt[hidden] { display: none; }

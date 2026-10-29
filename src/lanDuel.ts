@@ -78,14 +78,15 @@ function presentImpact(hit: ImpactEvent, state: DuelState) {
   }
   const target = state.tanks[hit.target];
   const disabled = hit.module !== null && target.modules[hit.module] === 0;
-  effects.armorImpact(point, normal, true);
+  effects.armorImpact(point, normal, !hit.ricochet);
   if (hit.destroyed) effects.destruction(point);
-  if (!audio.muted) combatAudio?.armorHit(true, distance, pan, hit.destroyed);
-  if (hit.shooter === slot) damageHud.outgoing(hit.module, disabled, hit.destroyed);
+  if (!audio.muted) combatAudio?.armorHit(!hit.ricochet, distance, pan, hit.destroyed);
+  if (hit.shooter === slot) damageHud.outgoing(hit.module, disabled, hit.destroyed, !hit.ricochet);
   if (hit.target === slot) {
     const source = Vector3.FromArray(hit.source).subtract(point);
+    if (hit.ricochet) return;
     damageHud.incoming(Math.atan2(source.x, source.z), hit.module, disabled, target.hp <= 25 || disabled);
-    if (!reducedMotion.matches) cameraMotion.impulse(pan);
+    if (!reducedMotion.matches) cameraMotion.impulse(pan, hit.destroyed ? 9 : 5);
   }
 }
 type Model = Awaited<ReturnType<typeof loadTankModel>>;
@@ -181,7 +182,7 @@ function validState(value: unknown): value is DuelState {
     && Array.isArray(s.impacts) && s.impacts.length <= 32 && s.impacts.every(h => h && Number.isSafeInteger(h.id) && h.id > 0
       && Number.isSafeInteger(h.tick) && h.tick >= 0 && h.tick <= s.tick && (h.shooter === 0 || h.shooter === 1)
       && (h.target === null || h.target === 0 || h.target === 1) && vector(h.point, 3) && vector(h.normal, 3) && vector(h.source, 3)
-      && ['soil', 'concrete', 'metal'].includes(h.surface) && (h.module === null || MODULES.includes(h.module)) && typeof h.destroyed === 'boolean')
+      && ['soil', 'concrete', 'metal'].includes(h.surface) && (h.module === null || MODULES.includes(h.module)) && typeof h.destroyed === 'boolean' && (h.ricochet === undefined || typeof h.ricochet === 'boolean'))
     && Array.isArray(s.projectiles) && s.projectiles.every(p => p && Number.isFinite(p.id) && vector(p.position, 3));
 }
 function connect() {

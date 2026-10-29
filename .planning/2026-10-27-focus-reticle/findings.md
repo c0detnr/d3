@@ -1,0 +1,3 @@
+- TacticalHud merkez artısını üretiyor; AimSystem namlu halkasını ayrı çiziyor.
+- Arazi natural-terrain adlı gerçek mesh; düşey ray ile üçgen yüzeyine bağlanılabilir.
+- mapPreview.ts, lanDuel.ts ve ROADMAP önceden kirli. Başlangıç kopyaları /tmp/d3-focus-baseline altında; yalnız bu görevin farkı stage edilecek.

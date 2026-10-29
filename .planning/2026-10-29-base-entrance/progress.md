@@ -9,3 +9,8 @@
 - /tmp/d3-base-entrance-staged: HEAD + yalnız stage edilmiş fark; map:check, check-kul-vadisi.ts ve map:build geçti. Mevcut büyük paket uyarısı var.
 - Tarayıcı host yok; görsel/insan sürüş/FPS kabulü yapılmadı.
 - Görev dışı arazi, landmark, hava, GUI, asset ve beceri dosyaları commit dışında tutuldu.
+
+## Kullanıcının commit isteği
+- Kalan tamamlanmış oyun değişiklikleri çevre/hava ve GUI olarak ayrılıyor. Ham kaynak paket, video, kurulu beceriler, bağımsız planlar ve kaynağı doğrulanmamış eski blend değişiklikleri dışarıda kalacak.
+- map:build, lan:check, krater, alan nesneleri ve landmark kontrolleri geçti.
+- Atmosfer kontrolü kaldırılmış alçak sis yüzeyi bekliyordu; kontrol güncel sis kapalı davranışına düzeltildi.

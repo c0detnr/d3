@@ -3,18 +3,42 @@ import { KUL_FIELD_COVER, KUL_FIELD_RELIEF } from './kulBattlefieldLayout.ts';
 import { Vector3 } from '@babylonjs/core';
 import type { FollowCamera } from '../camera/FollowCamera.ts';
 import { KUL_PATHS, KUL_STRUCTURES, KUL_SPAWNS } from './kulVadisiLayout.ts';
+import { WEATHER_IDS, WEATHER_LABELS, weatherFromSearch } from './atmosphereSettings.ts';
 import './kulVadisiControls.css';
 
 export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw = 0) {
-  const panel = document.createElement('aside'); panel.className = 'map-controls';
-  const label = document.createElement('label'); label.textContent = 'HARİTA ';
-  const select = document.createElement('select'); select.setAttribute('aria-label', 'Harita seç');
-  for (const [value, name] of [['test', 'Sürüş test sahası'], ['kul', 'Kül Vadisi · kaba yerleşim']]) {
-    const option = document.createElement('option'); option.value = value; option.textContent = name; select.append(option);
-  }
-  select.value = active ? 'kul' : 'test'; label.append(select); panel.append(label);
-  const change = () => { const url = new URL(location.href); url.searchParams.set('map', select.value); location.assign(url); };
-  select.addEventListener('change', change);
+  const panel = document.createElement('details'); panel.className = 'mission-menu';
+  const summary = document.createElement('summary');
+  summary.textContent = active ? 'KÜL VADİSİ / GÖREV' : 'TEST SAHASI / GÖREV';
+  panel.append(summary);
+  const content = document.createElement('div'); content.className = 'mission-content'; panel.append(content);
+  const params = new URLSearchParams(location.search);
+  const group = (title: string, key: string, options: string[][], current: string) => {
+    const section = document.createElement('section');
+    const heading = document.createElement('h2'); heading.textContent = title; section.append(heading);
+    const links = document.createElement('nav'); links.setAttribute('aria-label', title);
+    for (const [value, name] of options) {
+      const link = document.createElement('a'); const url = new URL(location.href);
+      if (value) url.searchParams.set(key, value); else url.searchParams.delete(key);
+      link.href = url.href; link.textContent = name;
+      if (value === current) link.setAttribute('aria-current', 'true');
+      links.append(link);
+    }
+    section.append(links); content.append(section);
+  };
+  group('HAREKÂT ALANI', 'map', [['test', 'Test sahası'], ['kul', 'Kül Vadisi']], active ? 'kul' : 'test');
+  group('ARAÇ', 'tank', [['01', 'IRON DUST 01'], ['02', 'IRON DUST 02']], params.get('tank') === '02' ? '02' : '01');
+  group('GÖREV TÜRÜ', 'duel', [['', 'Serbest sürüş'], ['1', 'Kolay düello']], params.has('duel') ? '1' : '');
+  const mobile = document.createElement('section');
+  const mobileHeading = document.createElement('h2'); mobileHeading.textContent = 'MOBİL'; mobile.append(mobileHeading);
+  const apk = document.createElement('a'); apk.href = new URL('artifacts/iron-dust-android.apk', location.href).href;
+  apk.download = 'iron-dust-android.apk'; apk.textContent = 'APK build al';
+  const mobileLinks = document.createElement('nav'); mobileLinks.setAttribute('aria-label', 'MOBİL'); mobileLinks.append(apk);
+  mobile.append(mobileLinks); content.append(mobile);
+  const listeners = new AbortController();
+  document.addEventListener('pointerlockchange', () => {
+    if (document.pointerLockElement) panel.open = false;
+  }, { signal: listeners.signal });
   const fogDensity = camera.scene.fogDensity;
   const toggle = document.createElement('button'); toggle.textContent = 'Haritaya bak';
   const follow = () => { camera.follow(spawnYaw); camera.scene.fogDensity = fogDensity; toggle.textContent = 'Haritaya bak'; };
@@ -22,14 +46,14 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
     if (camera.isOverview) follow();
     else {
       camera.overview(); camera.camera.position.set(0, 880, -280); camera.camera.setTarget(Vector3.Zero());
-      camera.scene.fogDensity = 0.00035; toggle.textContent = 'Tanka dön';
+      camera.scene.fogDensity = 0; toggle.textContent = 'Tanka dön';
     }
   };
   toggle.addEventListener('click', view);
   const factory = document.createElement('button'); factory.textContent = 'Savaş alanına bak';
   const viewFactory = () => {
     camera.overview(); camera.camera.position.set(-100, 65, -130); camera.camera.setTarget(new Vector3(0, 0, -15));
-    camera.scene.fogDensity = 0.00035; toggle.textContent = 'Tanka dön';
+    camera.scene.fogDensity = 0; toggle.textContent = 'Tanka dön';
   };
   factory.addEventListener('click', viewFactory);
   const railYard = document.createElement('button'); railYard.textContent = 'Tren sahasına bak';
@@ -40,14 +64,12 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
   railYard.addEventListener('click', viewRailYard);
   if (active) {
     document.title = 'IRON DUST · Kül Vadisi';
-    const header = document.createElement('strong'); header.textContent = 'KÜL VADİSİ'; panel.append(header);
-    const note = document.createElement('span'); note.textContent = 'Açık merkez · Siperler ve yan geçişler · W/A/S/D sürüş · R kurtar'; panel.append(note, toggle, factory, railYard);
-    const bases = document.createElement('div');
-    for (const base of ['A', 'B']) {
-      const link = document.createElement('a'); const url = new URL(location.href); url.searchParams.set('base', base);
-      link.href = url.href; link.textContent = `${base} üssünden başla`; bases.append(link);
-    }
-    panel.append(bases);
+    group('HAVA / IŞIK', 'weather', WEATHER_IDS.map(id => [id, WEATHER_LABELS[id]]), weatherFromSearch(location.search));
+    group('BAŞLANGIÇ ÜSSÜ', 'base', [['A', 'A üssü'], ['B', 'B üssü']], params.get('base') === 'B' ? 'B' : 'A');
+    const views = document.createElement('nav'); views.className = 'mission-views'; views.setAttribute('aria-label', 'Kamera görünümleri');
+    views.append(toggle, factory, railYard); content.append(views);
+    const chart = document.createElement('details'); chart.className = 'tactical-map';
+    const chartTitle = document.createElement('summary'); chartTitle.textContent = 'TAKTİK HARİTA'; chart.append(chartTitle); content.append(chart);
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '-380 -380 760 760'); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', 'Kül Vadisi yol ve yapı krokisi. Kuzey üstte.');
     const node = (tag: string, attrs: Record<string, string | number>) => {
@@ -70,10 +92,10 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
     for (const x of KUL_RAIL_TRACKS) node('line', { x1: x, y1: -76, x2: x, y2: 76, stroke: '#34383b', 'stroke-width': 3 });
     for (const w of KUL_RAIL_WAGONS) node('rect', { x: w.x - 2, y: w.z - 8, width: 4, height: 16, fill: '#9d6f50', transform: `rotate(${-w.yaw * 180 / Math.PI} ${w.x} ${w.z})` });
     node('rect', { x: KUL_RAIL_DEPOT.x - 7, y: KUL_RAIL_DEPOT.z - 11, width: 14, height: 22, fill: '#828575' });
-    panel.append(svg);
-    const legend = document.createElement('span'); legend.textContent = 'Batı: sırt · Merkez: açık savaş alanı · Doğu: tren sahası'; panel.append(legend);
-    const targets = document.createElement('span'); targets.textContent = 'K komuta · Üslerde atölye ve iki açık çıkış'; panel.append(targets);
+    chart.append(svg);
+    const legend = document.createElement('span'); legend.textContent = 'Batı: sırt · Merkez: açık savaş alanı · Doğu: tren sahası'; chart.append(legend);
+    const targets = document.createElement('span'); targets.textContent = 'K komuta · Üslerde atölye ve iki açık çıkış'; chart.append(targets);
   }
   document.body.append(panel);
-  return { follow, dispose() { select.removeEventListener('change', change); toggle.removeEventListener('click', view); factory.removeEventListener('click', viewFactory); railYard.removeEventListener('click', viewRailYard); panel.remove(); } };
+  return { follow, dispose() { listeners.abort(); toggle.removeEventListener('click', view); factory.removeEventListener('click', viewFactory); railYard.removeEventListener('click', viewRailYard); panel.remove(); } };
 }
