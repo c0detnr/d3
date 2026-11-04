@@ -9,7 +9,8 @@ import './kulVadisiControls.css';
 export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw = 0) {
   const panel = document.createElement('details'); panel.className = 'mission-menu';
   const summary = document.createElement('summary');
-  summary.textContent = active ? 'KÜL VADİSİ / GÖREV' : 'TEST SAHASI / GÖREV';
+  const mapId = active ? 'kul' : new URLSearchParams(location.search).get('map') === 'set' ? 'set' : 'test';
+  summary.textContent = { kul: 'KÜL VADİSİ / GÖREV', set: 'ÇEKİM SAHASI / GÖREV', test: 'TEST SAHASI / GÖREV' }[mapId];
   panel.append(summary);
   const content = document.createElement('div'); content.className = 'mission-content'; panel.append(content);
   const params = new URLSearchParams(location.search);
@@ -26,7 +27,7 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
     }
     section.append(links); content.append(section);
   };
-  group('HAREKÂT ALANI', 'map', [['test', 'Test sahası'], ['kul', 'Kül Vadisi']], active ? 'kul' : 'test');
+  group('HAREKÂT ALANI', 'map', [['test', 'Test sahası'], ['kul', 'Kül Vadisi'], ['set', 'Çekim sahası']], mapId);
   group('ARAÇ', 'tank', [['01', 'IRON DUST 01'], ['02', 'IRON DUST 02']], params.get('tank') === '02' ? '02' : '01');
   group('GÖREV TÜRÜ', 'duel', [['', 'Serbest sürüş'], ['1', 'Kolay düello']], params.has('duel') ? '1' : '');
   const mobile = document.createElement('section');
@@ -62,6 +63,10 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
     camera.scene.fogDensity = 0; toggle.textContent = 'Tanka dön';
   };
   railYard.addEventListener('click', viewRailYard);
+  if (mapId === 'set') {
+    document.title = 'IRON DUST · Çekim Sahası';
+    group('HAVA / IŞIK', 'weather', WEATHER_IDS.map(id => [id, WEATHER_LABELS[id]]), weatherFromSearch(location.search));
+  }
   if (active) {
     document.title = 'IRON DUST · Kül Vadisi';
     group('HAVA / IŞIK', 'weather', WEATHER_IDS.map(id => [id, WEATHER_LABELS[id]]), weatherFromSearch(location.search));

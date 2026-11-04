@@ -18,6 +18,31 @@ npm run studio
 
 `ffmpeg` sistemde kurulu olmalıdır. Komut `map-preview.html?studio=1` sayfasını açar. Diğer parametreler de eklenebilir (ör. `&tank=02`, `&map=kul`). Çekimler yalnızca kaydedildikleri sahne parametreleriyle render edilir.
 
+### Çekim sahası (`map=set`)
+
+İçerik için ayrı, açık bir eğitim alanı: `map-preview.html?studio=1&map=set&tank=02&weather=sunset`. Şeritlerde aksesuar yoktur; yan (9 m), geçiş (5 m) ve yörünge (11 m) kameraları sahneye girmez. `weather` Kül Vadisi ile aynı ön ayarları kullanır (`storm`, `dawn`, `noon`, `sunset`, `night`).
+
+| `spawn=` | Yer | Kullanım |
+|---|---|---|
+| `runway` (varsayılan) | 370 m düz pist, bariyerler ve 50 m direkleri | Hız, geçiş, takip, drone |
+| `whoops` | Dalgalı tümsek şeridi (12 m aralık, 0,5 m) | Süspansiyon, stabilizasyon, namlu kamerası |
+| `ridge` | 7 m yüksek sırt | Gökyüzüne karşı siluet, alçak kamera |
+| `pad` | 30 m yarıçaplı beton alan | Yörünge, vinç, döner tanıtım |
+| `range` | Pistin ucunda doğuya bakan atış noktası | Kurgusal hedef gövdelerine atış |
+
+Kod: `src/game/world/filmSetLayout.ts` (yükseklik ve yerleşim), `src/game/world/createFilmSet.ts` (yüzey, aksesuar, çarpışma). Tüm aksesuarlar özgün, prosedürel low-poly geometridir; dış varlık yoktur.
+
+### Otomatik çekim (`scripts/reel`)
+
+Canlı sürüş gerekmeden, okunabilir sürüş parçalarından çekim üretip başsız Chromium'da render alır. Önce stüdyo sunucusunu başlat: `npx vite --config vite.map.config.ts --host 127.0.0.1 --port 5199`. Ardından:
+
+```bash
+node --experimental-strip-types scripts/reel/render-shots.ts <bolum.json> [çekimId…] [--draft]
+node --experimental-strip-types scripts/reel/contact-sheet.ts <çıktı.png> <video.mp4>
+```
+
+Bölüm dosyası: `{ "id", "scene": "map=set&tank=02&weather=sunset", "shots": [{ "id", "camera", "scene": "spawn=whoops", "slow", "drive": [{ "seconds", "throttle", "steer", "turn", "elevation", "fire": [s], "hold": [x,y,z] }] }] }`. `--draft` 30 fps ve doğrudan 1080p verir; varsayılan 60 fps ve 2× süper örneklemedir.
+
 | Tuş | İş |
 |---|---|
 | Tıkla | Fareyi kilitle ve sürmeye başla (oyun kontrolleri aynı) |
@@ -63,6 +88,13 @@ Kod konumları:
 - Ses ve görüntü eşlemesi, canlı çekimde FPS düşüp fizik adımı atlanırsa kayabilir.
 - Stüdyo API'si yalnızca `vite` geliştirme sunucusunda (`npm run studio` veya `map:dev`) vardır; `dist-map` derlemesinde yoktur.
 
+## Doğrulama — çekim sahası, 2026-11-04
+
+- `npm run map:check` ve `npm run map:build` geçti (mevcut büyük paket uyarısı sürüyor).
+- Linux, Chromium headless, ANGLE/Vulkan, Intel RPL-P iGPU: `map=set&tank=02` oyun modunda açıldı; sayfa hatası yok.
+- `render-shots.ts --draft` ile dört sentetik çekim render edildi (30 fps, 1080×1920): pist/drone 10 s (19 s render), tümsek/yan 10 s (19 s), sırt/alçak 12 s (27 s), atış/yörünge 6 s (12 s). Kontak sayfalarında pist tozu, tümsekte gövde salınımı, sırtta gün batımı silueti ve atış noktasında doğru yön görüldü.
+- İnsan sürüşü, harita içinde serbest dolaşma ve kalite modunda (60 fps, 2×) render bu turda denenmedi.
+
 ## Doğrulama — 2026-11-04
 
 Chrome ve Linux üzerinde, gerçek oyun sayfasıyla:
@@ -79,4 +111,4 @@ Chrome ve Linux üzerinde, gerçek oyun sayfasıyla:
 - MG, sis ve kamera ayarlarını çekime eklemek.
 - Anahtar karelerle serbest kamera yolu.
 - Şimşek için tohumlu rastgelelik: aynı render'ın aynı şimşekleri vermesi.
-- Hazır sahne senaryoları (fırtınada tepe çıkışı, düello).
+- Hazır sahne senaryoları (fırtınada tepe çıkışı, düello). Çekim sahası ve otomatik çekim yöneticisi eklendi; bilgi videosu kurgusu (yazı katmanı, ses) açık.
