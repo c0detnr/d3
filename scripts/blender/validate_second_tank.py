@@ -1,5 +1,5 @@
 """Source + round-trip geometry, pose and clearance checks, executed through Blender MCP."""
-import bpy, math, json
+import bpy, math, json, re
 from pathlib import Path
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
@@ -7,6 +7,8 @@ OUT=Path('/home/mami/Projects/d3/assets/tanks/iron_dust_02')
 source=bpy.data.scenes['IRON_DUST_02'];bpy.context.window.scene=source
 asset=bpy.data.collections['ID02_Asset']
 
+# Same rule as the game rig: merged *_Details meshes are not suspension points.
+WHEEL=re.compile(r'^(Left|Right)_RoadWheel_\d\d$')
 def key(o):return o.get('asset_node_id')
 def snapshot(objects):
     data={}
@@ -15,7 +17,7 @@ def snapshot(objects):
         if not key(o):continue
         o.rotation_mode='XYZ'
         if o.type=='MESH':o.data.calc_loop_triangles()
-        data[key(o)]={'parent':key(o.parent) if o.parent else None,'position':list(o.matrix_world.translation),'rotation':list(o.matrix_world.to_quaternion()),'scale':list(o.matrix_world.to_scale()),'triangles':len(o.data.loop_triangles) if o.type=='MESH' else 0,'materials':sorted(m.name for m in o.data.materials) if o.type=='MESH' else [],'pbr':sorted([list(m.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value)+[m.node_tree.nodes.get('Principled BSDF').inputs['Metallic'].default_value,m.node_tree.nodes.get('Principled BSDF').inputs['Roughness'].default_value] for m in o.data.materials) if o.type=='MESH' else [],'collision_only':bool(o.get('collision_only'))}
+        data[key(o)]={'parent':key(o.parent) if o.parent else None,'position':list(o.matrix_world.translation),'rotation':list(o.matrix_world.to_quaternion()),'scale':list(o.matrix_world.to_scale()),'triangles':len(o.data.loop_triangles) if o.type=='MESH' else 0,'materials':sorted(m.name for m in o.data.materials) if o.type=='MESH' else [],'pbr':sorted([list(m.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value)+[m.node_tree.nodes.get('Principled BSDF').inputs['Metallic'].default_value,m.node_tree.nodes.get('Principled BSDF').inputs['Roughness'].default_value] for m in o.data.materials]) if o.type=='MESH' else [],'collision_only':bool(o.get('collision_only'))}
     return data
 
 def tree(objects):
@@ -63,7 +65,7 @@ def motion(objects):
     wheel_error=0;suspension_failures=[]
     skirt_tree=tree([o for o in objects if o.type=='MESH' and descendant(o,nodes['SideSkirts'])])
     for name,o in nodes.items():
-        if 'RoadWheel_' not in name:continue
+        if not WHEEL.match(name):continue
         before=o.matrix_world.translation.copy();loc=o.location.copy();
         for travel in [-.22,0,.23]:
             o.location=loc+Vector((0,0,travel));bpy.context.view_layer.update()
@@ -73,7 +75,7 @@ def motion(objects):
     bpy.context.view_layer.update()
     direction=(muzzle.matrix_world.to_3x3()@Vector((0,-1,0))).normalized()
     assert direction.dot(Vector((0,-1,0)))>.999999,'Forward must be -Y in Blender.'
-    assert len([n for n in nodes if 'RoadWheel_' in n])==14
+    assert len([n for n in nodes if WHEEL.match(n)])==14
     assert wheel_error<.001 and worst_recoil_error<.001
     return {'turret_hull_failures':turret_hull_failures,'suspension_skirt_failures':suspension_failures,'poses':sampled,'requested_minus8_clearance_failures':len(failures),'failed_poses':failures,'safe_min_elevation_deg':-8,'safe_range_clearance_failures':safe_failures,'max_wheel_center_error_m':wheel_error,'max_muzzle_recoil_error_m':worst_recoil_error,'muzzle_forward':list(direction)}
 
@@ -109,7 +111,7 @@ assert max_pos<.001 and max_angle<.1 and max_scale<.001,(max_pos,max_angle,max_s
 roundtrip_motion=motion(imported)
 assert not source_motion['safe_range_clearance_failures'] and not source_motion['turret_hull_failures'] and not source_motion['suspension_skirt_failures']
 assert not roundtrip_motion['safe_range_clearance_failures'] and not roundtrip_motion['turret_hull_failures'] and not roundtrip_motion['suspension_skirt_failures']
-report={'source_motion':source_motion,'roundtrip_motion':roundtrip_motion,'roundtrip_nodes':len(after),'max_position_error_m':max_pos,'max_rotation_error_deg':max_angle,'max_scale_error':max_scale,'nonmanifold_meshes':nonmanifold,'negative_scale_meshes':negative,'collision_triangles':sum(a['triangles'] for a in after.values() if a['collision_only']),'visible_triangles':sum(a['triangles'] for a in after.values() if not a['collision_only']),'materials':sorted(set(m for a in before.values() if not a['collision_only'] for m in a['materials'])),'dynamic_hatch_opening_tested':False,'method':'Blender MCP isolated localhost:9877 via stdio client; BVH triangle surface overlaps; joint/attachment interfaces excluded'}
+report={'source_motion':source_motion,'roundtrip_motion':roundtrip_motion,'roundtrip_nodes':len(after),'max_position_error_m':max_pos,'max_rotation_error_deg':max_angle,'max_scale_error':max_scale,'nonmanifold_meshes':nonmanifold,'negative_scale_meshes':negative,'collision_triangles':sum(a['triangles'] for a in after.values() if a['collision_only']),'visible_triangles':sum(a['triangles'] for a in after.values() if not a['collision_only']),'materials':sorted(set(m for a in before.values() if not a['collision_only'] for m in a['materials'])),'dynamic_hatch_opening_tested':False,'method':'Blender MCP execute_blender_code; BVH triangle surface overlaps; joint/attachment interfaces excluded'}
 (OUT/'validation.json').write_text(json.dumps(report,indent=2))
 bpy.context.window.scene=source
 for o in list(validation.objects):bpy.data.objects.remove(o,do_unlink=True)
