@@ -15,6 +15,18 @@ export function smokeStrength(age: number) {
   return Math.min(1, elapsed / SMOKE.growth, (smokeLifetime - age) / SMOKE.fade);
 }
 
+/**
+ * Soft cloud: density falls as 1.5 * (1 - r²/R²), so edges thin out while a
+ * ray through the centre keeps the old uniform optical depth. Integrates that
+ * profile along the ray (|q(s)|² = a s² + 2 b s + c in scaled space).
+ */
+export function smokeProfileIntegral(start: number, end: number, a: number, b: number, c: number, radius: number) {
+  const r2 = radius * radius;
+  const value = (end - start) * (1 - c / r2) - b * (end * end - start * start) / r2
+    - a * (end ** 3 - start ** 3) / (3 * r2);
+  return Math.max(0, 1.5 * value);
+}
+
 /** Same ellipsoid and optical density as the rendering shader, including camera/target inside smoke. */
 export function smokeOpticalDepth(from: Vector3, to: Vector3, clouds: readonly SmokeCloud[]) {
   const delta = to.subtract(from), distance = delta.length();
@@ -33,7 +45,8 @@ export function smokeOpticalDepth(from: Vector3, to: Vector3, clouds: readonly S
     if (discriminant <= 0) continue;
     const root = Math.sqrt(discriminant);
     const start = Math.max(0, (-b - root) / a), end = Math.min(distance, (-b + root) / a);
-    density += Math.max(0, end - start) * SMOKE.density * strength;
+    if (end <= start) continue;
+    density += smokeProfileIntegral(start, end, a, b, Vector3.Dot(offset, offset), radius) * SMOKE.density * strength;
   }
   return density;
 }

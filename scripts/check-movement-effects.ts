@@ -29,11 +29,17 @@ for (const fps of [30, 120]) {
   assert.equal(a.emitted, b.emitted);
   assert.deepEqual(a.particles.map(p => p.position.asArray()), b.particles.map(p => p.position.asArray()));
 }
+assert.equal(run(1).clodsEmitted, 0, 'Yavaş sürüşte çamur atılmaz');
+assert.ok(run(8).clodsEmitted > 0, 'Hızlı sürüşte çamur atılır');
+const clodRun = run(8);
+for (let i = 0; i < 90; i++) clodRun.step(1 / 60, [], [], 100);
+assert.equal(clodRun.liveClods, 0, 'Çamur yere düşüp kaybolur');
+assert.equal(run(5, 30).clodsEmitted, run(5, 120).clodsEmitted);
 assert.ok(run(-5).particles.filter(p => p.life > 0).every(p => p.velocity.z > 0), 'Geri sürüşte yayılım tersine dönmeli');
 const airborne = new DustSimulation();
 const c = contact(8); c.grounded = false;
 for (let i = 0; i < 60; i++) airborne.step(1 / 60, [c], [1], 100);
-assert.equal(airborne.emitted, 0);
+assert.equal(airborne.emitted + airborne.clodsEmitted, 0);
 c.grounded = true; c.load = 0;
 for (let i = 0; i < 60; i++) airborne.step(1 / 60, [c], [1], 100);
 assert.equal(airborne.emitted, 0);

@@ -207,7 +207,7 @@ function testEffects() {
       for (const surface of ['soil', 'concrete', 'metal'] as const) {
         effects.reset(); effects.impact(Vector3.Zero(), Vector3.Up(), surface);
         assert.ok(effects.particles.length > 0);
-        const bright = effects.particles.filter(p => p.gravity < 0).length;
+        const bright = effects.particles.filter(p => p.kind === 'spark').length;
         assert.equal(bright, surface === 'soil' ? 0 : surface === 'concrete' ? 2 : 9);
       }
       effects.reset();

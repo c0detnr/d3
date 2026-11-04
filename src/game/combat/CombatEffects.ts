@@ -3,17 +3,23 @@ import { IMPACT_FEEDBACK, type ImpactSurface } from './ImpactSurface.ts';
 import type { DamageState } from './DamageModel.ts';
 import { seededRandom } from '../world/terrain.ts';
 
-type ParticleKind = 'flash' | 'smoke' | 'dust' | 'spark' | 'fire' | 'explosion';
+type ParticleKind = 'flash' | 'smoke' | 'dust' | 'clod' | 'spark' | 'fire' | 'explosion';
 const EFFECT_TEXTURES = {
   flash: new URL('../../../assets/vfx/brackeys/particles/alpha/muzzle_02_a.png', import.meta.url).href,
-  smoke: new URL('../../../assets/vfx/brackeys/particles/alpha/smoke_07_a.png', import.meta.url).href,
-  dust: new URL('../../../assets/vfx/brackeys/particles/alpha/smoke_01_a.png', import.meta.url).href,
+  // 8x8 flipbooks: the gas curls and the dust billows over each particle's life.
+  smoke: new URL('../../../assets/vfx/brackeys/runtime/wispy_smoke_01_8x8.png', import.meta.url).href,
+  dust: new URL('../../../assets/vfx/brackeys/runtime/cloud_01_8x8.png', import.meta.url).href,
+  clod: new URL('../../../assets/vfx/brackeys/particles/alpha/dirt_02_a.png', import.meta.url).href,
   spark: new URL('../../../assets/vfx/brackeys/particles/alpha/trace_01_a.png', import.meta.url).href,
   fire: new URL('../../../assets/vfx/brackeys/particles/alpha/flame_01_a.png', import.meta.url).href,
   explosion: new URL('../../../assets/vfx/brackeys/runtime/explosion_01.png', import.meta.url).href,
 };
 const PARTICLE_KINDS = Object.keys(EFFECT_TEXTURES) as ParticleKind[];
 const isLuminous = (kind: ParticleKind) => kind === 'flash' || kind === 'spark' || kind === 'fire';
+const isFlipbook = (kind: ParticleKind) => kind === 'smoke' || kind === 'dust';
+const FLIPBOOK_FRAMES = 64;
+/** The flipbook frames carry less alpha coverage than a single soft puff. */
+const ALPHA_GAIN: Partial<Record<ParticleKind, number>> = { smoke: 1.5, dust: 1.2 };
 
 interface CombatParticle {
   previous: Vector3;
@@ -28,6 +34,8 @@ interface CombatParticle {
   kind: ParticleKind;
   angle: number;
   spin: number;
+  /** Clods only: y where the clod hits the ground and disappears. */
+  floor: number;
 }
 export interface BlastGround { point: Vector3; normal: Vector3 }
 export const COMBAT_PARTICLE_CAPACITY = 128;
@@ -49,9 +57,9 @@ export class CombatEffects {
     this.sprites = {} as Record<ParticleKind, Sprite[]>;
     this.managers = PARTICLE_KINDS.map(kind => {
       // The source filename says 8x8, but this explosion actually contains 5x5 frames.
-      const cellSize = kind === 'explosion' ? 1024 / 5 : 512;
+      const cellSize = kind === 'explosion' ? 1024 / 5 : isFlipbook(kind) ? 128 : 512;
       const manager = new SpriteManager(`combat-${kind}`, EFFECT_TEXTURES[kind],
-        COMBAT_PARTICLE_CAPACITY, cellSize, scene, 0.01, Texture.BILINEAR_SAMPLINGMODE);
+        COMBAT_PARTICLE_CAPACITY, cellSize, scene, 0.01, Texture.TRILINEAR_SAMPLINGMODE);
       manager.isPickable = false;
       manager.disableDepthWrite = true;
       manager.blendMode = isLuminous(kind) ? Constants.ALPHA_ADD : Constants.ALPHA_COMBINE;
@@ -70,10 +78,12 @@ export class CombatEffects {
     const particle: CombatParticle = {
       previous: position.clone(), position: position.clone(), velocity: velocity.clone(),
       age: 0, previousAge: 0, life, size, gravity, color, kind,
-      angle: this.random() * Math.PI * 2, spin: (this.random() - 0.5) * 0.5,
+      angle: this.random() * Math.PI * 2, spin: (this.random() - 0.5) * (kind === 'clod' ? 16 : 0.5),
+      floor: -Infinity,
     };
     this.particles[this.cursor] = particle;
     this.cursor = (this.cursor + 1) % COMBAT_PARTICLE_CAPACITY;
+    return particle;
   }
   muzzleFlash(origin: Vector3, direction: Vector3, ground?: BlastGround) {
     const forward = direction.normalizeToNew();
@@ -117,6 +127,17 @@ export class CombatEffects {
         0.75 + this.random() * 0.7, 0.65 + this.random() * 0.7,
         new Color4(0.58, 0.49, 0.36, 0.28 * strength), -0.25, 'dust');
     }
+    this.clods(ground.point, normal, Math.ceil(6 * strength), 2 + 3 * strength, tangent.scale(2 * strength));
+  }
+  /** Ballistic mud chunks; they disappear when they fall back to the launch height. */
+  private clods(point: Vector3, normal: Vector3, count: number, speed: number, drift = Vector3.Zero()) {
+    for (let i = 0; i < count; i++) {
+      const scatter = new Vector3(this.random() - 0.5, 0, this.random() - 0.5).scale(speed * 0.9);
+      const shade = 0.16 + this.random() * 0.14;
+      const clod = this.spawn(point.add(normal.scale(0.1)), normal.scale(speed * (0.7 + this.random() * 0.6)).add(scatter).add(drift),
+        1.4, 0.1 + this.random() * 0.22, new Color4(shade * 1.3, shade * 1.05, shade * 0.8, 1), -9.81, 'clod');
+      clod.floor = point.y - 0.2;
+    }
   }
   impact(point: Vector3, normal: Vector3, surface: ImpactSurface) {
     const outward = normal.normalizeToNew();
@@ -131,6 +152,7 @@ export class CombatEffects {
         0.5 + this.random() * 0.45, 1.1 + this.random() * 1.2,
         new Color4(feedback.color[0], feedback.color[1], feedback.color[2], 0.5), 0, 'dust');
     }
+    if (surface === 'soil') this.clods(point, outward, 10, 5);
   }
   armorImpact(point: Vector3, normal: Vector3, penetrated: boolean) {
     this.impact(point, normal, 'metal');
@@ -175,8 +197,9 @@ export class CombatEffects {
       particle.age += dt;
       particle.velocity.y += particle.gravity * dt;
       particle.position.addInPlace(particle.velocity.scale(dt));
+      if (particle.position.y < particle.floor) { particle.life = particle.age; continue; }
       const luminous = isLuminous(particle.kind);
-      particle.velocity.scaleInPlace(Math.exp(-(luminous ? 1.2 : 3.2) * dt));
+      particle.velocity.scaleInPlace(Math.exp(-(luminous ? 1.2 : particle.kind === 'clod' ? 0.4 : 3.2) * dt));
       if (particle.kind === 'smoke') particle.velocity.addInPlace(new Vector3(0.6, 0.2, 0.15).scale(dt));
     }
   }
@@ -192,13 +215,17 @@ export class CombatEffects {
       const sprite = this.sprites[particle.kind][index];
       sprite.isVisible = true;
       Vector3.LerpToRef(particle.previous, particle.position, alpha, sprite.position);
-      const growth = particle.kind === 'explosion' ? 1 + t * 0.4 : luminous ? 1 - t * 0.6 : 0.65 + t * 2.8;
+      const growth = particle.kind === 'explosion' ? 1 + t * 0.4 : particle.kind === 'clod' ? 1
+        : luminous ? 1 - t * 0.6 : 0.65 + 2.8 * (1 - (1 - t) ** 1.8);
       sprite.width = particle.size * growth;
       sprite.height = sprite.width * (particle.kind === 'fire' ? 1.6 : particle.kind === 'spark' ? 2.5 : 1);
       sprite.angle = particle.kind === 'fire' || particle.kind === 'explosion' ? 0 : particle.angle + particle.spin * age;
-      sprite.cellIndex = particle.kind === 'explosion' ? Math.min(24, Math.floor(t * 25)) : 0;
-      const fade = particle.kind === 'explosion' ? 1 : luminous ? (1 - t) ** 1.5 : Math.min(1, age / 0.045) * (1 - t) ** 1.4;
-      sprite.color = new Color4(particle.color.r, particle.color.g, particle.color.b, particle.color.a * fade);
+      sprite.cellIndex = particle.kind === 'explosion' ? Math.min(24, Math.floor(t * 25))
+        : isFlipbook(particle.kind) ? Math.min(FLIPBOOK_FRAMES - 1, Math.floor(t * FLIPBOOK_FRAMES)) : 0;
+      const fade = particle.kind === 'explosion' || particle.kind === 'clod' ? 1
+        : luminous ? (1 - t) ** 1.5 : Math.min(1, age / 0.045) * (1 - t) ** 1.4;
+      sprite.color = new Color4(particle.color.r, particle.color.g, particle.color.b,
+        Math.min(1, particle.color.a * fade * (ALPHA_GAIN[particle.kind] ?? 1)));
     }
   }
   reset() {
