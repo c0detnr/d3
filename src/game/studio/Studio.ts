@@ -49,6 +49,8 @@ export class Studio {
     this.hooks = hooks;
     this.camera = new StudioCamera(hooks.scene, hooks.target, hooks.ground, hooks.maxZ);
     document.body.classList.add('studio');
+    // The 9:16 layout shrinks the canvas without a window resize event.
+    hooks.engine.resize();
     this.buildPanel();
     const options = { signal: this.listeners.signal };
     window.addEventListener('keydown', this.key, options);
