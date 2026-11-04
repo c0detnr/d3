@@ -28,7 +28,7 @@ import { MachineGun, MG } from './game/combat/MachineGun.ts';
 import mgUrl from '../assets/weapons/iron_dust_mg_02/iron_dust_mg_02.glb?url';
 import { MovementEffects } from './game/effects/MovementEffects.ts';
 import { Color3, DirectionalLight, Engine, HemisphericLight,
-  HavokPlugin, Scene, ShadowGenerator, Vector3 } from '@babylonjs/core';
+  HavokPlugin, Scene, Vector3 } from '@babylonjs/core';
 import HavokPhysics from '@babylonjs/havok';
 import wasmUrl from '@babylonjs/havok/lib/esm/HavokPhysics.wasm?url';
 import { createTestGround } from './game/world/createTestGround';
@@ -58,6 +58,7 @@ import { IRON_DUST_01_WEAPON, SHOT_FEEDBACK } from './game/combat/WeaponDefiniti
 import { KUL_WEATHER, TEST_GROUND_ATMOSPHERE, weatherFromSearch } from './game/world/atmosphereSettings.ts';
 import { createChaoticSky } from './game/world/SkyAtmosphere.ts';
 import { Studio } from './game/studio/Studio.ts';
+import { createSunShadows } from './game/world/createSunShadows.ts';
 import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
 import secondTankUrl from '../assets/tanks/iron_dust_02/iron_dust_02.glb?url';
 
@@ -272,11 +273,7 @@ sun.intensity = atmosphere.sun.intensity;
 sun.diffuse = atmosphere.sun.color;
 sun.position = sun.direction.normalizeToNew().scale(-130);
 sun.autoCalcShadowZBounds = true;
-const shadows = new ShadowGenerator(mobile ? 1024 : 2048, sun);
-shadows.usePercentageCloserFiltering = true;
-shadows.bias = 0.001;
-shadows.normalBias = 0.04;
-shadows.setDarkness(0.25);
+const shadows = createSunShadows(sun, mobile);
 
 // Audio defaults no longer depend on the removed developer panel.
 let soundEnabled = true;

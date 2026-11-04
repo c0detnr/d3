@@ -32,7 +32,8 @@ export async function loadTankModel(scene: Scene, source: string | Uint8Array, p
     }));
     // The exported root is at ground level; track bottoms start 0.0764 m above it.
     anchor.position.y += position.y - minY;
-    for (const mesh of visible) mesh.computeWorldMatrix(true);
+    // Turret, gun and side skirts shade the hull and running gear.
+    for (const mesh of visible) { mesh.computeWorldMatrix(true); mesh.receiveShadows = true; }
     return {
       anchor,
       groundPosition: position.clone(),
