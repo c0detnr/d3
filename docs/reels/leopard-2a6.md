@@ -90,7 +90,7 @@ Süreler kurgudaki süredir; "kaynak" sütunu taslak klipte hangi aralığın ku
 2. **Yazı katmanı:** `scripts/reel/overlay/` altında bir HTML sayfası. Başsız Chromium'da şeffaf arka planla 30 fps kare kare görüntü alınır.
 3. **Ses:**
    - Motor, palet ve atış seslerini oyunun kendi ses sisteminden kayıtla almak hedef. Senaryodan üretilen çekimler şu an sessiz; stüdyo yalnız elle kaydedilmiş çekimin `.webm` sesini ekliyor.
-   - Müzik için lisansı açık bir kaynak ya da ffmpeg ile üretilen düşük tonlu bir davul altlığı kullanılacak.
+   - **Müzik (taslak hazır):** `node --experimental-strip-types scripts/reel/music.ts` → `studio-out/music/leo2a6-march.wav`. Özgün, koddan sentezlenen askeri marş: 120 BPM (her kesim bir vuruşa denk), Re minör, Dm–B♭–C–A. Hazır örnek ya da dış varlık kullanılmadı, lisans sorunu yok. Trampet, davul, bakır nefesli ve yaylı katmanları zaman çizelgesini izler: 2,5'te giriş, 5,5'te atış vuruşu, 16,0–19,5 düşüş, 22,5–25,5 sessiz an ve trampet ruloyla tırmanış, 25,5'te melodili tepe noktası, 32,0'de tek vuruşla kapanış. Ses düzeyi -16 LUFS. Dinleyerek onay bekliyor.
 4. **Montaj:** `scripts/reel/compose.ts` yukarıdaki zaman çizelgesini okuyup kesme, flaş, yazı katmanı ve sesi tek ffmpeg geçişinde birleştirir. Çıktı `studio-out/reels/leopard-2a6.mp4` dosyasına yazılır.
 5. **İnceleme:** kare tablosu (`contact-sheet.ts`) ve telefonda bir kez izleme, sonra yayın.
 
