@@ -6,6 +6,8 @@ Durum: **M1 devam ediyor: doğal arazi, orman çevresi ve gerçek tankın bağı
 
 Leopard 2A6 esintili, kum beji ikinci tank için [B0–B9 planı](SECOND_TANK_BLENDER_PLAN.md) hazırlandı. Özgün Blender kaynağı ve GLB üretildi; 14 temas noktası, palet UV'si, kule, geri tepme ve tank seçimi entegre edildi. `tank:test`, `turret:test`, `drive:test` ve `map:build` geçti. Tarayıcıda insan sürüş/nişan/atış kabulü açık. Hız, zırh ve hasar dengesi bu teslimin koşulu değildir; M1/M2/M3 genel kabul durumları değişmez.
 
+2026-11-04: Model daha gerçekçi oranlarla yeniden üretildi (v2, 27.988 üçgen). Fizik temas noktaları ve pivotlar korundu. Blender kaynak/GLB doğrulaması ile `tank:test`, `turret:test`, `drive:test` ve iki tank düello kontrolü geçti; tarayıcıda görsel kabul açık. [Varlık notu](../assets/tanks/iron_dust_02/README.md).
+
 ## İlk AI tank düellosu — Kolay mod prototipi
 
 [Çatışma ve hasar planı](COMBAT_DUEL_PLAN.md): İki tank aynı Havok dünyasında sabit adımla çalışır; `?duel=1` kolay modunda rakip görüşte yaklaşır, tepki süresiyle nişan alır ve yalnız açık görüşte top atar. Can, rakip AI topu ve R ile sıfırlama bağlandı. Bu ilk prototipte tam sonuç ekranı, engelden kurtulma davranışı ve tarayıcı/insan oynanış kabulü açık. Uzun vadeli M3 ve M1/M2 kabul durumları değişmez.

@@ -1,15 +1,22 @@
 {
   "stage": "export",
-  "visible_meshes": 179,
-  "visible_triangles": 19992,
+  "version": 2,
+  "unit": "metre",
+  "forward_axis_blender": "-Y",
+  "up_axis_blender": "+Z",
+  "road_wheels": 14,
+  "materials": 9,
+  "collision_triangles": 12,
+  "visible_meshes": 57,
+  "visible_triangles": 27988,
   "bounds_min": [
-    -2.0789999961853027,
-    -7.12999963760376,
-    0.03639082610607147
+    -2.0950000286102295,
+    -7.133999824523926,
+    0.11293572932481766
   ],
   "bounds_max": [
-    2.0789999961853027,
-    3.8450000286102295,
-    4.150000095367432
+    2.0950000286102295,
+    3.7799999713897705,
+    4.429999828338623
   ]
 }

@@ -24,7 +24,7 @@ try {
     const collision = tank.assets.meshes.find(m => m.metadata?.gltf?.extras?.collision_only)!;
     assert.equal(collision.isVisible, false);
     const visible = tank.assets.meshes.filter(m => m.isVisible && m.getTotalVertices() > 0);
-    assert.equal(visible.reduce((n, m) => n + m.getTotalIndices() / 3, 0), 19992);
+    assert.equal(visible.reduce((n, m) => n + m.getTotalIndices() / 3, 0), 27988);
     const minY = Math.min(...visible.map(m => m.getBoundingInfo().boundingBox.minimumWorld.y));
     assert.ok(Math.abs(minY) < .00001);
     const turret = new TurretController(tank);
@@ -63,5 +63,5 @@ try {
     visual.dispose(); turret.dispose(); tank.dispose();
     assert.equal(scene.meshes.length, 0); assert.equal(scene.transformNodes.length, 0); assert.equal(scene.materials.length, 0);
   }
-  console.log('Second tank: actual GLB, 14 paired contacts, hidden collision, 19992 triangles, UV tracks, 3-direction fire/reload/single-root recoil and 3 cleanup cycles passed.');
+  console.log('Second tank: actual GLB, 14 paired contacts, hidden collision, 27988 triangles, UV tracks, 3-direction fire/reload/single-root recoil and 3 cleanup cycles passed.');
 } finally { scene.dispose(); engine.dispose(); }

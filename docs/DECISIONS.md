@@ -247,3 +247,10 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Uygulama kararı:** `?studio=1` ayrı moddur; oyun modları ve M1/M2/M3 kabulü değişmez. Canlı çekim, adım başına girdi olarak kaydedilir; render, aynı girdileri tekrar oynatıp 1080 × 1920 kareleri geliştirme sunucusu üzerinden ffmpeg'e aktarır. Çıktı yerel `studio-out/` klasörüdür, backend eklenmedi.
 - **Öneri / açık:** MG, sis ve serbest kamera kaydı; kamera yolları; tohumlu şimşek; hazır sahneler. Ses dahil canlı çekimin insan kabulü açık.
 - **Etkilenen belgeler:** [İçerik stüdyosu](CONTENT_STUDIO.md), README.
+
+## 2026-11-04 — İkinci tankın gerçekçi yeniden tasarımı (v2)
+
+- **Kullanıcı isteği:** Leopard tankı daha gerçekçi biçimde yeniden tasarlanacak; iş Blender MCP ile yapılacak.
+- **Kabul edilen öneri:** Görünür üçgen tavanı bu tank için yaklaşık 30–35 bine çıkarıldı; teslim 27.988 üçgen. Oranlar ve parça dizilimi Leopard 2A6'ya yakın; birebir kopya, marka veya işaret yok. Kullanıcı öneriyi "Blender MCP kullanarak yapalım" diyerek sürdürdü; açık bir sayı onayı vermedi.
+- **Uygulama kararı:** Aynı varlık (`iron_dust_02`) yerinde yenilendi. Tekerlek merkezleri, `TurretPivot`, `GunPitchPivot`, `MuzzlePoint`, `COL_Hull`, düğüm adları ve GLB özel alanları korundu. Yol tekeri yarıçapı 0,475'ten 0,418 m'ye indi; palet alt kenarı yükseldiği için oyundaki temas yarıçapı yaklaşık 0,55'ten 0,52 m'ye düştü. Sürüş testi geçti.
+- **Açık:** Oyun içinde görsel kabul ve sürüş hissi. Palet görünümü hâlâ geçici şerit shader'ına bağlı.
