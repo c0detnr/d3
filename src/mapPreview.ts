@@ -14,6 +14,8 @@ import { EasyDuelAI } from './game/combat/EasyDuelAI.ts';
 import { terrainHeight } from './game/world/terrain.ts';
 import { createKulVadisi } from './game/world/createKulVadisi.ts';
 import { kulTerrainHeight } from './game/world/kulVadisiLayout.ts';
+import { createFilmSet } from './game/world/createFilmSet.ts';
+import { FILM_SPOTS, filmSetHeight, filmSpotFromSearch } from './game/world/filmSetLayout.ts';
 import { addMapControls } from './game/world/kulVadisiControls.ts';
 import { TouchControls } from './game/input/TouchControls.ts';
 import './mapPreview.css';
@@ -66,7 +68,10 @@ const HIT_IMPULSE_SCALE = 0.6; // incoming shell momentum relative to the cannon
 const teamDuelMode = new URLSearchParams(location.search).get('duel') === '5v5';
 const kulVadisi = teamDuelMode || new URLSearchParams(location.search).get('map') === 'kul';
 const kulTeam = new URLSearchParams(location.search).get('base') === 'B' ? 'B' : 'A';
-const mapHeight = kulVadisi ? kulTerrainHeight : terrainHeight;
+const filmSet = !kulVadisi && new URLSearchParams(location.search).get('map') === 'set';
+const filmSpot = FILM_SPOTS[filmSpotFromSearch(location.search)];
+const spawnYaw = kulVadisi && kulTeam === 'B' ? Math.PI : filmSet ? filmSpot.yaw : 0;
+const mapHeight = kulVadisi ? kulTerrainHeight : filmSet ? filmSetHeight : terrainHeight;
 const twoTankTest = !teamDuelMode && new URLSearchParams(location.search).has('duel');
 const secondTank = new URLSearchParams(location.search).get('tank') === '02';
 const studioMode = new URLSearchParams(location.search).has('studio');
@@ -83,11 +88,11 @@ const scene = new Scene(engine);
 scene.skipPointerMovePicking = true;
 scene.imageProcessingConfiguration.exposure = 1;
 scene.imageProcessingConfiguration.contrast = 1.15;
-const atmosphere = kulVadisi ? KUL_WEATHER[weatherFromSearch(location.search)] : TEST_GROUND_ATMOSPHERE;
-const sky = createChaoticSky(scene, kulVadisi ? 2800 : 1800, atmosphere);
+const atmosphere = kulVadisi || filmSet ? KUL_WEATHER[weatherFromSearch(location.search)] : TEST_GROUND_ATMOSPHERE;
+const sky = createChaoticSky(scene, kulVadisi || filmSet ? 2800 : 1800, atmosphere);
 const followCamera = new FollowCamera(scene, canvas);
 followCamera.camera.maxZ = 1600;
-const mapControls = addMapControls(followCamera, kulVadisi, kulVadisi && kulTeam === 'B' ? Math.PI : 0);
+const mapControls = addMapControls(followCamera, kulVadisi, spawnYaw);
 const removeTeamDuelLink = addTeamDuelLink();
 const clock = new FixedStep();
 const input = new DriveInput();
@@ -240,7 +245,7 @@ function reset() {
   teamDuel?.reset();
   opponent?.reset(); opponentAI?.reset(); opponentProjectiles?.reset(); damageHudState.hp = 100;
   Object.assign(damageHudState.modules, freshDamage().modules); damageHud.reset(); damageHud.setState(damageHudState); damageTrailTime = 0;
-  touch.clear(); keys.clear(); input.reset(); clock.reset(); vehicle?.reset(undefined, kulVadisi && kulTeam === 'B' ? Math.PI : 0); visual?.reset(); movementEffects?.reset();
+  touch.clear(); keys.clear(); input.reset(); clock.reset(); vehicle?.reset(undefined, spawnYaw); visual?.reset(); movementEffects?.reset();
   alignDirection = undefined;
   vehicleAudio?.reset(); combatAudio?.reset(); turret?.reset(); weapon?.reset(); projectiles?.reset(); combatEffects?.reset();
   machineGun?.reset(); mgProjectiles?.reset(); selectWeapon(false);
@@ -315,7 +320,7 @@ window.addEventListener('keydown', unlockOnGesture);
 const resize = () => { if (studio?.rendering) return; scaleMobile(); engine.resize(); };
 window.addEventListener('resize', resize);
 let disposed = false;
-let ground: ReturnType<typeof createTestGround> | Awaited<ReturnType<typeof createKulVadisi>> | undefined;
+let ground: ReturnType<typeof createTestGround> | Awaited<ReturnType<typeof createKulVadisi>> | ReturnType<typeof createFilmSet> | undefined;
 let tank: Awaited<ReturnType<typeof loadTankModel>> | undefined;
 
 async function start() {
@@ -325,7 +330,7 @@ async function start() {
   scene.getPhysicsEngine()!.setTimeStep(1 / 60);
   // Only FixedStep advances this world, never the render loop.
   scene.physicsEnabled = false;
-  ground = kulVadisi ? await createKulVadisi(scene, kulTeam) : createTestGround(scene);
+  ground = kulVadisi ? await createKulVadisi(scene, kulTeam) : filmSet ? createFilmSet(scene, filmSpot) : createTestGround(scene);
   if (disposed) { ground.dispose(); return; }
   ground.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh));
   status.textContent = 'Harita hazır, tank modeli yükleniyor…';
@@ -335,7 +340,7 @@ async function start() {
   tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
   const rig = extractTankRig(tank);
   vehicle = new TankVehicle(scene, rig, playerSpawn);
-  if (kulVadisi && kulTeam === 'B') vehicle.reset(playerSpawn, Math.PI);
+  if (spawnYaw) vehicle.reset(playerSpawn, spawnYaw);
   visual = new TankVisual(tank, rig);
   movementEffects = new MovementEffects(scene, vehicle);
   turret = new TurretController(tank, vehicle.definition);
@@ -352,12 +357,12 @@ async function start() {
     return opponent ? pickTankHit(scene, opponent, from, to, worldHit) : worldHit;
   }, 40, { gravity: -9.81, maxRange: 600, maxAge: 3, trailSeconds: 0.015, trailLength: 2.2, diameter: 0.035 });
   scene.activeCamera = followCamera.camera;
-  if (!kulVadisi) {
+  if (!kulVadisi && !filmSet) {
     combatRange = new ArmorRange(scene, ground.spawn);
     combatRange.targets.forEach(target => target.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh)));
   }
   combatEffects = new CombatEffects(scene);
-  smokeSupply = await SmokeSupply.load(scene, smokeSupplyUrl, smokeCapsuleUrl, ground.spawn, mapHeight,
+  smokeSupply = await SmokeSupply.load(scene, smokeSupplyUrl, smokeCapsuleUrl, filmSet ? (ground as ReturnType<typeof createFilmSet>).supplyAnchor : ground.spawn, mapHeight,
     kulVadisi && kulTeam === 'B' ? Math.PI : 0);
   if (disposed) { smokeSupply.dispose(); smokeSupply = undefined; return; }
   smokeSupply.supplies.forEach(supply => supply.nodes.rootNodes.forEach(node =>
