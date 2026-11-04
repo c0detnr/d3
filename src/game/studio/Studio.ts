@@ -280,7 +280,7 @@ export class Studio {
         </div>
         <button type="button" class="studio-primary" data-ui="render">MP4 render al</button>
       </section>
-      <p class="studio-keys"><kbd>3–9</kbd>/<kbd>C</kbd> kamera · <kbd>[</kbd><kbd>]</kbd> lens · <kbd>K</kbd> kayıt · <kbd>H</kbd> paneli gizle</p>`;
+      <p class="studio-keys"><kbd>3–9</kbd> <kbd>Y U I O P L</kbd> <kbd>C</kbd> kamera · <kbd>[</kbd><kbd>]</kbd> lens · <kbd>K</kbd> kayıt · <kbd>H</kbd> paneli gizle</p>`;
     this.panel.querySelectorAll<HTMLElement>('[data-ui]').forEach(element => { this.ui[element.dataset.ui!] = element; });
     const options = { signal: this.listeners.signal };
     this.panel.querySelectorAll<HTMLButtonElement>('[data-shot]').forEach(button =>

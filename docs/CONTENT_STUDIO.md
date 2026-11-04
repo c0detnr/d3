@@ -22,6 +22,12 @@ npm run studio
 |---|---|
 | Tıkla | Fareyi kilitle ve sürmeye başla (oyun kontrolleri aynı) |
 | `3`–`9` | Takip · Alçak · Yan · Ön · Yörünge · Drone · Namlu kamerası |
+| `Y` | Geçiş: tankın önüne sabit kamera kurulur, tank yanından geçince yeni noktaya kesilir |
+| `U` | Vertigo (dolly zoom): kamera uzaklaşırken lens daralır, tank aynı boyda kalır |
+| `I` | Palet: zemin seviyesinden palete bakan alçak açı |
+| `O` | Vinç: arkadan alçakta başlayıp 8 s'de yükselen çekim |
+| `P` | Kuşbakışı: tepeden aşağı |
+| `L` | Karşı namlu: namlunun önünden kuleye bakan açı |
 | `C` | Oyun kamerası |
 | `[` / `]` | Lensi daralt / genişlet (dikey FOV) |
 | `K` | Çekimi başlat / bitir (başlatınca tank başlangıca döner) |
