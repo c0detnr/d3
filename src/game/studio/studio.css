@@ -1,0 +1,45 @@
+/* Studio mode: the canvas is a 9:16 preview; game HUD stays out of frame and out of the panel's way. */
+body.studio { background: #0b0c0d; }
+body.studio > :not(#map):not(.studio-ui):not(.studio-safe):not(.studio-progress):not(.game-pointer-prompt):not(#status) { display: none !important; }
+body.studio #map, .studio-safe {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: min(100vw, 56.25vh); height: min(100vh, 177.78vw);
+}
+.studio-safe { pointer-events: none; z-index: 5; }
+.studio-safe[hidden] { display: none; }
+.studio-safe i { position: absolute; background: repeating-linear-gradient(135deg, #e0483022 0 6px, transparent 6px 12px); border: 1px dashed #e0483088; }
+/* Approximate Reels chrome: top bar, caption/audio strip, right-hand action column. */
+.studio-safe .top { left: 0; right: 0; top: 0; height: 11%; }
+.studio-safe .bottom { left: 0; right: 0; bottom: 0; height: 22%; }
+.studio-safe .side { right: 0; width: 14%; top: 45%; bottom: 22%; }
+
+.studio-ui {
+  position: fixed; top: 16px; right: 16px; z-index: 40; width: 300px; max-height: calc(100vh - 32px); overflow: auto;
+  padding: 14px; background: #15181bee; border: 1px solid #ffffff1f; color: #e9e4d8; font: 13px/1.4 Arial, sans-serif;
+}
+.studio-ui[hidden] { display: none; }
+.studio-ui h2 { margin: 0 0 6px; font-size: 14px; letter-spacing: .12em; color: #d9a441; }
+.studio-ui h3 { margin: 0 0 6px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #9a968c; display: flex; justify-content: space-between; }
+.studio-ui section { margin-top: 12px; display: grid; gap: 6px; }
+.studio-ui button, .studio-ui select {
+  font: inherit; color: inherit; background: #23282c; border: 1px solid #ffffff26; padding: 6px 8px; cursor: pointer; min-width: 0;
+}
+.studio-ui button:hover { border-color: #d9a441; }
+.studio-ui button[aria-pressed="true"] { background: #d9a441; color: #15181b; border-color: #d9a441; }
+.studio-ui .studio-primary { background: #3a2f1c; border-color: #d9a441aa; font-weight: bold; }
+.studio-shots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.studio-shots button { padding: 5px 2px; font-size: 12px; display: grid; justify-items: center; }
+.studio-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+.studio-row select { font-size: 11px; padding: 6px 2px; }
+.studio-ui label { display: flex; gap: 6px; align-items: center; }
+.studio-ui kbd { font: 10px monospace; opacity: .7; }
+.studio-status { margin: 0; padding: 6px 8px; background: #0b0c0d; word-break: break-all; }
+.studio-status[data-tone="ok"] { color: #8fd18b; }
+.studio-status[data-tone="error"] { color: #f08a6c; }
+.studio-status[data-tone="rec"] { color: #ff5a4a; font-weight: bold; }
+.studio-keys { margin: 12px 0 0; color: #9a968c; font-size: 11px; }
+.studio-progress {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50;
+  padding: 10px 16px; background: #15181bee; color: #d9a441; font: bold 14px Arial, sans-serif; letter-spacing: .05em;
+}
+.studio-progress[hidden] { display: none; }

@@ -14,6 +14,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "node --experimental-strip-types --test src/game/core/fixedStep.test.ts",
     "map:dev": "vite --config vite.map.config.ts --host 127.0.0.1 --open /map-preview.html",
+    "studio": "vite --config vite.map.config.ts --host 127.0.0.1 --open \"/map-preview.html?studio=1\"",
     "map:check": "tsc -p tsconfig.map.json",
     "map:test": "node --experimental-strip-types scripts/check-test-ground.ts",
     "world:render:test": "node --experimental-strip-types scripts/check-world-rendering.ts",

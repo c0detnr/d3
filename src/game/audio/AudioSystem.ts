@@ -83,6 +83,15 @@ export class AudioSystem {
     else void this.resume();
   }
 
+  /** Taps the post-limiter mix for studio takes; null until audio is unlocked. */
+  capture(): { stream: MediaStream; release(): void } | null {
+    if (!this.context || !this.limiter) return null;
+    const limiter = this.limiter;
+    const destination = this.context.createMediaStreamDestination();
+    limiter.connect(destination);
+    return { stream: destination.stream, release: () => { try { limiter.disconnect(destination); } catch { /* closed */ } } };
+  }
+
   async suspend() {
     if (!this.context || this.context.state !== 'running') return;
     try { await this.context.suspend(); } catch { /* unavailable */ }

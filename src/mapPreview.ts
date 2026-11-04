@@ -55,6 +55,7 @@ import { CombatInput } from './game/input/CombatInput.ts';
 import { IRON_DUST_01_WEAPON, SHOT_FEEDBACK } from './game/combat/WeaponDefinition.ts';
 import { KUL_WEATHER, TEST_GROUND_ATMOSPHERE, weatherFromSearch } from './game/world/atmosphereSettings.ts';
 import { createChaoticSky } from './game/world/SkyAtmosphere.ts';
+import { Studio } from './game/studio/Studio.ts';
 import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
 import secondTankUrl from '../assets/tanks/iron_dust_02/iron_dust_02.glb?url';
 
@@ -68,12 +69,14 @@ const kulTeam = new URLSearchParams(location.search).get('base') === 'B' ? 'B' :
 const mapHeight = kulVadisi ? kulTerrainHeight : terrainHeight;
 const twoTankTest = !teamDuelMode && new URLSearchParams(location.search).has('duel');
 const secondTank = new URLSearchParams(location.search).get('tank') === '02';
+const studioMode = new URLSearchParams(location.search).has('studio');
 if (secondTank) document.querySelector<HTMLButtonElement>('[data-action="weapon"]')!.hidden = true;
 
 const canvas = document.querySelector<HTMLCanvasElement>('#map')!;
 const status = document.querySelector<HTMLElement>('#status')!;
 const mobile = matchMedia('(pointer: coarse)').matches;
-const engine = new Engine(canvas, !mobile);
+// Studio reads rendered frames back, so the drawing buffer must survive the frame.
+const engine = new Engine(canvas, !mobile, studioMode ? { preserveDrawingBuffer: true, stencil: true } : undefined);
 const scaleMobile = () => { if (mobile) engine.setHardwareScalingLevel(Math.max(1, innerWidth / 1280, innerHeight / 720)); };
 scaleMobile();
 const scene = new Scene(engine);
@@ -88,6 +91,7 @@ const mapControls = addMapControls(followCamera, kulVadisi, kulVadisi && kulTeam
 const removeTeamDuelLink = addTeamDuelLink();
 const clock = new FixedStep();
 const input = new DriveInput();
+let studio: Studio | undefined;
 let teamDuel: TeamDuel | undefined;
 let teamDuelHud: TeamDuelHud | undefined;
 let laneDrones: LaneDrones | undefined;
@@ -229,6 +233,7 @@ function teamImpact(event: TeamImpact) {
   }
 }
 function reset() {
+  studio?.gameReset();
   laneDrones?.reset();
   smokeSupply?.reset();
   if (freeCamera.active) freeCamera.toggle();
@@ -307,7 +312,7 @@ const toggleSound = async () => {
 };
 window.addEventListener('pointerdown', unlockOnGesture);
 window.addEventListener('keydown', unlockOnGesture);
-const resize = () => { scaleMobile(); engine.resize(); };
+const resize = () => { if (studio?.rendering) return; scaleMobile(); engine.resize(); };
 window.addEventListener('resize', resize);
 let disposed = false;
 let ground: ReturnType<typeof createTestGround> | Awaited<ReturnType<typeof createKulVadisi>> | undefined;
@@ -427,10 +432,22 @@ async function start() {
   status.hidden = true;
   lastTime = performance.now();
   let hudElapsed = 0;
-  engine.runRenderLoop(() => {
-    const now = performance.now();
-    const dt = Math.max(0, (now - lastTime) / 1000); lastTime = now;
-    if (paused || !vehicle || !visual || !tank) return;
+  const startLoop = () => {
+    lastTime = performance.now();
+    engine.runRenderLoop(() => {
+      const now = performance.now();
+      const dt = Math.max(0, (now - lastTime) / 1000); lastTime = now;
+      frame(dt);
+    });
+  };
+  if (studioMode) studio = new Studio({ engine, scene, ground: mapHeight, sceneKey: studioSceneKey(),
+    target: { hull: tank.anchor, pitchPivot: turret.pitchPivot, muzzle: turret.muzzle },
+    maxZ: followCamera.camera.maxZ, audio,
+    gameCamera: () => mgMode ? machineGun!.camera : followCamera.camera, freeCameraActive: () => freeCamera.active,
+    reset, frame: dt => frame(dt), startLoop, stopLoop: () => engine.stopRenderLoop() });
+  startLoop();
+  function frame(dt: number) {
+    if ((paused && !studio?.rendering) || !vehicle || !visual || !tank) return;
     sky.update(dt);
     const stormFlash = sky.flash;
     scene.imageProcessingConfiguration.exposure = (atmosphere.exposure ?? 1) + stormFlash * 0.32;
@@ -439,8 +456,14 @@ async function start() {
     followCamera.aiming = !mgMode && (combatInput.aiming || touch.aiming);
     const alpha = clock.advance(dt, step => {
       smokeSupply!.fixedUpdate(step);
-      const command = freeCamera.active || teamDuel?.finished || driveDisabled(damageHudState) ? { throttle: 0, steer: 0, brake: 1 }
+      let command = freeCamera.active || teamDuel?.finished || driveDisabled(damageHudState) ? { throttle: 0, steer: 0, brake: 1 }
         : input.resolve(observation?.keys() ?? Object.fromEntries(Object.entries(keys.keys).map(([key, value]) => [key, value || touch.keys[key as keyof typeof touch.keys]])) as typeof keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
+      let turn = combatInput.turretTurn + touch.turn;
+      let elevation = combatInput.consumeElevation() + touch.elevation * step * 15 * Math.PI / 180;
+      if (turn || elevation || mgMode || followCamera.isOverview) alignDirection = undefined;
+      let fire = combatInput.consumeFire() || touch.consumeFire();
+      // Studio takes record these per step; renders replay them in place of live input.
+      if (studio) ({ command, turn, elevation, align: alignDirection, fire } = studio.step({ command, turn, elevation, align: alignDirection, fire }));
       vehicle!.beforeStep(step, command, trackPower(damageHudState));
       movementEffects!.fixedUpdate(vehicle!, step);
       const aiState = opponentAI && opponent && vehicle ? (() => {
@@ -462,9 +485,6 @@ async function start() {
       // Joint calculations use the current physics pose; render interpolation follows below.
       visual!.syncHull(vehicle!, 1);
       teamDuel?.afterStep(step);
-      const turn = combatInput.turretTurn + touch.turn;
-      const elevation = combatInput.consumeElevation() + touch.elevation * step * 15 * Math.PI / 180;
-      if (turn || elevation || mgMode || followCamera.isOverview) alignDirection = undefined;
       if (alignDirection) {
         turret!.yawPivot.computeWorldMatrix(true);
         turret!.fixedUpdate(turret!.yawPivot.getAbsolutePosition().add(alignDirection.scale(10000)), step);
@@ -473,7 +493,7 @@ async function start() {
       const wasReady = weapon!.ready;
       weapon!.fixedUpdate(step);
       if (!wasReady && weapon!.ready && !audio.muted) combatAudio?.reload();
-      if ((combatInput.consumeFire() || touch.consumeFire()) && !mgMode && damageHudState.hp > 0 && !teamDuel?.finished) {
+      if (fire && !mgMode && damageHudState.hp > 0 && !teamDuel?.finished) {
         const shot = weapon!.fire();
         if (shot) {
           projectiles!.spawn(shot.origin, shot.direction, IRON_DUST_01_WEAPON.ammo.muzzleVelocity);
@@ -613,6 +633,7 @@ async function start() {
     followCamera.update(vehicle, tank.anchor.position, Math.min(dt, 0.1), turret);
     if (mgMode) machineGun!.updateCamera();
     freeCamera.update(dt);
+    studio?.update(dt);
     smokeSupply!.render();
     const cameraDirection = scene.activeCamera!.getForwardRay().direction;
     damageHud.update(Math.min(dt, 0.1), Math.atan2(cameraDirection.x, cameraDirection.z));
@@ -635,7 +656,13 @@ async function start() {
     if (!freeCamera.active) aim.render(vehicle, mgMode ? machineGun! : turret!);
     else { aim.marker.hidden = true; aim.label.hidden = true; }
     observation?.frame(dt, vehicle);
-  });
+  }
+}
+/** Takes replay only into the same map, tank and mode they were recorded in. */
+function studioSceneKey() {
+  const params = new URLSearchParams(location.search);
+  params.delete('studio'); params.sort();
+  return params.toString();
 }
 start().catch((error: unknown) => {
   if (disposed) return;
@@ -647,6 +674,7 @@ function dispose() {
   disposed = true;
   window.removeEventListener('pagehide', dispose);
   engine.stopRenderLoop();
+  studio?.dispose();
   window.removeEventListener('resize', resize);
   window.removeEventListener('keydown', weaponKey);
   window.removeEventListener('keydown', smokeKey);

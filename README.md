@@ -41,6 +41,7 @@ Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağ�
 | [Tank modelleme standardı](docs/TANK_ASSET.md) | Blender parça hiyerarşisi, hareket hazırlığı, üçgen hedefi ve teslim önerisi |
 | [Oynanabilir ikinci tank planı](docs/SECOND_TANK_BLENDER_PLAN.md) | Kum beji tankın kaynak/GLB teslimi ve otomatik oyun kontrolleri mevcut; insan oynanabilirlik kabulü açık |
 | [Makineli tüfek Blender planı](docs/MACHINE_GUN_ASSET_PLAN.md) | POV kameralı ikinci silahın yerleşimi, hareket grupları, modelleme sırası ve teslim kontrolleri |
+| [İçerik stüdyosu](docs/CONTENT_STUDIO.md) | `npm run studio`: canlı çekim, kare kare 1080×1920 MP4 render, Reels kameraları |
 | [Teknik mimari](docs/ARCHITECTURE.md) | Seçilen yığın, sistem sınırları ve fizik yaklaşımı |
 | [İlk tank düellosu planı](docs/COMBAT_DUEL_PLAN.md) | Yerel hasar, kolay mod AI ve LAN hasar entegrasyonu; son oynanış kabulü açık |
 | [Yol haritası](docs/ROADMAP.md) | M1 dünya → M2 sürüş → M3 savaş |
@@ -54,6 +55,10 @@ Başlangıç belgeleri görevinin kaydı: [task_plan.md](task_plan.md), [finding
 TypeScript · Babylon.js · Havok Physics · React · Tailwind CSS · Zustand · Vite. Model üretimi: Blender → glTF/GLB.
 
 Kurulu paket sürümleri `package.json` ve kilit dosyasında sabittir. Genel oyun komutları altyapı çalışması kapsamında; aşağıdaki komutlar bağımsız harita önizlemesine aittir.
+
+## İçerik stüdyosu
+
+`npm run studio` dikey (9:16) stüdyo modunu açar. Tankı sür, `K` ile çekim kaydet, `3`–`9` ile kamera değiştir, sonra panelden MP4 render al. Kareler 1080 × 1920 (isteğe bağlı 2× süper örnekleme) olarak tek tek çizilir ve `ffmpeg` ile `studio-out/renders/` altına yazılır. `ffmpeg` gerekir. Ayrıntılar ve sınırlar: [docs/CONTENT_STUDIO.md](docs/CONTENT_STUDIO.md).
 
 ## Doğal arazi önizlemesi
 

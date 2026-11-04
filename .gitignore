@@ -40,3 +40,6 @@ Thumbs.db
 /android/app/src/main/assets/
 /android/local.properties
 /artifacts/
+
+# İçerik stüdyosu çekimleri ve render çıktıları
+/studio-out/

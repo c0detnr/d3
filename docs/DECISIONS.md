@@ -240,3 +240,10 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 **Kesin karar:** Kullanıcı onayıyla oyuncu + 4 dost AI ve karşıda 5 düşman AI. Her takım kendi üssünde doğar. Bu, yerel tek oyunculu moddur; LAN/çevrimiçi oyuncu sayısı genişletilmez.
 
 **Uygulama ayarları:** 180 m görüş, üç koridor, 0,85 s tepki, 30–55 m çatışma mesafesi, takım imhasıyla sonuç ve dost hasarı koruması ilk oynanabilir değerlerdir; insan dengeleme kabulü değildir. [Kurallar ve açık kabul](TEAM_DUEL.md). Üs saldırısı/savunma zinciri hedef mekanikleri bu düello teslimine eklenmedi.
+
+## 2026-11-04 — İçerik stüdyosu (Reels)
+
+- **Kesin kullanıcı kararları:** Proje, oyunun yanında tankla Instagram Reels tarzı dikey video üretmek için de kullanılacak. Kalite için kare kare (çevrimdışı) render seçildi. Havok belirlenimciliği ayrıca doğrulanmayacak; hobi projesi olduğu için varsayılarak ilerlenecek.
+- **Uygulama kararı:** `?studio=1` ayrı moddur; oyun modları ve M1/M2/M3 kabulü değişmez. Canlı çekim, adım başına girdi olarak kaydedilir; render, aynı girdileri tekrar oynatıp 1080 × 1920 kareleri geliştirme sunucusu üzerinden ffmpeg'e aktarır. Çıktı yerel `studio-out/` klasörüdür, backend eklenmedi.
+- **Öneri / açık:** MG, sis ve serbest kamera kaydı; kamera yolları; tohumlu şimşek; hazır sahneler. Ses dahil canlı çekimin insan kabulü açık.
+- **Etkilenen belgeler:** [İçerik stüdyosu](CONTENT_STUDIO.md), README.
