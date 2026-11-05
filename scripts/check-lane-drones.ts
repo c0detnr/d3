@@ -86,12 +86,13 @@ for (let cycle = 0; cycle < 2; cycle++) {
   assert.notEqual(physics.raycast(from, to, { shouldHitTriggers: true }).body, hit.body, 'destroyed body is removed immediately');
   let hits = 0;
   system.onTankHit = () => hits++;
+  const beforeSmoke = damage.hp; // The first wave can shoot before smoke is enabled.
   system.blocksSight = () => true;
   for (let tick = 0; tick < 120; tick++) { system.fixedUpdate(step); physics._step(step); }
-  assert.equal(damage.hp, 100, 'smoke blocks drone fire');
+  assert.equal(damage.hp, beforeSmoke, 'smoke blocks additional drone fire');
   system.blocksSight = () => false;
   for (let tick = 0; tick < 120; tick++) { system.fixedUpdate(step); physics._step(step); system.render(.5); }
-  assert.ok(hits > 0 && damage.hp < 100 && damage.hp >= 90, `light tank damage, got ${damage.hp}`);
+  assert.ok(hits > 0 && damage.hp < beforeSmoke && damage.hp >= beforeSmoke - 10, `light tank damage resumes after smoke, got ${damage.hp}`);
   assert.ok(Object.values(damage.modules).every(hp => hp === 100), 'small arms leave modules intact');
   const hp = damage.hp, count = system.model.drones.length, elapsed = system.model.elapsed;
   system.fixedUpdate(31, true); assert.equal(damage.hp, hp); assert.equal(system.model.elapsed, elapsed); assert.equal(system.model.drones.length, count);

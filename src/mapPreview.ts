@@ -1,3 +1,5 @@
+import { RookieMission } from './game/mission/RookieMission.ts';
+import type { MissionScore } from './game/mission/MissionDirector.ts';
 import { LaneDrones } from './game/combat/LaneDrones.ts';
 import { LANE_DRONES } from './game/combat/LaneDroneModel.ts';
 import './game/input/gamePointerLock.css';
@@ -20,7 +22,7 @@ import { addMapControls } from './game/world/kulVadisiControls.ts';
 import { TouchControls } from './game/input/TouchControls.ts';
 import './mapPreview.css';
 import { TacticalHud } from './game/ui/TacticalHud.ts';
-import { SmokeSupply } from './game/items/SmokeSupply.ts';
+import { SmokeSupply, turretLauncherPose } from './game/items/SmokeSupply.ts';
 import { SmokeInventory } from './game/ui/SmokeInventory.ts';
 import smokeSupplyUrl from '../assets/items/smoke_supply_01/smoke_supply_01.glb?url';
 import smokeCapsuleUrl from '../assets/items/smoke_supply_01/smoke_capsule_01.glb?url';
@@ -62,20 +64,36 @@ import { createSunShadows } from './game/world/createSunShadows.ts';
 import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
 import secondTankUrl from '../assets/tanks/iron_dust_02/iron_dust_02.glb?url';
 
+import { t } from './game/i18n/index.ts';
+import { readSave, type Settings } from './game/core/playerSave.ts';
+
+export interface GameSessionOptions {
+  shell?: boolean;
+  onReady?: () => void;
+  onError?: () => void;
+  onMissionResult?: (score: MissionScore) => void;
+}
+export function createGameSession(options: GameSessionOptions = {}) {
+let settings = readSave().settings;
+let shellPaused = !!options.shell;
+let attract = !!options.shell;
+let attractAngle = 0;
+let resultView = false;
+let resultAngle = .7;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const HIT_SHAKE = 5, DESTROYED_SHAKE = 9; // camera shake relative to a cannon shot
 const HIT_IMPULSE_SCALE = 0.6; // incoming shell momentum relative to the cannon recoil impulse
 
-const teamDuelMode = new URLSearchParams(location.search).get('duel') === '5v5';
-const kulVadisi = teamDuelMode || new URLSearchParams(location.search).get('map') === 'kul';
+const teamDuelMode = !options.shell && new URLSearchParams(location.search).get('duel') === '5v5';
+const kulVadisi = !options.shell && (teamDuelMode || new URLSearchParams(location.search).get('map') === 'kul');
 const kulTeam = new URLSearchParams(location.search).get('base') === 'B' ? 'B' : 'A';
-const filmSet = !kulVadisi && new URLSearchParams(location.search).get('map') === 'set';
+const filmSet = !options.shell && !kulVadisi && new URLSearchParams(location.search).get('map') === 'set';
 const filmSpot = FILM_SPOTS[filmSpotFromSearch(location.search)];
 const spawnYaw = kulVadisi && kulTeam === 'B' ? Math.PI : filmSet ? filmSpot.yaw : 0;
 const mapHeight = kulVadisi ? kulTerrainHeight : filmSet ? filmSetHeight : terrainHeight;
-const twoTankTest = !teamDuelMode && new URLSearchParams(location.search).has('duel');
-const secondTank = new URLSearchParams(location.search).get('tank') === '02';
-const studioMode = new URLSearchParams(location.search).has('studio');
+const twoTankTest = !options.shell && !teamDuelMode && new URLSearchParams(location.search).has('duel');
+const secondTank = !options.shell && new URLSearchParams(location.search).get('tank') === '02';
+const studioMode = !options.shell && new URLSearchParams(location.search).has('studio');
 if (secondTank) document.querySelector<HTMLButtonElement>('[data-action="weapon"]')!.hidden = true;
 
 const canvas = document.querySelector<HTMLCanvasElement>('#map')!;
@@ -91,16 +109,18 @@ scene.imageProcessingConfiguration.exposure = 1;
 scene.imageProcessingConfiguration.contrast = 1.15;
 const atmosphere = kulVadisi || filmSet ? KUL_WEATHER[weatherFromSearch(location.search)] : TEST_GROUND_ATMOSPHERE;
 const sky = createChaoticSky(scene, kulVadisi || filmSet ? 2800 : 1800, atmosphere);
-const followCamera = new FollowCamera(scene, canvas);
+const followCamera = new FollowCamera(scene, canvas, mobile);
 followCamera.camera.maxZ = 1600;
-const mapControls = addMapControls(followCamera, kulVadisi, spawnYaw);
-const removeTeamDuelLink = addTeamDuelLink();
+const mapControls = options.shell ? { follow: () => followCamera.follow(spawnYaw), dispose() {} } : addMapControls(followCamera, kulVadisi, spawnYaw);
+const removeTeamDuelLink = options.shell ? () => {} : addTeamDuelLink();
 const clock = new FixedStep();
 const input = new DriveInput();
 let studio: Studio | undefined;
 let teamDuel: TeamDuel | undefined;
 let teamDuelHud: TeamDuelHud | undefined;
 let laneDrones: LaneDrones | undefined;
+let mission: RookieMission | undefined;
+let missionRequested = false;
 let opponent: DuelTank | undefined;
 let opponentAI: EasyDuelAI | undefined;
 let opponentProjectiles: ProjectileSystem | undefined;
@@ -129,8 +149,8 @@ const aim = new AimSystem(scene, followCamera, document.querySelector<HTMLElemen
   document.querySelector<HTMLElement>('#aim-status')!);
 const combatInput = new CombatInput(canvas, () => (mgMode || !!weapon?.ready) && !followCamera.isOverview && !paused && pointerLock.active && !freeCamera.active,
   () => !!vehicle && !followCamera.isOverview && !paused && pointerLock.active && !freeCamera.active,
-  (x, y) => { if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); }, () => { followCamera.aiming = false; },
-  () => { if (!mgMode) alignDirection = followCamera.camera.getForwardRay().direction.clone(); });
+  (x, y) => { if (paused) return; x *= settings.sensitivity; y *= settings.sensitivity * (settings.invertY ? -1 : 1); if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); }, () => { followCamera.aiming = false; },
+  notches => { if (!mgMode) { followCamera.aiming = combatInput.aiming; followCamera.zoom(notches); } });
 function selectWeapon(useMG: boolean) {
   if (!machineGun || !vehicle || freeCamera.active) return;
   combatInput.clear(); alignDirection = undefined;
@@ -141,31 +161,37 @@ function selectWeapon(useMG: boolean) {
   updateCombatHud();
 }
 const weaponKey = (event: KeyboardEvent) => {
-  if (!pointerLock.active || event.repeat || (event.target as HTMLElement)?.closest?.('input, textarea, select, button, [contenteditable="true"]')) return;
+  if (paused || !pointerLock.active || event.repeat || (event.target as HTMLElement)?.closest?.('input, textarea, select, button, [contenteditable="true"]')) return;
   if (event.code === 'Digit1' || event.code === 'Digit2' || event.code === 'Numpad1' || event.code === 'Numpad2') {
     event.preventDefault(); selectWeapon(event.code.endsWith('2'));
   }
 };
 window.addEventListener('keydown', weaponKey);
 let lastTime = performance.now();
-let paused = document.hidden;
-const keys = bindDriveKeys(window, () => reset(), () => pointerLock.active && !freeCamera.active);
+let paused = shellPaused || document.hidden;
+const keys = bindDriveKeys(window, () => reset(), () => !paused && pointerLock.active && !freeCamera.active);
 const pointerLock = new GamePointerLock(canvas, () => {
   combatInput.clear(); keys.clear(); input.reset(); alignDirection = undefined;
 }, () => !!vehicle && !paused, !mobile);
-const freeCamera = new FreeFlyCamera(scene, canvas, () => !!vehicle && !paused && pointerLock.active, () => {
+const freeCamera = new FreeFlyCamera(scene, canvas, () => !options.shell && !!vehicle && !paused && pointerLock.active, () => {
   combatInput.clear(); keys.clear(); input.reset(); alignDirection = undefined;
 });
 const touch = new TouchControls(document.querySelector<HTMLElement>('#touch-controls')!, canvas, {
-  look: (x, y) => { if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); },
+  look: (x, y) => { if (paused) return; x *= settings.sensitivity; y *= settings.sensitivity * (settings.invertY ? -1 : 1); if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); },
   fireReady: () => !!vehicle && !paused && (mgMode || !!weapon?.ready),
-  weapon: () => selectWeapon(!mgMode), reset: () => reset(),
+  weapon: () => { if (!paused) selectWeapon(!mgMode); }, reset: () => { if (!paused) reset(); },
   sound: () => { soundEnabled = !soundEnabled;
     document.querySelector('[data-action="sound"]')!.setAttribute('aria-pressed', String(!soundEnabled));
     void toggleSound(); },
 });
 const tacticalHud = new TacticalHud(!secondTank, useMG => selectWeapon(useMG));
 const smokeInventory = new SmokeInventory(() => useSmoke(), () => collectSmoke());
+function updateMenuSupplyVisibility() {
+  if (!options.shell || !smokeSupply) return;
+  smokeSupply.supplies.forEach(supply => supply.anchor.setEnabled(!attract && !supply.collected));
+  scene.meshes.filter(mesh => mesh.name === 'smoke-supply-beacon').forEach((marker, index) =>
+    marker.setEnabled(!attract && !smokeSupply!.supplies[index]?.collected));
+}
 function smokeEnabled() {
   return !!vehicle && !!smokeSupply && !paused && !freeCamera.active && !followCamera.isOverview && damageHudState.hp > 0;
 }
@@ -186,7 +212,7 @@ function useSmoke() {
   });
 }
 const smokeKey = (event: KeyboardEvent) => {
-  if (!pointerLock.active || event.repeat || (event.target as HTMLElement)?.closest?.('input, textarea, select, button, [contenteditable="true"]')) return;
+  if (paused || !pointerLock.active || event.repeat || (event.target as HTMLElement)?.closest?.('input, textarea, select, button, [contenteditable="true"]')) return;
   if (event.code === 'KeyF') { event.preventDefault(); collectSmoke(); }
   if (event.code === 'KeyG') { event.preventDefault(); useSmoke(); }
 };
@@ -205,9 +231,9 @@ function updateCombatHud() {
       speed: vehicle.speed, reloadRemaining: weapon.reloadRemaining, reloadFraction: weapon.reloadFraction,
       machineGun: mgMode, range: aim.rangeMeters, blocked: aim.marker.classList.contains('blocked') && !aim.marker.hidden });
   }
-  ammoState.textContent = mgMode ? `MAKİNELİ TÜFEK · ${machineGun?.shotsFired ?? 0} ATIM` : weapon.ready
-    ? `SİLAH HAZIR · ${IRON_DUST_01_WEAPON.ammo.label}`
-    : `DOLUM · ${weapon.reloadRemaining.toFixed(1)} s`;
+  ammoState.textContent = mgMode ? `${t('machineGun')} · ${machineGun?.shotsFired ?? 0} ${t('shots')}` : weapon.ready
+    ? `${t('weaponReady')} · APFSDS`
+    : `${t('reload')} · ${weapon.reloadRemaining.toFixed(1)} s`;
   rangeReadout.textContent = `${aim.rangeMeters.toFixed(0)} m`;
   hitResult.textContent = lastCombatResult;
   hitResult.className = '';
@@ -234,12 +260,13 @@ function teamImpact(event: TeamImpact) {
   }
   if (playerShot) {
     if (victim) damageHud.outgoing(module, disabled, destroyed, applied);
-    lastCombatResult = victim ? applied ? `HEDEF · ${victim.damage.hp} / 100` : 'DOST ARAÇ · HASAR YOK' : 'İSABET';
+    lastCombatResult = victim ? applied ? `${t('target')} · ${victim.damage.hp} / 100` : t('friendlyNoDamage') : t('hit');
     combatResultTime = 3;
   }
 }
 function reset() {
   studio?.gameReset();
+  mission?.recover();
   laneDrones?.reset();
   smokeSupply?.reset();
   if (freeCamera.active) freeCamera.toggle();
@@ -256,10 +283,10 @@ function reset() {
 }
 const visibility = () => {
   alignDirection = undefined;
-  paused = document.hidden; movementEffects?.reset(); keys.clear(); input.reset(); clock.reset(); lastTime = performance.now();
+  paused = shellPaused || document.hidden; movementEffects?.reset(); keys.clear(); input.reset(); clock.reset(); lastTime = performance.now();
   combatInput.clear();
   if (document.hidden) { combatAudio?.reset(); void audio.suspend(); }
-  else if (soundEnabled) void audio.resume();
+  else if (soundEnabled && !paused) void audio.resume();
 };
 const blur = () => { keys.clear(); input.reset(); combatInput.clear(); combatAudio?.reset(); };
 document.addEventListener('visibilitychange', visibility);
@@ -277,7 +304,7 @@ const shadows = createSunShadows(sun, mobile);
 
 // Audio defaults no longer depend on the removed developer panel.
 let soundEnabled = true;
-const audio = new AudioSystem({ volume: 0.7 });
+const audio = new AudioSystem({ volume: settings.volume });
 let vehicleAudio: VehicleAudio | undefined;
 let combatAudio: CombatAudio | undefined;
 let audioSnapshot: VehicleAudioSnapshot | undefined;
@@ -290,7 +317,7 @@ function ensureVehicleAudio() {
   vehicleAudio.reset();
 }
 async function unlockAudio() {
-  if (audioUnlockStarted || !soundEnabled) return;
+  if (audioUnlockStarted || !soundEnabled || paused) return;
   audioUnlockStarted = true;
   const unlocked = await audio.unlock();
   if (!unlocked) {
@@ -314,7 +341,7 @@ const toggleSound = async () => {
 };
 window.addEventListener('pointerdown', unlockOnGesture);
 window.addEventListener('keydown', unlockOnGesture);
-const resize = () => { if (studio?.rendering) return; scaleMobile(); engine.resize(); };
+const resize = () => { if (studio?.rendering) return; if (!options.shell) scaleMobile(); engine.resize(); };
 window.addEventListener('resize', resize);
 let disposed = false;
 let ground: ReturnType<typeof createTestGround> | Awaited<ReturnType<typeof createKulVadisi>> | ReturnType<typeof createFilmSet> | undefined;
@@ -330,7 +357,7 @@ async function start() {
   ground = kulVadisi ? await createKulVadisi(scene, kulTeam) : filmSet ? createFilmSet(scene, filmSpot) : createTestGround(scene);
   if (disposed) { ground.dispose(); return; }
   ground.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh));
-  status.textContent = 'Harita hazır, tank modeli yükleniyor…';
+  status.textContent = t('tankLoading');
   const playerSpawn = teamDuelMode ? teamSpawn(kulTeam, 0) : ground.spawn;
   tank = await loadTankModel(scene, secondTank ? secondTankUrl : tankUrl, playerSpawn);
   if (disposed) { tank.dispose(); return; }
@@ -351,7 +378,8 @@ async function start() {
     if (teamDuel) return teamDuel.raycast(vehicle!.body, from, to);
     const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body, shouldHitTriggers: true });
     const worldHit = hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
-    return opponent ? pickTankHit(scene, opponent, from, to, worldHit) : worldHit;
+    const tankHit = opponent ? pickTankHit(scene, opponent, from, to, worldHit) : worldHit;
+    return mission ? mission.raycast(from, to, tankHit) : tankHit;
   }, 40, { gravity: -9.81, maxRange: 600, maxAge: 3, trailSeconds: 0.015, trailLength: 2.2, diameter: 0.035 });
   scene.activeCamera = followCamera.camera;
   if (!kulVadisi && !filmSet) {
@@ -362,13 +390,16 @@ async function start() {
   smokeSupply = await SmokeSupply.load(scene, smokeSupplyUrl, smokeCapsuleUrl, filmSet ? (ground as ReturnType<typeof createFilmSet>).supplyAnchor : ground.spawn, mapHeight,
     kulVadisi && kulTeam === 'B' ? Math.PI : 0);
   if (disposed) { smokeSupply.dispose(); smokeSupply = undefined; return; }
+  smokeSupply.launcherPose = () => turretLauncherPose(turret!.yawPivot);
+  updateMenuSupplyVisibility();
   smokeSupply.supplies.forEach(supply => supply.nodes.rootNodes.forEach(node =>
     node.getChildMeshes().forEach(mesh => shadows.addShadowCaster(mesh))));
   projectiles = new ProjectileSystem(scene, (from, to) => {
     if (teamDuel) return teamDuel.raycast(vehicle!.body, from, to);
     const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body, shouldHitTriggers: true });
     const worldHit = hit.hasHit ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
-    return opponent ? pickTankHit(scene, opponent, from, to, worldHit) : worldHit;
+    const tankHit = opponent ? pickTankHit(scene, opponent, from, to, worldHit) : worldHit;
+    return mission ? mission.raycast(from, to, tankHit) : tankHit;
   });
   opponentProjectiles = new ProjectileSystem(scene, (from, to) => {
     const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: opponent!.vehicle.body, shouldHitTriggers: true });
@@ -390,7 +421,7 @@ async function start() {
   }
   if (import.meta.env.DEV && new URLSearchParams(location.search).has('driveTest')) observation = new DrivingObservation(engine, reset);
   if (twoTankTest) {
-    status.textContent = 'İkinci tank yükleniyor…';
+    status.textContent = t('opponentLoading');
     const spawn = ground.spawn.add(new Vector3(24, 0, 0));
     spawn.y = mapHeight(spawn.x, spawn.z);
     opponent = await DuelTank.load(scene, secondTank ? tankUrl : secondTankUrl, spawn);
@@ -399,7 +430,7 @@ async function start() {
     opponentAI = new EasyDuelAI();
   }
   if (teamDuelMode) {
-    status.textContent = '5’e 5 takımlar yükleniyor…';
+    status.textContent = t('teamsLoading');
     teamDuel = new TeamDuel(scene, { tank, vehicle, damage: damageHudState, team: kulTeam });
     teamDuel.blocksSight = (from, to) => smokeSupply!.model.blocksSight(from, to);
     teamDuel.onImpact = teamImpact;
@@ -431,6 +462,49 @@ async function start() {
       }
     };
   }
+  if (options.shell) {
+    mission = new RookieMission({ scene, player: { tank, vehicle, damage: damageHudState }, range: combatRange!,
+      blocksSight: (from, to) => smokeSupply!.model.blocksSight(from, to),
+      onFinish: score => {
+        setSessionPaused(true);
+        selectWeapon(false);
+        followCamera.follow();
+        resultView = true; resultAngle = .7;
+        followCamera.resultOrbit(vehicle!, tank!.anchor.position, resultAngle);
+        scene.activeCamera = followCamera.camera;
+        options.onMissionResult?.(score);
+      },
+      onConfirm: () => {
+        if (audio.muted || !audio.graph) return;
+        const { context, output } = audio.graph;
+        const oscillator = context.createOscillator(), gain = context.createGain();
+        oscillator.frequency.setValueAtTime(620, context.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(940, context.currentTime + .12);
+        gain.gain.setValueAtTime(.055, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.001, context.currentTime + .2);
+        oscillator.connect(gain); gain.connect(output); oscillator.start(); oscillator.stop(context.currentTime + .22);
+        oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+      },
+      onShot: (origin, direction) => { combatEffects!.muzzleFlash(origin, direction); if (!audio.muted) combatAudio?.shot(); },
+      onEnemyHit: (hit, destroyed, penetrated) => {
+        combatEffects!.armorImpact(hit.point, hit.normal, penetrated);
+        if (destroyed) combatEffects!.destruction(hit.point);
+        damageHud.outgoing(null, false, destroyed, penetrated);
+        if (!audio.muted) combatAudio?.armorHit(penetrated, Vector3.Distance(hit.point, followCamera.camera.position), 0, destroyed);
+      },
+      onPlayerHit: (hit, velocity, destroyed) => {
+        damageHud.setState(damageHudState);
+        damageHud.incoming(Math.atan2(hit.point.x - vehicle!.node.position.x, hit.point.z - vehicle!.node.position.z), null, false, destroyed);
+        hitShake(velocity, destroyed); combatEffects!.armorImpact(hit.point, hit.normal, true);
+        if (destroyed) combatEffects!.destruction(hit.point);
+        if (!audio.muted) combatAudio?.armorHit(true, Vector3.Distance(hit.point, followCamera.camera.position), 0, destroyed);
+      },
+    });
+    await mission.load(secondTankUrl);
+    if (disposed) { mission.dispose(); return; }
+    mission.scouts.forEach(scout => scout.actor.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh)));
+    if (missionRequested) mission.start();
+  }
   status.hidden = true;
   lastTime = performance.now();
   let hudElapsed = 0;
@@ -447,9 +521,37 @@ async function start() {
     maxZ: followCamera.camera.maxZ, audio,
     gameCamera: () => mgMode ? machineGun!.camera : followCamera.camera, freeCameraActive: () => freeCamera.active,
     reset, frame: dt => frame(dt), startLoop, stopLoop: () => engine.stopRenderLoop() });
+  if (options.shell) applySettings(settings);
+  options.onReady?.();
   startLoop();
   function frame(dt: number) {
-    if ((paused && !studio?.rendering) || !vehicle || !visual || !tank) return;
+    if (!vehicle || !visual || !tank) return;
+    if (paused && !studio?.rendering) {
+      if (resultView) {
+        if (!reducedMotion.matches) resultAngle += Math.min(dt, .1) * .035;
+        followCamera.resultOrbit(vehicle, tank.anchor.position, resultAngle);
+        sky.update(Math.min(dt, .1));
+        scene.render();
+        return;
+      }
+      if (attract) {
+        if (!reducedMotion.matches) attractAngle += Math.min(dt, .1) * .045;
+        const target = tank.anchor.position.add(new Vector3(0, 2, 0));
+        followCamera.camera.position.copyFrom(target.add(new Vector3(Math.sin(attractAngle + .7) * 20, 8, -Math.cos(attractAngle + .7) * 20)));
+        const direction = target.subtract(followCamera.camera.position).normalize();
+        const right = Vector3.Cross(Vector3.Up(), direction).normalize();
+        followCamera.camera.setTarget(target.subtract(right.scale(5)));
+        scene.imageProcessingConfiguration.exposure = 1.28;
+        scene.imageProcessingConfiguration.contrast = 1.08;
+        ambient.intensity = Math.max(1.15, atmosphere.hemisphere.intensity);
+        ambient.diffuse = Color3.FromHexString('#d5d6c2');
+        ambient.groundColor = Color3.FromHexString('#a7997a');
+        sun.intensity = Math.max(1.35, atmosphere.sun.intensity);
+        sky.update(Math.min(dt, .1));
+        scene.render();
+      }
+      return;
+    }
     sky.update(dt);
     const stormFlash = sky.flash;
     scene.imageProcessingConfiguration.exposure = (atmosphere.exposure ?? 1) + stormFlash * 0.32;
@@ -457,12 +559,17 @@ async function start() {
     sun.intensity = atmosphere.sun.intensity + stormFlash * 0.25;
     followCamera.aiming = !mgMode && (combatInput.aiming || touch.aiming);
     const alpha = clock.advance(dt, step => {
+      if (shellPaused) return;
+      mission?.beforeStep(step);
       smokeSupply!.fixedUpdate(step);
       let command = freeCamera.active || teamDuel?.finished || driveDisabled(damageHudState) ? { throttle: 0, steer: 0, brake: 1 }
         : input.resolve(observation?.keys() ?? Object.fromEntries(Object.entries(keys.keys).map(([key, value]) => [key, value || touch.keys[key as keyof typeof touch.keys]])) as typeof keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
-      let turn = combatInput.turretTurn + touch.turn;
-      let elevation = combatInput.consumeElevation() + touch.elevation * step * 15 * Math.PI / 180;
-      if (turn || elevation || mgMode || followCamera.isOverview) alignDirection = undefined;
+      let turn = touch.turn;
+      let elevation = touch.elevation * step * 15 * Math.PI / 180;
+      const desktopTracking = !mobile && pointerLock.active && !freeCamera.active && !mgMode && !followCamera.isOverview;
+      const viewTarget = desktopTracking ? followCamera.aimTarget(vehicle!) : undefined;
+      // Preserve the ray hit distance in Studio’s existing relative aim vector.
+      alignDirection = viewTarget ? viewTarget.subtract(turret!.yawPivot.getAbsolutePosition()).scale(1 / 10000) : undefined;
       let fire = combatInput.consumeFire() || touch.consumeFire();
       // Studio takes record these per step; renders replay them in place of live input.
       if (studio) ({ command, turn, elevation, align: alignDirection, fire } = studio.step({ command, turn, elevation, align: alignDirection, fire }));
@@ -481,13 +588,15 @@ async function start() {
       laneDrones?.fixedUpdate(step, teamDuel?.finished);
       scene.getPhysicsEngine()!._step(step);
       vehicle!.afterStep();
+      mission?.afterStep(step);
       opponent?.afterStep(step, aiState?.target ?? null);
       observation?.step();
       visual!.fixedUpdate(vehicle!, step);
       // Joint calculations use the current physics pose; render interpolation follows below.
       visual!.syncHull(vehicle!, 1);
       teamDuel?.afterStep(step);
-      if (alignDirection) {
+      if (freeCamera.active || (!mobile && !pointerLock.active && !studio?.rendering)) turret!.fixedUpdate(null, step);
+      else if (alignDirection) {
         turret!.yawPivot.computeWorldMatrix(true);
         turret!.fixedUpdate(turret!.yawPivot.getAbsolutePosition().add(alignDirection.scale(10000)), step);
       } else turret!.fixedUpdateManual(followCamera.isOverview || mgMode ? 0 : turn, mgMode ? 0 : elevation, step);
@@ -498,6 +607,7 @@ async function start() {
       if (fire && !mgMode && damageHudState.hp > 0 && !teamDuel?.finished) {
         const shot = weapon!.fire();
         if (shot) {
+          mission?.shot();
           projectiles!.spawn(shot.origin, shot.direction, IRON_DUST_01_WEAPON.ammo.muzzleVelocity);
           const ground = scene.getPhysicsEngine()!.raycast(shot.origin,
             shot.origin.add(new Vector3(0, -4.5, 0)), { ignoreBody: vehicle!.body });
@@ -507,9 +617,9 @@ async function start() {
           followCamera.impulse(shot.direction);
           vehicle!.body.applyImpulse(shot.direction.scale(-SHOT_FEEDBACK.hullImpulse), turret!.pitchPivot.getAbsolutePosition());
           if (!audio.muted) combatAudio?.shot();
-          lastCombatResult = 'ATIŞ · UÇUYOR'; combatResultTime = 3;
+          lastCombatResult = t('shotFlying'); combatResultTime = 3;
         } else {
-          lastCombatResult = 'DOLUM SÜRÜYOR'; combatResultTime = 1;
+          lastCombatResult = t('reloadOngoing'); combatResultTime = 1;
         }
       }
       if (opponent && opponentAI && opponentProjectiles && opponent.damage.hp > 0 && damageHudState.hp > 0) {
@@ -526,12 +636,15 @@ async function start() {
         }
       }
       machineGun?.fixedUpdate(step, damageHudState.hp > 0 && !teamDuel?.finished && mgMode && !followCamera.isOverview && (combatInput.fireHeld || touch.fireHeld), (origin, direction) => {
+        mission?.shot();
         mgProjectiles!.spawn(origin, direction, MG.speed);
         combatEffects!.machineGunFlash(origin, direction);
         if (!audio.muted) combatAudio?.machineGunShot();
-        lastCombatResult = 'MG · ATEŞ'; combatResultTime = 0.4;
+        lastCombatResult = t('mgFire'); combatResultTime = 0.4;
       });
       mgProjectiles!.fixedUpdate(step, hit => {
+        if (mission?.impact(hit, Vector3.Zero(), false)) return;
+        mission?.hitTarget(hit);
         if (laneDrones?.hit(hit, kulTeam, LANE_DRONES.mgDamage)) return;
         if (teamDuel) {
           const tankHit = teamDuel.members.some(m => m.vehicle.body === hit.body);
@@ -543,9 +656,11 @@ async function start() {
           combatEffects!.armorImpact(hit.point, hit.normal, false);
           damageHud.outgoing(null, false, false, false);
         } else combatEffects!.impact(hit.point, hit.normal, impactSurface(hit.body));
-        lastCombatResult = 'MG · İSABET'; combatResultTime = 0.4;
+        lastCombatResult = t('mgHit'); combatResultTime = 0.4;
       });
       projectiles!.fixedUpdate(step, (hit, shell) => {
+        if (mission?.impact(hit, shell.velocity, true)) return;
+        mission?.hitTarget(hit);
         if (laneDrones?.hit(hit, kulTeam, 25)) return;
         if (teamDuel) { teamDuel.playerImpact(hit); return; }
         const tankHit = opponent && hit.body === opponent.vehicle.body;
@@ -565,11 +680,11 @@ async function start() {
           if (destroyed) combatEffects!.destruction(hit.point);
           damageHud.outgoing(module, disabled, destroyed, !!penetrated);
           if (!audio.muted) combatAudio?.armorHit(!!penetrated, offset.length(), pan, destroyed);
-          lastCombatResult = glanced ? 'SEKTİ' : tankHit ? `HEDEF · ${opponent!.damage.hp} / 100` : armor!.result.kind === 'ricochet' ? 'SEKTİ' : penetrated ? 'ZIRH DELİNDİ' : 'ZIRH DELİNMEDİ';
+          lastCombatResult = glanced ? t('ricochet') : tankHit ? `${t('target')} · ${opponent!.damage.hp} / 100` : armor!.result.kind === 'ricochet' ? t('ricochet') : penetrated ? t('penetrated') : t('notPenetrated');
         } else {
           combatEffects!.impact(hit.point, hit.normal, surface);
           if (!audio.muted) combatAudio?.impact(surface, offset.length(), pan);
-          lastCombatResult = `İSABET · ${{ soil: 'TOPRAK', concrete: 'BETON', metal: 'METAL' }[surface]}`;
+          lastCombatResult = `${t('hit')} · ${{ soil: t('soil'), concrete: t('concrete'), metal: t('metal') }[surface]}`;
         }
         combatResultTime = 4;
       });
@@ -581,7 +696,7 @@ async function start() {
         if (ricochets(shell.velocity, hit.normal)) {
           combatEffects!.armorImpact(hit.point, hit.normal, false);
           if (!audio.muted) combatAudio?.armorHit(false, Vector3.Distance(hit.point, followCamera.camera.position), 0, false);
-          lastCombatResult = 'MERMİ SEKTİ'; combatResultTime = 4;
+          lastCombatResult = t('shellRicochet'); combatResultTime = 4;
           return;
         }
         const module = tank && vehicle ? tankDamageRegion({ tank, vehicle }, hit.point) : null;
@@ -596,7 +711,7 @@ async function start() {
         combatEffects!.armorImpact(hit.point, hit.normal, true);
         if (destroyed) combatEffects!.destruction(hit.point);
         if (!audio.muted) combatAudio?.armorHit(true, Vector3.Distance(hit.point, followCamera.camera.position), 0, destroyed);
-        lastCombatResult = destroyed ? 'İMHA EDİLDİN · R İLE YENİDEN DENE' : `İSABET ALDIN · ${damageHudState.hp} / 100`;
+        lastCombatResult = destroyed ? t('destroyedRetry') : `${t('incomingHit')} · ${damageHudState.hp} / 100`;
         combatResultTime = 4;
       });
       teamDuel?.finishStep();
@@ -632,11 +747,13 @@ async function start() {
     opponentProjectiles?.render(alpha);
     mgProjectiles!.render(alpha);
     combatEffects!.render(alpha);
-    followCamera.update(vehicle, tank.anchor.position, Math.min(dt, 0.1), turret);
+    if (resultView) followCamera.resultOrbit(vehicle, tank.anchor.position, resultAngle);
+    else followCamera.update(vehicle, tank.anchor.position, Math.min(dt, 0.1), turret);
     if (mgMode) machineGun!.updateCamera();
     freeCamera.update(dt);
     studio?.update(dt);
     smokeSupply!.render();
+    mission?.render(Math.min(dt, .1), alpha);
     const cameraDirection = scene.activeCamera!.getForwardRay().direction;
     damageHud.update(Math.min(dt, 0.1), Math.atan2(cameraDirection.x, cameraDirection.z));
     hudElapsed += dt;
@@ -654,6 +771,15 @@ async function start() {
       audioSnapshot.driveForce = vehicle.driveForce;
       vehicleAudio.update(audioSnapshot, dt);
     }
+    if (options.shell && settings.quality !== 'high') {
+      // Cosmetic sprite budgets only; gameplay smoke stays visible at every quality.
+      for (const manager of scene.spriteManagers ?? []) {
+        if (!manager.name.startsWith('track-') && !manager.name.startsWith('combat-')) continue;
+        manager.sprites.forEach((sprite, i) => {
+          if (i % (settings.quality === 'low' ? 3 : 2) !== 0) sprite.isVisible = false;
+        });
+      }
+    }
     scene.render();
     if (!freeCamera.active) aim.render(vehicle, mgMode ? machineGun! : turret!);
     else { aim.marker.hidden = true; aim.label.hidden = true; }
@@ -669,7 +795,7 @@ function studioSceneKey() {
 start().catch((error: unknown) => {
   if (disposed) return;
   console.error(error);
-  status.textContent = 'Sahne yüklenemedi. Sayfayı yenileyerek tekrar deneyin.';
+  status.hidden = false; status.textContent = t('loadError'); options.onError?.();
 });
 function dispose() {
   if (disposed) return;
@@ -689,6 +815,7 @@ function dispose() {
   window.removeEventListener('pointerdown', unlockOnGesture);
   window.removeEventListener('keydown', unlockOnGesture);
   laneDrones?.dispose();
+  mission?.dispose();
   shadows.dispose();
   keys.dispose();
   document.removeEventListener('visibilitychange', visibility);
@@ -710,5 +837,72 @@ function dispose() {
   scene.dispose();
   engine.dispose();
 }
-if (import.meta.hot) import.meta.hot.dispose(dispose);
+
 window.addEventListener('pagehide', dispose, { once: true });
+
+function applySettings(value: Settings) {
+  settings = value;
+  audio.setVolume(value.volume);
+  const level = value.quality;
+  engine.setHardwareScalingLevel(level === 'low' ? 1.6 : level === 'medium' ? 1.2 : 1);
+  scene.shadowsEnabled = level !== 'low';
+  shadows.numCascades = level === 'high' ? 4 : 2;
+  shadows.shadowMaxZ = level === 'high' ? 260 : 160;
+  scene.particlesEnabled = level !== 'low';
+  if (movementEffects) movementEffects.enabled = level !== 'low';
+  damageHud.setState(damageHudState);
+  // Both CPU and GPU particle systems expose emitRate; retain authored rates.
+  for (const particle of scene.particleSystems) {
+    const source = particle as typeof particle & { shellEmitRate?: number; emitRate: number };
+    source.shellEmitRate ??= source.emitRate;
+    source.emitRate = source.shellEmitRate * (level === 'low' ? 0 : level === 'medium' ? .5 : 1);
+  }
+  engine.resize();
+  if (paused && vehicle) scene.render();
+}
+function setSessionPaused(value: boolean) {
+  shellPaused = value; paused = value || document.hidden;
+  keys.clear(); touch.clear(); combatInput.clear(); input.reset(); clock.reset();
+  lastTime = performance.now();
+  if (paused) { combatAudio?.reset(); void audio.suspend(); }
+  else { void unlockAudio(); if (soundEnabled) void audio.resume(); }
+}
+return {
+  dispose, applySettings,
+  startMission() { missionRequested = true; if (mission?.director.state === 'briefing') mission.start(); },
+  ...(import.meta.env.DEV ? { missionTest: {
+    camera: () => ({ resultView, aiming: followCamera.aiming, active: scene.activeCamera?.name,
+      fov: scene.activeCamera?.fov, position: scene.activeCamera?.position.asArray(),
+      distance: vehicle && scene.activeCamera ? Vector3.Distance(scene.activeCamera.position, vehicle.node.position) : 0 }),
+    snapshot: () => mission ? { state: mission.director.state, step: mission.director.step?.id, progress: mission.director.progress, score: mission.director.score(), enemies: mission.scouts.map(s => ({ hp: s.actor.damage.hp, position: s.actor.vehicle.node.position.asArray() })) } : undefined,
+    advance: () => mission?.testAdvance(), defeat: () => mission?.testDefeat(),
+    inspectBattle: () => {
+      const point = mission?.waypoint;
+      if (point && vehicle) {
+        const center = Vector3.Center(point, vehicle.node.position);
+        followCamera.overview(); followCamera.camera.position.copyFrom(center.add(new Vector3(22, 32, -26))); followCamera.camera.setTarget(center);
+      }
+    },
+    lookAtObjective: () => {
+      const point = mission?.waypoint;
+      if (point && vehicle) { const delta = point.subtract(vehicle.node.position); followCamera.follow(Math.atan2(delta.x, delta.z)); followCamera.look(0, 120); }
+    },
+  } } : {}),
+  get disposed() { return disposed; },
+  get missionState() { return mission?.director.state; },
+  setPaused: setSessionPaused,
+  setAttract(value: boolean) {
+    resultView = false;
+    if (attract && !value) {
+      followCamera.follow(spawnYaw);
+      scene.imageProcessingConfiguration.contrast = 1.15;
+      ambient.diffuse = atmosphere.hemisphere.sky;
+      ambient.groundColor = atmosphere.hemisphere.ground;
+    }
+    attract = value;
+    updateMenuSupplyVisibility();
+  },
+  enter() { pointerLock.enter(); },
+  reset,
+};
+}

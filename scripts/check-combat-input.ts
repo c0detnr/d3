@@ -16,38 +16,33 @@ function pointer(target: EventTarget, type: string, buttons: number) {
 function key(type: string, code: string) {
   const event = new Event(type, { cancelable: true }); Object.assign(event, { code }); win.dispatchEvent(event);
 }
-function wheel(canvas: EventTarget, deltaY: number, shiftKey = false, deltaMode = 0) {
+function wheel(canvas: EventTarget, deltaY: number, shiftKey = false, deltaMode = 0, handled = true) {
   const event = new Event('wheel', { cancelable: true }); Object.assign(event, { deltaY, deltaMode, shiftKey });
-  canvas.dispatchEvent(event); assert.ok(event.defaultPrevented, 'game wheel prevents page scroll');
+  canvas.dispatchEvent(event); assert.equal(event.defaultPrevented, handled, 'wheel listener lifecycle');
 }
 for (let cycle = 0; cycle < 3; cycle++) {
-  const canvas = new Surface(); let ready = true, enabled = true, moves = 0, releases = 0, alignments = 0;
+  const canvas = new Surface(); let ready = true, enabled = true, moves = 0, releases = 0, zoom = 0;
   const input = new CombatInput(canvas as unknown as HTMLCanvasElement, () => ready && enabled, () => enabled,
-    () => moves++, () => releases++, () => alignments++);
-  key('keydown', 'Space'); assert.equal(alignments, 1, 'Space aligns once on press');
-  win.dispatchEvent(Object.assign(new Event('keydown'), { code: 'Space', repeat: true }));
-  assert.equal(alignments, 1, 'held Space does not retarget the view');
-  key('keydown', 'KeyQ'); assert.equal(input.turretTurn, -1, 'Q turns left without zoom');
-  key('keydown', 'KeyE'); assert.equal(input.turretTurn, 0, 'opposing keys cancel');
-  key('keyup', 'KeyQ'); assert.equal(input.turretTurn, 1, 'E turns right');
-  key('keyup', 'KeyE'); assert.equal(input.turretTurn, 0, 'release stops turning');
-  wheel(canvas, -100); const regular = input.consumeElevation(); assert.ok(regular > 0, 'scroll up elevates');
-  assert.equal(input.consumeElevation(), 0, 'wheel delta consumed once across physics substeps');
-  wheel(canvas, -100, true); assert.ok(Math.abs(input.consumeElevation() - regular / 5) < 1e-12, 'Shift is five times finer');
-  wheel(canvas, 3, false, 1); assert.ok(Math.abs(input.consumeElevation() + regular) < 1e-12, 'line-mode wheel lowers');
+    () => moves++, () => releases++, notches => { zoom += notches; });
+  key('keydown', 'Space'); key('keydown', 'KeyQ'); key('keydown', 'KeyE');
+  assert.equal(zoom, 0, 'retired alignment/turn keys do not issue camera commands');
+  wheel(canvas, -100); assert.equal(zoom, -1, 'scroll up zooms in');
+  wheel(canvas, -100, true); assert.equal(zoom, -2, 'Shift does not change zoom speed');
+  wheel(canvas, 3, false, 1); assert.equal(zoom, -1, 'line-mode wheel zooms out');
+  wheel(canvas, 0.25, false, 2); assert.equal(zoom, -0.75, 'page-mode preserves fractions');
+  wheel(canvas, 10000); assert.equal(zoom, 3.25, 'large deltas are bounded');
   const editable = new Surface(); Object.assign(editable, { closest: () => true });
   const editableKey = new Event('keydown'); Object.assign(editableKey, { code: 'KeyE' });
   Object.defineProperty(editableKey, 'target', { value: editable }); win.dispatchEvent(editableKey);
-  assert.equal(input.turretTurn, 0, 'editing UI cannot turn the turret');
+  assert.equal(zoom, 3.25, 'editing UI does not issue camera commands');
   key('keydown', 'KeyE');
   pointer(canvas, 'pointerdown', 2); assert.equal(input.aiming, true);
-  wheel(canvas, -100); assert.equal(input.consumeElevation(), regular, 'wheel works while zoomed');
+  wheel(canvas, -100); assert.equal(zoom, 2.25, 'wheel works while aiming');
   pointer(canvas, 'pointermove', 3); assert.equal(input.consumeFire(), true, 'chord adds one shot');
   pointer(canvas, 'pointermove', 3); assert.equal(input.consumeFire(), false, 'holding does not repeat');
   pointer(canvas, 'pointermove', 1); assert.equal(input.aiming, false); assert.equal(releases, 1);
   pointer(win, 'pointerup', 0);
   canvas.dispatchEvent(new Event('lostpointercapture'));
-  assert.equal(input.turretTurn, 1, 'normal mouse release preserves held E');
   key('keyup', 'KeyE');
   ready = false; pointer(canvas, 'pointerdown', 1); ready = true;
   assert.equal(input.consumeFire(), false, 'reload click is discarded at event time');
@@ -57,19 +52,21 @@ for (let cycle = 0; cycle < 3; cycle++) {
     const event = new Event(cancel); Object.assign(event, { code: 'Escape' }); doc.hidden = true;
     (cancel === 'visibilitychange' ? doc : cancel === 'blur' || cancel === 'keydown' ? win : canvas).dispatchEvent(event);
     assert.equal(input.aiming, false, cancel); assert.equal(input.consumeFire(), false, cancel);
-    assert.equal(input.turretTurn, 0, cancel); assert.equal(input.consumeElevation(), 0, cancel);
     pointer(canvas, 'pointermove', 3); assert.equal(input.consumeFire(), false, 'hover cannot restore fire');
   }
   input.clear(); enabled = false; pointer(canvas, 'pointerdown', 3);
   assert.equal(input.aiming, false); assert.equal(input.consumeFire(), false, 'overview blocks combat');
-  key('keydown', 'Space'); assert.equal(alignments, 1, 'overview blocks Space');
-  key('keydown', 'KeyQ'); wheel(canvas, -100); assert.equal(input.turretTurn, 0); assert.equal(input.consumeElevation(), 0, 'overview blocks gun input');
+  const heldZoom = zoom;
+  key('keydown', 'Space'); key('keydown', 'KeyQ'); wheel(canvas, -100);
+  assert.equal(zoom, heldZoom, 'disabled combat blocks zoom');
+  const heldMoves = moves; pointer(canvas, 'pointermove', 0);
+  assert.equal(moves, heldMoves, 'disabled combat blocks mouse look');
   enabled = true;
-  input.dispose(); key('keydown', 'KeyE'); canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: -100 }));
-  assert.equal(input.turretTurn, 0); assert.equal(input.consumeElevation(), 0, 'disposed listeners cannot move gun');
+  input.dispose(); wheel(canvas, -100, false, 0, false);
+  assert.equal(zoom, heldZoom, 'disposed listeners cannot zoom');
   const before = moves; pointer(canvas, 'pointermove', 0); assert.equal(moves, before);
 }
-console.log('Combat input: Q/E, wheel normal/zoom/fine/line-mode, UI gating, chords, single press, reload rejection, overview, cancel/focus/Esc and 3 disposal cycles passed.');
+console.log('Combat input: retired Q/E/Space, zoom pixel/line/page/bounds, UI gating, chords, single press, reload rejection, overview, cancel/focus/Esc and 3 disposal cycles passed.');
 
 const drive = bindDriveKeys(win as unknown as Window, () => {});
 key('keydown', 'Space'); assert.equal(drive.keys.brake, false, 'Space aim cannot brake');

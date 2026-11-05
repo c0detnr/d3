@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts';
 import { FreeCamera, Vector3, type Camera, type Scene } from '@babylonjs/core';
 
 /** Independent map inspection camera; distances in metres, movement in metres/second. */
@@ -19,8 +20,9 @@ export class FreeFlyCamera {
     this.camera.inputs.clear();
     this.camera.minZ = 0.15;
     this.camera.maxZ = 2800;
-    this.hint.textContent = 'SERBEST KAMERA · WASD hareket · Q/E alçal/yüksel · Shift hızlan · 0 tanka dön';
+    this.hint.textContent = t('freeCameraHelp');
     this.hint.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 16px;background:#111d;color:#eee;font:13px sans-serif;z-index:30;pointer-events:none';
+    this.hint.dataset.i18n = 'freeCameraHelp';
     this.hint.hidden = true;
     document.body.append(this.hint);
     const options = { signal: this.listeners.signal };

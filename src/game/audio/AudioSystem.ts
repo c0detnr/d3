@@ -1,3 +1,4 @@
+import { SmokeAudio } from './SmokeAudio.ts';
 import { IRON_DUST_AUDIO, type AudioDefinition } from './AudioDefinition.ts';
 
 export interface AudioSystemOptions {
@@ -20,6 +21,7 @@ export class AudioSystem {
   private context?: AudioContext;
   private master?: GainNode;
   private limiter?: DynamicsCompressorNode;
+  private smoke?: SmokeAudio;
   private currentVolume: number;
   private currentMuted: boolean;
   private disposed = false;
@@ -58,6 +60,7 @@ export class AudioSystem {
       this.context = context;
       this.master = master;
       this.limiter = limiter;
+      this.smoke = new SmokeAudio(context, master);
       this.applyGain(0);
     }
     if (this.disposed) return false;
@@ -93,6 +96,7 @@ export class AudioSystem {
   }
 
   async suspend() {
+    this.smoke?.reset();
     if (!this.context || this.context.state !== 'running') return;
     try { await this.context.suspend(); } catch { /* unavailable */ }
   }
@@ -107,6 +111,7 @@ export class AudioSystem {
     if (this.disposed) return;
     this.disposed = true;
     const context = this.context;
+    this.smoke?.dispose(); this.smoke = undefined;
     this.master?.disconnect();
     this.limiter?.disconnect();
     this.context = undefined;

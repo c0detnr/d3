@@ -1,13 +1,28 @@
 import { Vector3 } from '@babylonjs/core';
+import type { TranslationKey } from '../i18n/tr.ts';
 
 /** Gameplay units: metres and seconds. These are initial tuning values. */
 export const SMOKE = {
-  capacity: 3, cooldown: 20, flight: .7, growth: 2, hold: 15, fade: 3,
+  capacity: 3, initialCharges: 2, cooldown: 12, flight: .8, growth: 1, hold: 14, fade: 5,
+  salvo: 5, distance: 12, spread: 6, arcHeight: 2.4, cloudHeight: 2.1,
+  windX: .14, windZ: .055, particlesPerCloud: 24, maxClouds: 10,
+  sightTransmission: .2, insideOpacity: .68,
   radius: 6, verticalScale: .7, density: .65, pickupRange: 8,
 } as const;
 export const smokeLifetime = SMOKE.flight + SMOKE.growth + SMOKE.hold + SMOKE.fade;
 
 export interface SmokeCloud { center: Vector3; age: number }
+
+// Growth and dissipation are independent: an old cloud thins rather than implodes.
+export function smokeRadius(age: number) {
+  const elapsed = Math.max(0, age - SMOKE.flight);
+  const bloom = 1 - (1 - Math.min(1, elapsed / SMOKE.growth)) ** 3;
+  return SMOKE.radius * (.15 + .75 * bloom + .1 * Math.min(1, elapsed / (SMOKE.growth + SMOKE.hold + SMOKE.fade)));
+}
+export function smokeCenter(cloud: SmokeCloud) {
+  const elapsed = Math.max(0, cloud.age - SMOKE.flight);
+  return cloud.center.add(new Vector3(SMOKE.windX * elapsed, 0, SMOKE.windZ * elapsed));
+}
 
 export function smokeStrength(age: number) {
   if (age < SMOKE.flight || age >= smokeLifetime) return 0;
@@ -36,8 +51,8 @@ export function smokeOpticalDepth(from: Vector3, to: Vector3, clouds: readonly S
   for (const cloud of clouds) {
     const strength = smokeStrength(cloud.age);
     if (strength <= 0) continue;
-    const radius = SMOKE.radius * (.35 + .65 * strength);
-    const offset = from.subtract(cloud.center);
+    const radius = smokeRadius(cloud.age);
+    const offset = from.subtract(smokeCenter(cloud));
     offset.y /= SMOKE.verticalScale;
     const ray = direction.clone(); ray.y /= SMOKE.verticalScale;
     const a = Vector3.Dot(ray, ray), b = Vector3.Dot(offset, ray);
@@ -52,24 +67,30 @@ export function smokeOpticalDepth(from: Vector3, to: Vector3, clouds: readonly S
 }
 
 export class SmokeModel {
-  count = 0;
+  count: number = SMOKE.initialCharges;
   cooldown = 0;
   readonly clouds: SmokeCloud[] = [];
+  feedback: { key: TranslationKey; seconds?: number } | null = null;
+  feedbackTime = 0;
+  notify(key: TranslationKey, seconds?: number) { this.feedback = { key, seconds }; this.feedbackTime = 2; }
 
   collect() {
     if (this.count >= SMOKE.capacity) return false;
-    this.count++; return true;
+    this.count++; this.notify('smokeCollected'); return true;
   }
 
   fire(centers: readonly Vector3[]) {
-    if (this.count <= 0 || this.cooldown > 1e-6 || centers.length !== 3) return false;
-    this.count--; this.cooldown = SMOKE.cooldown;
+    if (this.count <= 0) { this.notify('smokeEmpty'); return false; }
+    if (this.cooldown > 1e-6) { this.notify('smokePreparing', Math.ceil(this.cooldown)); return false; }
+    if (centers.length !== SMOKE.salvo) return false;
+    this.count--; this.cooldown = SMOKE.cooldown; this.notify('smokeDeployed');
     this.clouds.push(...centers.map(center => ({ center: center.clone(), age: 0 })));
     return true;
   }
 
   fixedUpdate(dt: number) {
     this.cooldown = Math.max(0, this.cooldown - dt);
+    this.feedbackTime = Math.max(0, this.feedbackTime - dt);
     for (const cloud of this.clouds) cloud.age += dt;
     for (let i = this.clouds.length - 1; i >= 0; i--) {
       if (this.clouds[i].age >= smokeLifetime) this.clouds.splice(i, 1);
@@ -77,8 +98,8 @@ export class SmokeModel {
   }
 
   blocksSight(from: Vector3, to: Vector3) {
-    return smokeOpticalDepth(from, to, this.clouds) >= -Math.log(.2);
+    return smokeOpticalDepth(from, to, this.clouds) >= -Math.log(SMOKE.sightTransmission);
   }
 
-  reset() { this.count = this.cooldown = 0; this.clouds.length = 0; }
+  reset() { this.count = SMOKE.initialCharges; this.cooldown = 0; this.clouds.length = 0; this.feedback = null; this.feedbackTime = 0; }
 }

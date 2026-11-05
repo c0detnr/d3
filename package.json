@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --experimental-strip-types --test src/game/core/fixedStep.test.ts",
+    "test": "node --experimental-strip-types --test src/game/core/fixedStep.test.ts && npm run mission:test",
     "map:dev": "vite --config vite.map.config.ts --host 127.0.0.1 --open /map-preview.html",
     "studio": "vite --config vite.map.config.ts --host 127.0.0.1 --open \"/map-preview.html?studio=1\"",
     "map:check": "tsc -p tsconfig.map.json",
@@ -28,11 +28,13 @@
     "smoke:test": "node --experimental-strip-types scripts/check-smoke.ts",
     "combat:test": "node --experimental-strip-types scripts/check-combat.ts && node --experimental-strip-types scripts/check-combat-input.ts && node --experimental-strip-types scripts/check-pointer-lock.ts && node --experimental-strip-types scripts/check-camera.ts",
     "mg:test": "node --experimental-strip-types scripts/check-machine-gun.ts && node --experimental-strip-types scripts/check-machine-gun-input.ts",
-    "android:build": "bash scripts/build-android.sh",
     "touch:test": "node --experimental-strip-types scripts/check-touch-input.ts",
     "lan:start": "npm run map:build && node --experimental-strip-types scripts/lan-server.ts",
     "lan:check": "tsc -p tsconfig.lan.json",
-    "lan:test": "node --experimental-strip-types scripts/check-network-simulation.ts && node --experimental-strip-types scripts/check-lan-server.ts"
+    "lan:test": "node --experimental-strip-types scripts/check-network-simulation.ts && node --experimental-strip-types scripts/check-lan-server.ts",
+    "build:itch": "npm run map:check && vite build --config vite.itch.config.ts",
+    "shell:test": "node --experimental-strip-types scripts/check-shell.ts",
+    "mission:test": "node --experimental-strip-types scripts/check-missions.ts"
   },
   "dependencies": {
     "@babylonjs/core": "9.32.0",

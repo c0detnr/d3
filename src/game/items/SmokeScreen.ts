@@ -1,6 +1,6 @@
-import { Effect, Matrix, PostProcess, Texture, type Camera, type Scene, type DepthRenderer } from '@babylonjs/core';
+import { DirectionalLight, Effect, Matrix, Vector3, PostProcess, Texture, type Camera, type Scene, type DepthRenderer } from '@babylonjs/core';
 import '@babylonjs/core/Rendering/depthRendererSceneComponent.js';
-import { SMOKE, smokeStrength, type SmokeModel } from './SmokeModel.ts';
+import { SMOKE, smokeCenter, smokeRadius, smokeStrength, type SmokeModel } from './SmokeModel.ts';
 
 const VS = SMOKE.verticalScale.toFixed(2);
 Effect.ShadersStore['ironDustSmokeFragmentShader'] = `
@@ -10,10 +10,12 @@ uniform sampler2D textureSampler;
 uniform sampler2D depthSampler;
 uniform mat4 inverseViewProjection;
 uniform vec3 eye;
-uniform vec4 clouds[6];
-uniform float strengths[6];
+uniform vec4 clouds[${SMOKE.maxClouds}];
+uniform float strengths[${SMOKE.maxClouds}];
 uniform float packedDepth;
 uniform float time;
+uniform vec3 sunDirection;
+uniform float inside;
 float hash(vec3 p) { p = fract(p * .3183099 + .1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
 float noise(vec3 x) {
   vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
@@ -36,7 +38,7 @@ void main() {
   float distance = length(delta);
   vec3 direction = delta / max(distance, .0001);
   float opticalDepth = 0.0, detail = 0.0, height = 0.0, weight = 0.0;
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < ${SMOKE.maxClouds}; i++) {
     if (strengths[i] <= 0.0) continue;
     vec3 offset = eye - clouds[i].xyz;
     offset.y /= ${VS};
@@ -55,24 +57,24 @@ void main() {
     opticalDepth += cloudDepth;
     // Visual only: billow detail and height sampled across this cloud's segment.
     float n = 0.0, h = 0.0;
-    for (int k = 0; k < 3; k++) {
-      float s = mix(s0, s1, .2 + .3 * float(k));
+    {
+      float s = mix(s0, s1, .5);
       vec3 p = eye + direction * s;
       n += billow(p + clouds[i].xyz * 3.7);
       h += clamp((p.y - clouds[i].y) / (clouds[i].w * ${VS}) * .5 + .5, 0.0, 1.0);
     }
-    detail += n / 3.0 * cloudDepth; height += h / 3.0 * cloudDepth; weight += cloudDepth;
+    detail += n * cloudDepth; height += h * cloudDepth; weight += cloudDepth;
   }
   if (weight <= 0.0) { gl_FragColor = source; return; }
   detail /= weight; height /= weight;
   // Billows break up the thin edges; dense cores stay opaque like the gameplay model.
   float visualDepth = opticalDepth * mix(.25, 1.75, smoothstep(.2, .8, detail));
-  // Where the AI is blinded (depth >= -ln .2) the player sees at least ~78% cover too.
-  float opacity = 1.0 - exp(-max(visualDepth, opticalDepth * smoothstep(1.0, 1.7, opticalDepth)));
+  // Dense exterior cover; cap the interior haze so nearby navigation stays readable.
+  float opacity = min(mix(.96, ${SMOKE.insideOpacity.toFixed(2)}, inside), 1.0 - exp(-max(visualDepth, opticalDepth * smoothstep(1.0, 1.7, opticalDepth))));
   // Sky-lit tops, self-shadowed undersides and dense cores.
   float shadow = 1.0 - exp(-opticalDepth * .35);
   vec3 lit = vec3(.86, .85, .81), dark = vec3(.40, .41, .40);
-  vec3 smoke = mix(dark, lit, clamp(height * .75 + detail * .45 - shadow * .25, 0.0, 1.0));
+  vec3 smoke = mix(dark, lit, clamp(height * .65 + detail * .45 - shadow * .2 + dot(direction, sunDirection) * .1, 0.0, 1.0));
   gl_FragColor = vec4(mix(source.rgb, smoke, opacity), source.a);
 }`;
 
@@ -82,8 +84,8 @@ export class SmokeScreen {
   private depth?: DepthRenderer;
   private process?: PostProcess;
   private readonly inverse = Matrix.Identity();
-  private readonly centers = new Float32Array(24);
-  private readonly strengths = new Float32Array(6);
+  private readonly centers = new Float32Array(SMOKE.maxClouds * 4);
+  private readonly strengths = new Float32Array(SMOKE.maxClouds);
   private readonly scene: Scene;
   private readonly model: SmokeModel;
 
@@ -97,16 +99,24 @@ export class SmokeScreen {
     this.depth = this.scene.enableDepthRenderer(camera, true, true, Texture.NEAREST_SAMPLINGMODE);
     this.depth.useOnlyInActiveCamera = true;
     this.process = new PostProcess('smoke-screen', 'ironDustSmoke',
-      ['inverseViewProjection', 'eye', 'clouds', 'strengths', 'packedDepth', 'time'], ['depthSampler'], 1, camera);
+      ['inverseViewProjection', 'eye', 'clouds', 'strengths', 'packedDepth', 'time', 'sunDirection', 'inside'], ['depthSampler'], 1, camera);
     this.process.onApply = effect => {
       camera.getViewMatrix().multiply(camera.getProjectionMatrix()).invertToRef(this.inverse);
       effect.setMatrix('inverseViewProjection', this.inverse);
       effect.setVector3('eye', camera.globalPosition);
       effect.setFloat('time', performance.now() / 1000);
+      const sun = this.scene.lights.find(light => light instanceof DirectionalLight) as DirectionalLight | undefined;
+      effect.setVector3('sunDirection', sun?.direction.normalizeToNew().negate() ?? new Vector3(-.5, .7, .4));
+      const inside = this.model.clouds.reduce((amount, cloud) => {
+        const offset = camera.globalPosition.subtract(smokeCenter(cloud)); offset.y /= SMOKE.verticalScale;
+        return Math.max(amount, smokeStrength(cloud.age) > 0 ? Math.min(1, Math.max(0, smokeRadius(cloud.age) - offset.length())) : 0);
+      }, 0);
+      effect.setFloat('inside', Number(inside));
       this.centers.fill(0); this.strengths.fill(0);
-      this.model.clouds.slice(0, 6).forEach((cloud, index) => {
+      this.model.clouds.slice(0, SMOKE.maxClouds).forEach((cloud, index) => {
         const strength = smokeStrength(cloud.age);
-        this.centers.set([cloud.center.x, cloud.center.y, cloud.center.z, SMOKE.radius * (.35 + .65 * strength)], index * 4);
+        const center = smokeCenter(cloud);
+        this.centers.set([center.x, center.y, center.z, smokeRadius(cloud.age)], index * 4);
         this.strengths[index] = strength;
       });
       effect.setFloatArray4('clouds', this.centers);

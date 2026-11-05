@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts';
 import icon from '../../../assets/items/smoke_supply_01/inventory.svg?url';
 import { SMOKE, type SmokeModel } from '../items/SmokeModel.ts';
 import './smokeInventory.css';
@@ -8,22 +9,24 @@ export class SmokeInventory {
   private readonly pickup: HTMLButtonElement;
   private readonly count: HTMLElement;
   private readonly status: HTMLElement;
+  private readonly feedback: HTMLElement;
   private readonly cooldown: HTMLProgressElement;
   private readonly listeners = new AbortController();
 
   constructor(fire: () => void, collect: () => void) {
     this.element.className = 'smoke-inventory';
     this.element.setAttribute('aria-label', 'Sis mühimmatı envanteri');
-    this.element.innerHTML = `<button class="smoke-pickup" type="button" hidden><kbd>F</kbd><span>Sis mühimmatı · +1 kullanım</span></button>
+    this.element.innerHTML = `<button class="smoke-pickup" type="button" hidden><kbd>F</kbd><span>${t('smokePickup')}</span></button>
       <button class="smoke-use" type="button" aria-label="Sis mühimmatı kullan" title="Sis mühimmatı — Geçici görüş perdesi oluşturur. Mermileri durdurmaz.">
-        <kbd>G</kbd><img src="${icon}" alt="İki sis mühimmatı tüpü"/><span class="smoke-count">0 / 3</span>
-        <progress max="20" value="0" aria-label="Sis kullanımına kalan süre"></progress>
-      </button><div class="smoke-caption"><span>SİS MÜHİMMATI</span><output aria-live="polite">İKMAL GEREKLİ</output></div>`;
+        <kbd>G</kbd><img src="${icon}" alt="İki sis mühimmatı tüpü"/><span class="smoke-count">${SMOKE.initialCharges} / ${SMOKE.capacity}</span>
+        <progress max="${SMOKE.cooldown}" value="0" aria-label="Sis kullanımına kalan süre"></progress>
+      </button><div class="smoke-caption"><span>${t('smokeAmmo')}</span><output>${t('smokeScreen')}</output></div><output class="smoke-feedback" role="status" aria-live="polite" hidden></output>`;
     this.use = this.element.querySelector('.smoke-use')!;
     this.pickup = this.element.querySelector('.smoke-pickup')!;
     this.count = this.element.querySelector('.smoke-count')!;
-    this.status = this.element.querySelector('output')!;
+    this.status = this.element.querySelector('.smoke-caption output')!;
     this.cooldown = this.element.querySelector('progress')!;
+    this.feedback = this.element.querySelector('.smoke-feedback')!;
     this.use.addEventListener('click', fire, { signal: this.listeners.signal });
     this.pickup.addEventListener('click', collect, { signal: this.listeners.signal });
     document.body.append(this.element);
@@ -32,12 +35,19 @@ export class SmokeInventory {
   update(model: SmokeModel, near: boolean, alive: boolean) {
     this.count.textContent = `${model.count} / ${SMOKE.capacity}`;
     this.cooldown.value = model.cooldown;
+    this.element.querySelector('.smoke-caption > span')!.textContent = t('smokeAmmo');
+    this.use.setAttribute('aria-label', `Sis perdesi: ${model.count} / ${SMOKE.capacity} şarj${model.cooldown > 0 ? `, ${Math.ceil(model.cooldown)} saniye bekle` : ''}`);
+    this.cooldown.setAttribute('aria-valuetext', `${Math.ceil(model.cooldown)} saniye`);
+    this.feedback.hidden = model.feedbackTime <= 0 || !alive;
+    const feedback = model.feedback ? t(model.feedback.key).replace('{seconds}', String(model.feedback.seconds ?? '')) : '';
+    if (this.feedback.textContent !== feedback) this.feedback.textContent = feedback;
+    this.element.dataset.notice = String(model.feedbackTime > 0);
     this.use.disabled = !alive || model.count === 0 || model.cooldown > 1e-6;
-    const label = !alive ? 'ARAÇ İMHA EDİLDİ' : model.cooldown > 1e-6 ? `${Math.ceil(model.cooldown)} s · BEKLE` : model.count ? 'G · SİS PERDESİ' : 'İKMAL GEREKLİ';
+    const label = !alive ? t('vehicleDestroyed') : model.cooldown > 1e-6 ? `${Math.ceil(model.cooldown)} ${t('smokeWait')}` : model.count ? t('smokeScreen') : t('smokeResupply');
     if (this.status.textContent !== label) this.status.textContent = label;
     this.pickup.hidden = !near || !alive;
     this.pickup.disabled = model.count >= SMOKE.capacity;
-    this.pickup.querySelector('span')!.textContent = model.count >= SMOKE.capacity ? 'Sis mühimmatı · envanter dolu' : 'Sis mühimmatı · +1 kullanım';
+    this.pickup.querySelector('span')!.textContent = model.count >= SMOKE.capacity ? t('smokeFull') : t('smokePickup');
     this.element.dataset.empty = String(model.count === 0);
   }
 

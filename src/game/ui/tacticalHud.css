@@ -9,15 +9,15 @@
 .compass-pin { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); color: #fff8e7; }
 .compass-heading { display: block; margin: 2px auto 0; width: 55px; font-size: 20px; font-weight: 300; }
 .hud-center { position: absolute; top: 50%; left: 50%; width: 164px; transform: translateX(-50%); text-align: center; }
-.hud-reload { margin-top: 39px; }
-.hud-reload > div { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 6px; }
+.hud-reload { margin-top: 64px; padding: 10px 12px; background: rgb(16 23 20 / 94%); }
+.hud-reload > div { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px; gap: 12px; }
 .hud-reload-time { color: #e6d3b3; }
 .tactical-hud progress { display: block; width: 100%; height: 3px; padding: 0; border: 0; border-radius: 0; appearance: none; background: #fff1d61c; accent-color: var(--hud-amber); box-shadow: 0 1px 3px #0008; }
 .tactical-hud progress::-webkit-progress-bar { background: #fff1d61c; }
 .tactical-hud progress::-webkit-progress-value { background: var(--hud-amber); }
 .tactical-hud progress::-moz-progress-bar { background: var(--hud-amber); }
 .hud-range { display: block; margin-top: 8px; font-size: 9px; color: #e8e4daab; }
-.tactical-hud[data-reloading='false'] .hud-reload { opacity: .55; }
+body.shell-playing .hud-brand, body.shell-playing .hud-range { display: none; }
 .hud-vehicle { position: absolute; bottom: max(38px, env(safe-area-inset-bottom)); left: var(--hud-margin); display: flex; align-items: center; gap: 18px; }
 .hud-vehicle svg { width: 85px; height: 118px; overflow: visible; fill: #171c1a35; stroke: #e7e2d0; stroke-width: 1; filter: drop-shadow(0 1px 3px #000); }
 .hud-vehicle .vehicle-guide { stroke: #e8e4da60; fill: none; }
@@ -26,7 +26,7 @@
 .hud-speed output { font-size: 46px; font-weight: 300; line-height: 1; letter-spacing: -.03em; }
 .hud-speed > span { font-size: 12px; color: #e8e4dacc; }
 .hud-drive { font-size: 8px; color: #e8e4da80; margin-top: 8px; letter-spacing: .14em; }
-.hud-weapons { position: absolute; right: var(--hud-margin); bottom: max(40px, env(safe-area-inset-bottom)); width: 210px; }
+.hud-weapons { position: absolute; right: var(--hud-margin); bottom: max(40px, env(safe-area-inset-bottom)); width: 210px; box-sizing: border-box; padding: 10px 12px; background: rgb(16 23 20 / 94%); }
 .hud-weapons button { width: 100%; display: flex; align-items: center; gap: 12px; justify-content: space-between; border: 0; padding: 7px 0; margin: 0; background: transparent; color: #eeeae0; font: inherit; letter-spacing: .06em; text-shadow: inherit; pointer-events: auto; cursor: pointer; }
 .hud-weapons button:disabled { opacity: 1; cursor: default; pointer-events: none; }
 .hud-weapons button[aria-pressed='false'] { color: #e8e4da70; }
@@ -35,12 +35,12 @@
 .hud-weapons kbd { font: 11px/22px Arial, sans-serif; text-align: center; border: 1px solid currentColor; width: 24px; height: 24px; }
 .hud-weapons button[aria-pressed='true'] kbd { color: var(--hud-amber); }
 .hud-shell { width: 100%; height: 30px; stroke: #e8e4da; fill: none; stroke-width: 1; filter: drop-shadow(0 1px 2px #000); }
-.hud-weapon-state { display: block; color: #e8e4da9c; font-size: 8px; margin: 9px 0 12px; }
+.hud-weapon-state { display: block; color: #eeeae0; font-size: 12px; margin: 9px 0 12px; }
 .hud-mg-line { font: 17px monospace; letter-spacing: -.14em; }
 .has-tactical-hud #combat-hud, .has-tactical-hud #aim-intent, .has-tactical-hud #aim-status, .has-tactical-hud .panel.weapon { display: none; }
 .has-tactical-hud #aim-bore, .has-tactical-hud .reticle { width: 20px; height: 20px; border: 1px solid #eee6d4; border-radius: 50%; color: transparent; background: transparent; box-shadow: 0 1px 4px #0007; }
 .has-tactical-hud #aim-bore.blocked { border-color: var(--hud-amber, #e6b164); }
-.has-tactical-hud .vehicle-condition { bottom: 180px; left: var(--hud-margin, 32px); width: 210px; padding: 8px 10px; border-left: 1px solid #91a18b70; background: linear-gradient(90deg, #101714a6, transparent); }
+.has-tactical-hud .vehicle-condition { bottom: 180px; left: var(--hud-margin, 32px); width: 210px; padding: 8px 10px; border-left: 1px solid #91a18b70; background: rgb(16 23 20 / 94%); }
 .has-tactical-hud .condition-diagram { display: none; }
 .has-tactical-hud .condition-value { font-size: 18px; }
 .has-tactical-hud .condition-notice { min-height: 0; }
@@ -69,8 +69,8 @@
   .hud-weapons button { font-size: 10px; padding: 3px 0; }
   .hud-weapons kbd, .hud-shell, .hud-weapons [data-weapon='mg'], .hud-weapon-state { display: none; }
   .hud-center { width: 130px; }
-  .hud-reload { margin-top: 28px; }
-  .hud-reload > div { font-size: 8px; }
+  .hud-reload { margin-top: 64px; }
+  .hud-reload > div { font-size: 11px; }
   .hud-range { margin-top: 5px; font-size: 8px; }
   .has-tactical-hud .vehicle-condition { top: 105px; bottom: auto; left: 15px; width: 126px; padding: 5px 7px; }
   .has-tactical-hud .condition-caption, .has-tactical-hud .condition-notice { font-size: 8px; }

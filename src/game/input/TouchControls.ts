@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts';
 import { releasedKeys } from './DriveInput.ts';
 
 /** Pointer IDs are owned per control so driving, aiming and firing can overlap. */
@@ -81,7 +82,7 @@ export class TouchControls {
   };
   update(ready: boolean, mg: boolean) {
     this.root.querySelector('[data-action="fire"]')!.classList.toggle('reloading', !ready && !mg);
-    this.root.querySelector('[data-action="weapon"]')!.textContent = mg ? 'TOP' : 'MG';
+    this.root.querySelector('[data-action="weapon"]')!.textContent = mg ? t('cannon') : 'MG';
   }
   dispose() { this.clear(); for (const cleanup of this.cleanups) cleanup(); }
 }

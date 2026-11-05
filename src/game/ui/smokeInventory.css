@@ -12,11 +12,17 @@
 .smoke-use progress::-webkit-progress-bar { background: #18201a; }
 .smoke-use progress::-webkit-progress-value { background: #d1a15d; }
 .smoke-use progress::-moz-progress-bar { background: #d1a15d; }
-.smoke-caption { display: grid; gap: 5px; text-shadow: 0 1px 4px #000; }
-.smoke-caption > span { letter-spacing: .12em; font-size: 9px; color: #abb5a0; }
-.smoke-caption output { font-size: 10px; }
-.smoke-pickup { position: absolute; bottom: 95px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 9px; padding: 9px 13px; white-space: nowrap; background: #131c16ed; border: 1px solid #9ba68d80; border-radius: 3px; }
+.smoke-caption { display: grid; gap: 6px; padding: 10px 12px; background: rgb(16 23 20 / 94%); text-shadow: 0 1px 4px #000; }
+.smoke-caption > span { letter-spacing: .06em; font-size: 12px; color: #d7dfcd; }
+.smoke-caption output { font-size: 12px; color: #f1eddf; }
+.smoke-pickup { position: absolute; bottom: calc(100% + 24px); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 9px; padding: 9px 13px; white-space: nowrap; background: #131c16ed; border: 1px solid #cfda9c; border-radius: 3px; box-shadow: 0 0 18px #b7cf6630; font-size: 13px; }
 .smoke-pickup[hidden] { display: none; }
 .smoke-pickup:disabled { opacity: .7; cursor: default; }
-@media (max-width: 850px) { .smoke-caption { display: none; } .smoke-use { width: 64px; height: 64px; } }
-@media (pointer: coarse) { .smoke-inventory { bottom: calc(max(28px, env(safe-area-inset-bottom)) + clamp(112px, 24vh, 156px) + 24px); } .smoke-use { width: 54px; height: 54px; } .smoke-use > kbd { display: none; } .smoke-pickup { bottom: 70px; } }
+@media (max-width: 850px) { .smoke-caption { max-width: 165px; } .smoke-use { width: 64px; height: 64px; } }
+@media (pointer: coarse) { .smoke-inventory { bottom: calc(max(28px, env(safe-area-inset-bottom)) + clamp(112px, 24vh, 156px) + 24px); } .smoke-use { width: 54px; height: 54px; } .smoke-use > kbd { display: none; } .smoke-pickup { bottom: calc(100% + 24px); } }
+
+.smoke-feedback { position: absolute; bottom: calc(100% + 80px); left: 50%; transform: translateX(-50%); padding: 8px 12px; background: #182018f2; color: #f0d297; border: 1px solid #a99668; white-space: nowrap; font-size: 12px; text-align: center; }
+.smoke-feedback[hidden] { display: none; }
+.smoke-inventory[data-notice='true'] .smoke-use { border-color: #e6b164; }
+.smoke-count, .smoke-caption output { font-variant-numeric: tabular-nums; }
+@media (max-width: 480px) { .smoke-caption { max-width: 140px; } .smoke-caption > span { font-size: 11px; } .smoke-feedback { font-size: 10px; bottom: calc(100% + 80px); } }

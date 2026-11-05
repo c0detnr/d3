@@ -318,3 +318,19 @@ EasyDuelAI görüş kesilince ateş iznini hemen kapatır; görüş geri geldiğ
 [5’e 5 düello](TEAM_DUEL.md): oyuncu + 4 dost AI / 5 düşman AI; her takımın kendi üssünde beş ayrı doğuşu, üç koridor rotası, aralıklı çıkış, viraj freni, hedef seçimi/tepki, hareket önlemesi/yerçekimi telafisi, dost hasarı koruması, skor/işaretler, tüm takım imhasıyla sonuç ve tam maç reseti eklendi. Oyuncu imha olsa bile dostlar devam eder.
 
 `check-team-duel.ts`, `check-duel-ai.ts`, `damage:test` ve `map:build` geçti. Gerçek Kül Vadisi / on gerçek GLB / tek Havok dünyasında iki üs, dokuz AI’ın oyuncu park halindeyken çıkışı, 150 s hareket/36 atış/gerçek hasar, görüş engeli, beş reset, üç sonuç türü, sonuç kilidi, 30/60/120 sabit adımlama ve kaynak temizliği sınandı. Tarayıcı host erişimi yok; HUD/kamera, insan AI dengesi ve FPS kabulü açık. M1/M2/M3 genel kabulü değişmez.
+
+### 2026-11-05 — itch.io oyun kabuğu
+
+TR/EN menü, beş görev kartı (yalnız ilk görev açık), brifing, kaydedilen ayarlar, kontroller, kaynak/lisans ekranı, Esc/fare kilidiyle duraklatma ve görev sisteminin çağırabileceği sonuç API'si eklendi. Sahne kurulumu tekrar kullanılabilir oturuma ayrıldı; önizleme, LAN ve Android girişleri korundu. `build:itch` göreli URL'lerle ayrı `dist/` üretir. Görev mantığı bu adımın kapsamı dışındadır; M1/M2/M3 genel insan kabulü kapanmaz. Doğrulama kanıtı: `artifacts/ui/browser-check.json`, menü/görev/brifing PNG'leri ve `shell:test`; otomatik kontrol ayrıntıları README'de.
+
+Kabuğun otomatik kontrolleri: `map:build`, `combat:test`, `touch:test`, `lan:check`, `build:itch`, `shell:test` başarılı. Headless Chromium/ANGLE SwiftShader, 1440×960 düşük kalite: `/game/` altında sıfır sayfa/kaynak/konsol hatası; 5 yeniden başlatma, kilit bırakınca duraklama/Devam ile yeniden kilit, kayıt yenilemesi, gerçek düşük çözünürlük ölçeği ve 640×800 taşma kontrolü geçti. Engelli tarayıcı kaydı ve ayrı geliştirici önizlemesi de sıfır hatayla açıldı. Bu bir insan sürüş/FPS veya gerçek Android cihaz kabulü değildir.
+
+### 2026-11-05 — Oyun kabuğu görsel cilası
+
+Marka tekrarları kaldırıldı; tek üst logo ve TR/EN segmentleri, ortak buton ailesi, belirgin hover/focus ve yüksek kontrastlı yardımcı metinler uygulandı. Menüye özel ışık ve sağa alınmış tank kadrajı, sabit boylu görev kartları ve seçilen görevin sağ detay paneli eklendi; kilitli görevler incelenebilir, başlatılamaz. Brifing/duraklat yarı saydam panellere alındı. Yıldız hedefleri açıklayıcıdır; görev mantığı ve sayısal eşikler bu adımda eklenmedi.
+
+`shell:test`, `build:itch`, `map:build` ve `git diff --check` geçti. Chromium/ANGLE SwiftShader ile `/game/` altında 1280×720 ve 1920×1080 kontrolleri sıfır sayfa/kaynak/konsol hatasıyla tamamlandı; iki boyutta beş ekranın PNG'leri, kart yüksekliği/başlatma düğmesi/üst sıra çakışma kontrolleri ve beş yeniden başlatma çevrimi `artifacts/ui/` altında yenilendi. İkincil metin/buton paletinin en düşük kontrastı, yarı saydam yüzeyler beyaz üzerinde bileşitlendiğinde 5,61:1 (`contrast-check.json`). İnsan oynanış/FPS kabulü değildir.
+
+### 2026-11-05 — Çaylak Günü görev sistemi
+
+Doğal arazide 3 sıralı kontrol noktası → 3 farklı zırh hedefi → 2 kolay AI tankı, olay tabanlı görev çekirdeği, amaç/yön/mesafe HUD'u, TR/EN telsiz, zafer/yenilgi/istatistik/yıldız/kayıt ve görev 2'nin Yakında olarak açılması uygulandı. R kurtarması görev süresi/toplam hasarı korur; tam yeniden başlatma sahneyi yeniden kurar. Sis atıcıları gerçek kule dünya dönüşümünü kullanır. [Kapsam, kontroller ve açık insan kabulü](MISSIONS.md#2026-11-05--görev-1-uygulaması-ve-doğrulama). Genel M1/M2/M3 insan kabulü kapanmaz.

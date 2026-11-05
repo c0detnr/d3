@@ -25,3 +25,12 @@ HUD yalnız sunum katmanıdır. Ana sahnede mevcut 10 Hz telemetri akışı kull
 Kullanıcı tercihiyle yalnız mevcut yuvarlak namlu nişangâhı bırakıldı. Merkez artısı kaldırıldı; commit edilmemiş köşeli odak nişangâhı, ek mesafe yazısı ve yükseklik ölçümü ana oyun ve LAN sahnesinden çıkarıldı. Mevcut dolum ve HUD mesafe bilgisi korunur.
 
 `npm run map:build`, `npm run lan:check` ve `git diff --check` geçti. Büyük paket uyarısı sürüyor. Bu değişiklik için yeni tarayıcı görsel kontrolü yapılmadı.
+
+
+## 2026-11-05 — Sürekli masaüstü taret takibi
+
+Fare kilidi açıkken kamera bakışı bağımsızdır; taret ve namlu kamera ışınının ilk fizik isabetine, isabet yoksa 1000 m uzaktaki noktaya kendi hız ve yükseliş sınırlarıyla sürekli döner. Halka gerçek namlu yönünü gösterir; hızlı fare hareketinde taretin geriden gelmesi beklenir. Kamera sarsıntısı nişan hedefini değiştirmez. Sağ tık nişancı görüşüdür; tekerlek normal görüşte kamera mesafesini (6–35 m), nişancı görüşünde zoom'u (0,2–0,7 radyan görüş açısı) ayarlar. Q/E ve Space taret komutu vermez. Esc/kilit kaybı, genel görünüş ve `0` serbest uçuşta otomatik takip kapalıdır. Dokunmatik/Android manuel nişan çubuğu ve namluyu izleyen nişancı kamerası korunur.
+
+LAN istemcisi aynı bakış hedefinden normalize `aimDirection` gönderir; mevcut yetkili sunucu taret hızını ve açı sınırlarını uygular. Ağ protokolü değişmedi. Ekrandaki LAN yardım metni ve README kontrolleri güncellendi.
+
+`npm run combat:test`, `npm run turret:test`, `npm run touch:test`, `npm run map:build`, `npm run lan:check` ve serbest kamera kontrolü geçti. Hareketli hedefte ±180° sarması, her adımda yaw/yükseliş hız sınırı ve yükseliş açı sınırları; kamera ışını isabeti, zoom sınırları, fare kilidi kapısı ve dokunmatik nişancı kamera yönü kontrol edildi. Derlemede mevcut büyük paket uyarısı sürüyor. Tarayıcıda insan hissi ve iki oyunculu LAN denemesi yapılmadı; genel kilometre taşı kabulü değişmez.

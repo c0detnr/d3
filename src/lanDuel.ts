@@ -107,8 +107,8 @@ let timer: ReturnType<typeof setInterval> | undefined;
 let focused = document.hasFocus();
 const keys = new Set<string>();
 let fire = false;
-let elevation = 0;
-let alignDirection: number[] | undefined;
+let followRadius = 17;
+let aimFov = 0.5;
 let zoom = false;
 let yaw = 0;
 let pitch = -0.15;
@@ -127,20 +127,26 @@ function send(value: object) {
 }
 function sendInput(neutral = false) {
   const enabled = !neutral && active();
+  const direction = new Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
+  const to = camera.position.add(direction.scale(1000));
+  const hit = enabled ? scene.getPhysicsEngine()?.raycast(camera.position, to) : undefined;
+  const pivot = visuals[slot ?? 0]?.turret.yawPivot;
+  pivot?.computeWorldMatrix(true);
+  const aimDirection = pivot ? (hit?.hasHit ? hit.hitPointWorld : to).subtract(pivot.getAbsolutePosition()).normalize().asArray() : undefined;
   send({ type: 'input', sequence: ++sequence,
     throttle: enabled ? Number(keys.has('KeyW')) - Number(keys.has('KeyS')) : 0,
     steer: enabled ? Number(keys.has('KeyD')) - Number(keys.has('KeyA')) : 0,
     brake: enabled && keys.has('ShiftLeft') ? 1 : 0,
-    turn: enabled ? Number(keys.has('KeyE')) - Number(keys.has('KeyQ')) : 0,
-    elevation: enabled ? clamp(elevation, -0.15, 0.15) : 0,
+    turn: 0,
+    elevation: 0,
     fire: enabled && fire,
-    aimDirection: enabled ? alignDirection : undefined,
+    aimDirection: enabled ? aimDirection : undefined,
   });
-  // Never accumulate unsent fire/elevation or replay a background-tab backlog.
-  fire = false; elevation = 0;
+  // Never replay a fire request from a background tab.
+  fire = false;
 }
 function clearInput() {
-  keys.clear(); fire = false; elevation = 0; alignDirection = undefined; zoom = false;
+  keys.clear(); fire = false; zoom = false;
   if (pointerId !== undefined && canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId);
   pointerId = undefined;
   if (slot !== undefined) sendInput(true);
@@ -288,16 +294,15 @@ function render() {
       }
       const targetPosition = zoom ? own.turret.pitchPivot.getAbsolutePosition().clone()
         : own.model.anchor.position.add(new Vector3(0, 2.7, 0));
-      const direction = zoom ? muzzle.direction
-        : new Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
-      const distance = zoom ? 3 : 17;
+      const direction = new Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
+      const distance = zoom ? 3 : followRadius;
       const desired = targetPosition.subtract(direction.scale(distance));
       if (zoom) desired.addInPlace(Vector3.Cross(Vector3.Up(), direction).normalize().scale(1.7)).addInPlace(new Vector3(0, 0.7, 0));
       // Static-world ray keeps the orbit boom out of walls; no physics step is run.
       const hit = scene.getPhysicsEngine()?.raycast(targetPosition, desired);
       if (hit?.hasHit) desired.copyFrom(hit.hitPointWorld).addInPlace(direction.scale(0.5));
-      camera.position.copyFrom(desired); camera.setTarget(zoom ? muzzle.origin.add(muzzle.direction.scale(150)) : targetPosition);
-      camera.fov = zoom ? 0.5 : 0.8;
+      camera.position.copyFrom(desired); camera.setTarget(desired.add(direction.scale(1000)));
+      camera.fov = zoom ? aimFov : 0.8;
       const motion = cameraMotion.update(dt);
       if (!reducedMotion.matches) { camera.rotation.x += motion.pitch; camera.rotation.y += motion.yaw; camera.rotation.z += motion.roll; }
       const bore = document.querySelector<HTMLElement>('.reticle')!;
@@ -335,17 +340,12 @@ function render() {
 }
 const listeners = new AbortController();
 const options = { signal: listeners.signal };
-const driveCodes = new Set(['KeyW', 'KeyS', 'KeyA', 'KeyD', 'Space', 'ShiftLeft', 'KeyQ', 'KeyE']);
+const driveCodes = new Set(['KeyW', 'KeyS', 'KeyA', 'KeyD', 'ShiftLeft']);
 window.addEventListener('keydown', event => {
   if (!driveCodes.has(event.code) || (event.target as HTMLElement)?.closest('button, a, input, textarea, select, [contenteditable]')) return;
   event.preventDefault();
   if (!active()) return;
-  if (event.code === 'Space') {
-    if (!event.repeat) alignDirection = camera.getForwardRay().direction.asArray();
-  } else {
-    keys.add(event.code);
-    if (event.code === 'KeyQ' || event.code === 'KeyE') alignDirection = undefined;
-  }
+  keys.add(event.code);
 }, options);
 window.addEventListener('keyup', event => { keys.delete(event.code); }, options);
 window.addEventListener('blur', () => { focused = false; clearInput(); combatAudio?.reset(); void audio.suspend(); }, options);
@@ -373,8 +373,11 @@ canvas.addEventListener('pointerup', event => {
 canvas.addEventListener('pointercancel', clearInput, options);
 canvas.addEventListener('lostpointercapture', () => { zoom = false; }, options);
 canvas.addEventListener('wheel', event => {
-  alignDirection = undefined;
-  event.preventDefault(); if (active()) elevation = clamp(elevation - Math.sign(event.deltaY) * 0.025, -0.15, 0.15);
+  event.preventDefault();
+  if (!active()) return;
+  const notches = clamp(event.deltaY / (event.deltaMode === 1 ? 3 : event.deltaMode === 2 ? 1 : 100), -4, 4);
+  if (zoom) aimFov = clamp(aimFov + notches * 0.05, 0.2, 0.7);
+  else followRadius = clamp(followRadius + notches * 1.5, 6, 35);
 }, { ...options, passive: false });
 window.addEventListener('pointerdown', () => { void unlockAudio(); }, options);
 window.addEventListener('keydown', () => { void unlockAudio(); }, options);

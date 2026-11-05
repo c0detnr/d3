@@ -68,7 +68,7 @@ Harita sayfasındaki tank seçimi veya `?tank=02` ikinci tankı açar. `?duel=1`
 
 320 × 320 m ayrıntılı arazi çevresinde ufka devam eden seyrek geometrili tepeler bulunur. Düz ve açık başlangıç alanından kıvrılan toprak patika ormana ilerler; çamlar, geniş yapraklı ağaçlar, kayalar ve kuru ot kümeleri çevreyi oluşturur. Akşam ışığı yerine kaotik fırtına atmosferi kullanılır: sürüklenen ve çalkalanan prosedürel bulut katmanları, sıcak ufuk parıltısı, ara ara uzak şimşek çakmaları, gölgeler ve uzaklık sisi. Gökyüzü kaynağı `src/game/world/SkyAtmosphere.ts`; bulutlar ve şimşek aydınlatması GPU shader'ında üretilir. Arazi, kayalar ve yakın ağaç gövdeleri statik Havok çarpışmasına sahiptir; uzaktaki orman görsel arka plandır. Arazi yüzeyi kodla üretilen albedo, normal ve ince detay dokularıyla kaplanır; 22 m'de bir dikişsiz tekrarlanan doku toprak rengi kümeleri, taş taneleri, ince çatlaklar ve kuru yaprak/dal artıkları içerir. Metre esaslıdır; farklı zemin tutuşları ve oynanabilir alan sınırları henüz uygulanmadı.
 
-W ileri, S fren ve durduktan 0,25 saniye sonra geri; A/D palet farkıyla dönüş, Space bakış yönüne otomatik kule/namlu hizalama, sol Shift güçlü fren, R tankı başlangıca döndürür. Fareyi sürükleyerek bakışı değiştir, tekerlekle mesafeyi ayarla. Sol tık ateşler; sağ tık basılı tutunca nişancı görüşü açılır ve sağ tık sürüklemesi nişanı yönlendirir. Hareketliyken kamera son fare hareketinden 1,5 saniye sonra arkaya toparlanır. **Alanı göster** genel görünüşe geçer; **Başlangıca dön** tankı ve hızları sıfırlar.
+W ileri, S fren ve durduktan 0,25 saniye sonra geri; A/D palet farkıyla dönüş, sol Shift güçlü fren, R tankı başlangıca döndürür. Oyuna tıklayınca fare kilitlenir; fare bakışı yönlendirir, taret ve namlu kamera ışınının hedefini kendi dönüş hızı ve açı sınırlarıyla sürekli takip eder. Q/E ve Space taret komutu vermez. Tekerlek üçüncü şahısta kamera mesafesini, sağ tık basılıyken nişancı görüşünün zoom seviyesini ayarlar. Sol tık ateşler. Esc fare kilidini bırakır ve taret takibini durdurur; `0` serbest uçuşta da takip kapalıdır. Dokunmatik nişan kontrolleri korunur. **Alanı göster** genel görünüşe geçer; **Başlangıca dön** tankı ve hızları sıfırlar.
 
 - `npm test`: sabit zaman adımı, birikim sınırı, fren önceliği ve geri geçişi kontrolleri.
 - `npm run effects:test`: toz temas/yük/hava kapıları, hız/geri/dönüş, 30/60/120 FPS eşitliği, 10 dakika simülasyon havuz sınırı ve gerçek Havok ile kaynak temizliği.
@@ -106,7 +106,7 @@ Sol tık tek 120 mm AP mermisi ateşler; 6,5 saniyelik dolum süresi HUD'da gör
 
 ## Android APK ve dokunmatik kontrol
 
-`npm run android:build` çevrimdışı kurulabilir `artifacts/iron-dust-android.apk` üretir. Android 8+ ve güncel WebView gerekir. Sol geliştirici paneli tüm platformlarda kaldırıldı; mobilde sürüş/nişan çubukları, ateş, fren, yakınlaştırma, MG/TOP, kurtar ve ses kontrolleri vardır. `npm run touch:test` çoklu dokunma ve girdi temizliğini kontrol eder. [Kurulum, kontroller ve derleme](docs/ANDROID.md).
+Android APK desteği 2026-11-05 tarihinde kaldırıldı; Android projesi ve APK derleme komutu artık yoktur. Tarayıcıdaki dokunmatik kontroller (`TouchControls`) korunur. `npm run touch:test` çoklu dokunma ve girdi temizliğini kontrol eder. [Kaldırılma notu ve kontroller](docs/ANDROID.md).
 
 ## Taktik oyun arayüzü
 
@@ -136,3 +136,26 @@ Kül Vadisi sağ/doğu uzantısında terk edilmiş tren sahası yer alır: üç 
 ## 5’e 5 takım düellosu
 
 `map-preview.html?map=kul&duel=5v5`: sen + 4 dost AI, karşıda 5 düşman AI. İki takım kendi üssünde doğar; koridor rotaları, görüşe bağlı hedef/atış, dost ateşi koruması, yaşayan araç sayısı, sonuç ve R ile tüm maçı sıfırlama mevcut. Görev menüsünden **5’e 5 · Takım düellosu** seçilebilir. [Kurallar, AI ve doğrulama sınırları](docs/TEAM_DUEL.md).
+
+### itch.io oyun kabuğu
+
+`npm run build:itch` menülü tek oyunculu girişini göreli yollarla `dist/` içine üretir. **ZIP'in kökünde `index.html` olacak şekilde `dist/` içeriğini** paketle; itch.io projesinde HTML oyun ve masaüstü klavye/fare olarak yükle. LAN sayfası ve APK bu girişe dahil değildir. `npm run map:dev` ile `/` oyun menüsü, `/map-preview.html` geliştirici önizlemesidir. Mevcut LAN komutları `dist-map/` kullanmayı sürdürür.
+
+Görev seçimi beş görevi gösterir; yalnız Çaylak Günü açılır. Bu teslim oyun kabuğudur: brifingdeki amaçlar henüz görev mantığına bağlı değildir. Ayarlar (TR/EN, hassasiyet, ters Y, ana ses, grafik) ve en iyi yıldızlar `iron-dust.player.v1` anahtarında saklanır; engelli/bozuk kayıt oyunu durdurmaz. Düşük kalite gölge ve palet tozunu kapatır, kozmetik parçacıkları azaltır, çözünürlük ölçeğini düşürür; oynanışa etki eden sis görünürlüğü korunur. Orta/yüksek kalite gölge, kozmetik parçacık bütçesi ve çözünürlükte ayrılır.
+
+Esc ve fare kilidinin bırakılması simülasyonu/girdiyi durdurur; Devam kullanıcı tıklamasıyla fare kilidini geri ister. Yeniden başlatma ve görevlere dönüş önce mevcut sahneyi, motoru, ses grafiğini ve dinleyicileri kapatır. Gelecek görev sistemi `useShellStore.getState().finishMission({ missionId, victory, seconds, shots, hits, stars })` çağrısıyla sonuç ekranına geçer. En iyi yıldız korunur; 2–5 bu sürümde kayıt verisinden bağımsız kilitli kalır.
+
+`npm run shell:test` sözlük anahtar eşitliği, sürümlü kayıt/bozuk kayıt/erişim hatası ve sonuç ilerlemesini kontrol eder. Alt dizin tarayıcı kontrolü için `dist/` klasörünü bir statik sunucunun `/game/` altına koy; `SHELL_URL=http://127.0.0.1:18760/game/ node --experimental-strip-types scripts/check-shell-browser.ts` çalıştır. Ekran görüntüleri ve rapor `artifacts/ui/` altına yazılır (yerel, Git tarafından yok sayılır). Yazı tipi Barlow Condensed, Jeremy Tribby, SIL OFL 1.1; lisans `public/licenses/BARLOW.txt` ile pakete girer.
+
+## Çaylak Günü — ilk görev
+
+Ana menü → Görevler → Çaylak Günü → Brifing → Başla. Doğal arazide üç ışıklı kontrol noktası sırayla açılır; ardından üç **farklı** zırh hedefini vur ve pusudaki iki kolay keşif tankını yok et. Üstte amaç, hedef yönü/mesafesi ve alt köşede TR/EN yazılan telsiz konuşmaları bulunur. Telsiz oyunu durdurmaz; amaç onayı kısa animasyon ve ana ses düzeyine bağlı tonla verilir.
+
+Zafer/yenilgi ekranı süre, isabet oranı ve toplam alınan hasarı gösterir. Yıldızlar: bitir / **6 dakikadan kısa** / **50 hasardan az**. Başarılı koşunun istatistikleri ve en yüksek yıldız kaydedilir; 2. görev **Açıldı · Yakında** olur, başlatılamaz. R tankı kurtarır; görev süresini, amaçları ve toplam alınan hasarı silmez. Yeniden başlat/Tekrar bütün görev sahnesini yeniden kurar.
+
+- `npm run mission:test`: olay tabanlı durum geçişleri, sıralı kontrol noktaları, ayrı hedefler, terminal durum kilidi, yenilgi, süre amacı, yıldız sınırları, kayıt ve kilit açma. `npm test` içine dahildir.
+- `node --experimental-strip-types scripts/check-mission-browser.ts`: çalışan geliştirme sunucusunda menü/brifing → amaçlar → zafer, yenilgi/Tekrar, beş tam yeniden başlatma, TR/EN ve kayıt yenilemesi. Varsayılan `http://127.0.0.1:18762/`; `MISSION_URL` ile değişir. Ekran görüntüleri ve rapor `artifacts/mission1/` altında.
+- `node --experimental-strip-types scripts/check-mission-build-browser.ts`: `dist/` çıktısı `http://127.0.0.1:18763/game/` altında sunulurken üretim menü/brifing/HUD, alt dizin varlıkları ve DEV kancasının yokluğunu doğrular. Rapor `artifacts/mission1/production-check.json`.
+- Test kancası `window.__missionTest` yalnız Vite **DEV** modunda açılır; dağıtım paketinde bulunmaz. `advance()` gerçek checkpoint mesafesi/hedef gövdesi/düşman hasarı yollarını kullanır; insan oynayışının yerine geçmez.
+
+`src/game/mission/MissionDirector.ts` render/fizikten bağımsız görev çekirdeğidir: veri tanımlı checkpoint / N farklı hedef isabeti / N düşman imhası / süre adımları, brifing → aktif → zafer/yenilgi. `rookieDay.ts` ilk görevin verisi; `RookieMission.ts` mevcut ArmorRange, DuelTank ve EasyDuelAI adaptörüdür. Sonraki dört görevin içeriği henüz uygulanmadı. **İnsan oynanış, öğreticinin anlaşılabilirliği, telsiz/ses ve AI dengesi kabulü açık.**

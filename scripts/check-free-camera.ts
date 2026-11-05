@@ -18,10 +18,12 @@ const drive = bindDriveKeys(win as Window, () => {}, () => !free.active);
 const key = (code: string, type = 'keydown', repeat = false) => win.dispatchEvent(Object.assign(new Event(type, { cancelable: true }), { code, repeat }));
 const move = () => canvas.dispatchEvent(Object.assign(new Event('pointermove'), { pointerType: 'mouse', movementX: 100, movementY: -30 }));
 try {
-  key('KeyW'); key('KeyQ');
-  assert.equal(drive.keys.forward, true); assert.equal(combat.turretTurn, -1);
+  const aim = () => canvas.dispatchEvent(Object.assign(new Event('pointerdown', { cancelable: true }), { pointerType: 'mouse', pointerId: 1, buttons: 2 }));
+  key('KeyW'); key('KeyQ'); aim();
+  assert.equal(drive.keys.forward, true); assert.equal(combat.aiming, true);
   key('Digit0'); assert.equal(free.active, true); assert.equal(scene.activeCamera, free.camera);
-  assert.equal(drive.keys.forward, false); assert.equal(combat.turretTurn, 0);
+  assert.equal(drive.keys.forward, false); assert.equal(combat.aiming, false, 'entering flight clears gunner input');
+  aim(); assert.equal(combat.aiming, false, 'flight blocks new gunner input');
   assert.ok(Vector3.Distance(free.camera.position, normal.position) < 1e-6);
   key('Digit0', 'keydown', true); assert.equal(free.active, true, 'held 0 cannot flicker modes');
   for (const fps of [30, 60, 120]) {
@@ -32,7 +34,7 @@ try {
     assert.ok(Math.abs(free.camera.position.z - 25) < 1e-6, '25 m/s independent of frame rate');
   }
   key('KeyE'); key('ShiftLeft'); free.update(0.1);
-  assert.equal(free.camera.position.y, 10); assert.equal(drive.keys.brake, false); assert.equal(combat.turretTurn, 0);
+  assert.equal(free.camera.position.y, 10); assert.equal(drive.keys.brake, false); assert.equal(combat.aiming, false);
   win.dispatchEvent(new Event('blur')); const stopped = free.camera.position.clone(); free.update(0.1);
   assert.deepEqual(free.camera.position, stopped, 'focus loss releases movement');
   move(); assert.ok(free.camera.rotation.y > 0); assert.ok(free.camera.rotation.x < 0);

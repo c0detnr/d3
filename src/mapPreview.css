@@ -1,4 +1,4 @@
-*{box-sizing:border-box}html,body,#map{width:100%;height:100%;margin:0;overflow:hidden}#map{display:block;touch-action:none;outline:none}body{font-family:Arial,sans-serif;color:#eee8db;background:#34383b}
+*{box-sizing:border-box}html,body,#game-layer,#map{width:100%;height:100%;margin:0;overflow:hidden}#map{display:block;touch-action:none;outline:none}body{font-family:Arial,sans-serif;color:#eee8db;background:#34383b}
 
 #aim-intent,#aim-bore,#aim-status{position:absolute;pointer-events:none}#aim-intent{left:50%;top:50%;transform:translate(-50%,-50%);font:24px monospace;color:#eee8db;text-shadow:0 1px 3px #000}#aim-bore{width:20px;height:20px;border:2px solid #d5c7ab;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 3px #000}#aim-bore.blocked{border-color:#f5a56b}#aim-status{bottom:28px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:1px;background:#252b27dd;padding:10px 16px;border-radius:3px}[hidden]{display:none!important}
 

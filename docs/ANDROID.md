@@ -1,3 +1,5 @@
+> **Kaldırıldı (2026-11-05):** Kullanıcının isteğiyle Android APK desteği kaldırıldı. `TouchControls` ve tarayıcı dokunmatik kontrolleri korunur. Aşağıdaki APK kurulum ve platform bilgileri önceki teslimin tarihsel kaydıdır.
+
 # Android sürümü
 
 Kullanıcının 2026-10-24 isteğiyle Android APK ve mobil tarayıcı desteği eklendi. Soldaki geliştirici paneli masaüstü ve mobil HTML'den kaldırıldı. Küçük dolum/menzil göstergesi ve namlu halkası korunur.
@@ -19,17 +21,9 @@ Uygulama yatay tam ekran çalışır. Oyun, gerçek GLB modelleri, Havok WASM ve
 
 Birden fazla parmakla sürüş, nişan ve ateş eşzamanlıdır. Parmak bırakma, pointercancel, capture kaybı, odak/sekme kaybı girdileri temizler. Dikey mobil tarayıcıda yatay çevirme mesajı gösterilir.
 
-## Tekrar derleme
+## APK derlemesi kaldırıldı
 
-JDK 17+, Android SDK 36 ve build-tools 36.0.0 kurulu olmalı. `ANDROID_HOME` veya `ANDROID_SDK_ROOT` özel SDK yolu verebilir; varsayılan `~/Android/Sdk`.
-
-```bash
-npm ci
-npm run touch:test
-npm run android:build
-```
-
-Script web derlemesini üretir, Android assets klasörüne kopyalar, Gradle ile APK oluşturur ve imzasını doğrular. Çıktı `artifacts/iron-dust-android.apk`. `adb install -r artifacts/iron-dust-android.apk` bağlı telefona yükler. Kaynak Android projesi Git'te; APK, Gradle çıktıları ve üretilen asset kopyaları Git dışında tutulur.
+Android projesi, `android:build` npm komutu ve APK derleme betiği kaldırıldı. Bu depodan Android APK üretilmez.
 
 Mobil başlangıç profili: 1024 gölge haritası, antialias kapalı, 1280×720 referansına göre render ölçeği sınırlı. Bunlar FPS garantisi değildir; fizik hâlâ 60 Hz sabit adımda çalışır. Gerçek telefonda uzun sürüş, ısınma, pil ve performans kabulü açık.
 

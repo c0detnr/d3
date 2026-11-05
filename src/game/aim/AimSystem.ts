@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts';
 import { Matrix, Vector3, type Scene } from '@babylonjs/core';
 import type { FollowCamera } from '../camera/FollowCamera.ts';
 import type { TankVehicle } from '../vehicle/TankVehicle.ts';
@@ -36,7 +37,7 @@ export class AimSystem {
     this.marker.classList.toggle('blocked', blocked);
     const angles = turret.angles;
     const degrees = 180 / Math.PI;
-    this.label.textContent = `${blocked ? 'YAKIN ENGEL · ' : ''}TARET ${(angles.yaw * degrees).toFixed(0)}° · NAMLU ${(angles.elevation * degrees).toFixed(1)}° · Halka: namlu doğrultusu`;
+    this.label.textContent = `${blocked ? `${t('nearObstacle')} · ` : ''}${t('turret')} ${(angles.yaw * degrees).toFixed(0)}° · ${t('barrel')} ${(angles.elevation * degrees).toFixed(1)}° · ${t('boreRing')}`;
   }
   dispose() { this.marker.hidden = true; this.label.hidden = true; }
 }

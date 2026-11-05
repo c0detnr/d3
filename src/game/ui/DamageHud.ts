@@ -1,4 +1,5 @@
-import { MODULES, MODULE_LABELS, type DamageState, type DamageModule } from '../combat/DamageModel.ts';
+import { t } from '../i18n/index.ts';
+import { MODULES, type DamageState, type DamageModule } from '../combat/DamageModel.ts';
 import './damageHud.css';
 
 /** HUD only: receives authoritative damage, never infers it from an animation. */
@@ -24,8 +25,8 @@ export class DamageHud {
     this.element.innerHTML = `<div class="damage-pulse" aria-hidden="true"></div>
       <div class="damage-bearings" aria-hidden="true"></div>
       <div class="damage-confirm" role="status" aria-live="polite"><span class="damage-hitmark" aria-hidden="true">╳</span><span></span></div>
-      <section class="vehicle-condition" aria-label="Araç hasar durumu">
-        <svg class="condition-diagram" viewBox="0 0 100 132" role="img" aria-label="Üstten araç görünümü; namlu yukarı bakar">
+      <section class="vehicle-condition" aria-label="${t('vehicleDamage')}">
+        <svg class="condition-diagram" viewBox="0 0 100 132" role="img" aria-label="${t('topView')}">
           <path class="diagram-guide" d="M50 2v8M8 66H2m90 0h6M50 124v6"/>
           <rect data-module="leftTrack" x="13" y="33" width="14" height="83" rx="3"/>
           <rect data-module="rightTrack" x="73" y="33" width="14" height="83" rx="3"/>
@@ -35,10 +36,10 @@ export class DamageHud {
           <path class="diagram-barrel" d="M47 47V9h6v38"/>
           <path class="diagram-detail" d="M38 98h24m-24 6h24M17 40v69m66-69v69"/>
         </svg>
-        <div class="condition-data"><span class="condition-caption">ARAÇ DURUMU</span>
+        <div class="condition-data"><span class="condition-caption">${t('vehicleCondition')}</span>
           <strong class="condition-value">100 <small>/ 100</small></strong>
-          <progress class="condition-health" max="100" value="100" aria-label="Gövde bütünlüğü"></progress>
-          <span class="condition-notice" role="status" aria-live="polite">Sistemler çalışıyor</span>
+          <progress class="condition-health" max="100" value="100" aria-label="${t('hullIntegrity')}"></progress>
+          <span class="condition-notice" role="status" aria-live="polite">${t('systemsOk')}</span>
         </div>
       </section>`;
     document.body.append(this.element);
@@ -50,7 +51,7 @@ export class DamageHud {
     this.parts = Object.fromEntries(MODULES.map(module => [module, this.element.querySelector(`[data-module="${module}"]`)!])) as Record<DamageModule, Element>;
   }
   setState(state: DamageState) {
-    const key = MODULES.map(module => state.modules[module]).join('/');
+    const key = t('vehicleCondition') + MODULES.map(module => state.modules[module]).join('/');
     if (state.hp === this.lastHp && key === this.lastModules) return;
     this.lastHp = state.hp; this.lastModules = key;
     this.health.value = state.hp;
@@ -60,15 +61,15 @@ export class DamageHud {
     for (const module of MODULES) {
       const hp = state.modules[module];
       this.parts[module].setAttribute('class', hp === 0 ? 'module-disabled' : hp < 100 ? 'module-damaged' : 'module-ok');
-      this.parts[module].setAttribute('aria-label', `${MODULE_LABELS[module]}: ${hp === 0 ? 'devre dışı' : hp < 100 ? 'hasarlı' : 'sağlam'}`);
-      if (hp < 100) issues.push(`${MODULE_LABELS[module]} ${hp === 0 ? 'devre dışı' : 'hasarlı'}`);
+      this.parts[module].setAttribute('aria-label', `${t(module === 'engine' ? 'engineModule' : module === 'turret' ? 'turretModule' : module)}: ${hp === 0 ? t('disabled') : hp < 100 ? t('damaged') : t('intact')}`);
+      if (hp < 100) issues.push(`${t(module === 'engine' ? 'engineModule' : module === 'turret' ? 'turretModule' : module)} ${hp === 0 ? t('disabled') : t('damaged')}`);
     }
-    if (this.noticeLife <= 0 || state.hp === 0) this.notice.textContent = state.hp === 0 ? 'ARAÇ İMHA EDİLDİ' : issues.join(' · ') || 'Sistemler çalışıyor';
+    if (this.noticeLife <= 0 || state.hp === 0) this.notice.textContent = state.hp === 0 ? t('vehicleDestroyed') : issues.join(' · ') || t('systemsOk');
   }
   outgoing(module: DamageModule | null, disabled: boolean, destroyed: boolean, penetrated = true) {
     this.confirm.dataset.kind = destroyed ? 'destroyed' : penetrated ? 'hit' : 'blocked';
-    this.confirm.querySelector('span:last-child')!.textContent = destroyed ? 'HEDEF İMHA EDİLDİ'
-      : !penetrated ? 'ZIRH DELİNMEDİ' : module ? `${MODULE_LABELS[module].toLocaleUpperCase('tr')} ${disabled ? 'DEVRE DIŞI' : 'HASARLI'}` : 'ETKİLİ İSABET';
+    this.confirm.querySelector('span:last-child')!.textContent = destroyed ? t('targetDestroyed')
+      : !penetrated ? t('notPenetrated') : module ? `${t(module === 'engine' ? 'engineModule' : module === 'turret' ? 'turretModule' : module).toLocaleUpperCase()} ${disabled ? t('disabled').toLocaleUpperCase() : t('damaged').toLocaleUpperCase()}` : t('effectiveHit');
     this.confirmLife = destroyed ? 3 : 1.5;
   }
   incoming(angle: number, module: DamageModule | null, disabled: boolean, severe: boolean) {
@@ -82,7 +83,7 @@ export class DamageHud {
     this.pulseSpan = severe ? 0.7 : 0.35; this.pulsePeak = severe ? 0.75 : 0.45;
     this.pulseLife = this.pulseSpan;
     this.noticeLife = this.lastHp === 0 ? 0 : 2.5;
-    this.notice.textContent = this.lastHp === 0 ? 'ARAÇ İMHA EDİLDİ' : module ? `${MODULE_LABELS[module]} ${disabled ? 'devre dışı' : 'hasar aldı'}` : 'Gövde hasar aldı';
+    this.notice.textContent = this.lastHp === 0 ? t('vehicleDestroyed') : module ? `${t(module === 'engine' ? 'engineModule' : module === 'turret' ? 'turretModule' : module)} ${disabled ? t('disabled') : t('damageTaken')}` : t('hullDamaged');
   }
   update(dt: number, cameraYaw: number) {
     this.confirmLife = Math.max(0, this.confirmLife - dt);

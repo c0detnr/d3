@@ -42,6 +42,17 @@ try {
     const before = turret.angles.yaw;
     advance(new Vector3(-1, 2, -100), 0.1);
     assert.ok(Math.abs(wrapAngle(turret.angles.yaw - before)) < 0.03);
+    // A continuously moving view crosses both wrap boundaries and both pitch limits.
+    turret.reset();
+    for (let tick = 0; tick < 720; tick++) {
+      const yaw = (170 + tick * 0.5) * Math.PI / 180;
+      const old = turret.angles;
+      turret.fixedUpdate(new Vector3(Math.sin(yaw) * 100, tick < 360 ? 1000 : -1000, Math.cos(yaw) * 100), 1 / 60);
+      const now = turret.angles;
+      assert.ok(Math.abs(wrapAngle(now.yaw - old.yaw)) <= IRON_DUST_01.turretYawSpeed / 60 + 1e-9, 'continuous view respects yaw speed');
+      assert.ok(Math.abs(now.elevation - old.elevation) <= IRON_DUST_01.gunPitchSpeed / 60 + 1e-9, 'continuous view respects pitch speed');
+      assert.ok(now.elevation >= IRON_DUST_01.gunMinElevation - 1e-9 && now.elevation <= IRON_DUST_01.gunMaxElevation + 1e-9);
+    }
     // World aim remains stable while the hull changes yaw, pitch and roll.
     const target = new Vector3(100, 8, 200);
     tank.anchor.rotationQuaternion = Quaternion.RotationYawPitchRoll(1.2, 0.06, -0.08);

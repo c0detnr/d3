@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts';
 /** Owns desktop focus; the entry click never reaches weapon handlers. */
 export class GamePointerLock {
   private readonly prompt = document.createElement('button');
@@ -14,7 +15,7 @@ export class GamePointerLock {
     if (!enabled) return;
     this.prompt.className = 'game-pointer-prompt';
     this.prompt.type = 'button';
-    this.prompt.textContent = 'OYUNA GİR · TIKLA — ÇIKIŞ: ESC';
+    this.prompt.textContent = t('pointerEnter');
     document.body.append(this.prompt);
     const options = { signal: this.listeners.signal };
     this.prompt.addEventListener('click', this.enter, options);
@@ -34,9 +35,9 @@ export class GamePointerLock {
     document.addEventListener('visibilitychange', () => { if (document.hidden) this.exit(); }, options);
   }
   private error = () => {
-    this.prompt.textContent = 'FARE KİLİTLENEMEDİ · TEKRAR TIKLA — ÇIKIŞ: ESC';
+    this.prompt.textContent = t('pointerError');
   };
-  private enter = () => {
+  enter = () => {
     if (this.active || !this.canEnter()) return;
     this.canvas.focus();
     try {
