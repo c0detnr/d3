@@ -6,7 +6,8 @@ import { buildTake, type DriveSegment } from './takes.ts';
 /**
  * Renders every shot of a reel episode through the live studio page in headless Chromium.
  * Needs the studio dev server: `npx vite --config vite.map.config.ts --port 5199`.
- * Usage: node --experimental-strip-types scripts/reel/render-shots.ts <episode.json> [shotId…] [--draft]
+ * Usage: node --experimental-strip-types scripts/reel/render-shots.ts <episode.json> [shotId…] [--draft] [--native]
+ * --native: 60 fps rendered directly at 1080p, no supersampling.
  */
 export interface Shot {
   id: string; camera: string; fov?: number;
@@ -20,6 +21,7 @@ export interface Episode { id: string; scene: string; server?: string; shots: Sh
 
 const args = process.argv.slice(2);
 const draft = args.includes('--draft');
+const native = args.includes('--native');
 const [episodePath, ...only] = args.filter(a => !a.startsWith('--'));
 const episode = JSON.parse(readFileSync(episodePath, 'utf8')) as Episode;
 const server = episode.server ?? 'http://127.0.0.1:5199';
@@ -65,7 +67,7 @@ async function renderShot(page: Page, shot: Shot, scene: string) {
     ui('take').value = ${JSON.stringify(takeId)};
     ui('shot').value = ${JSON.stringify(shot.camera)};
     ui('fps').value = '${draft ? 30 : 60}';
-    ui('quality').value = '${draft ? 1 : 2}';
+    ui('quality').value = '${draft || native ? 1 : 2}';
     ui('slow').value = '${shot.slow ?? 1}';
     ui('status').dataset.tone = '';
     ui('render').click();

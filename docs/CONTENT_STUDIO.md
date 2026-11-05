@@ -37,11 +37,11 @@ Kod: `src/game/world/filmSetLayout.ts` (yükseklik ve yerleşim), `src/game/worl
 Canlı sürüş gerekmeden, okunabilir sürüş parçalarından çekim üretip başsız Chromium'da render alır. Önce stüdyo sunucusunu başlat: `npx vite --config vite.map.config.ts --host 127.0.0.1 --port 5199`. Ardından:
 
 ```bash
-node --experimental-strip-types scripts/reel/render-shots.ts <bolum.json> [çekimId…] [--draft]
+node --experimental-strip-types scripts/reel/render-shots.ts <bolum.json> [çekimId…] [--draft] [--native]
 node --experimental-strip-types scripts/reel/contact-sheet.ts <çıktı.png> <video.mp4>
 ```
 
-Bölüm dosyası: `{ "id", "scene": "map=set&tank=02&weather=sunset", "shots": [{ "id", "camera", "scene": "spawn=whoops", "slow", "drive": [{ "seconds", "throttle", "steer", "turn", "elevation", "fire": [s], "hold": [x,y,z] }] }] }`. `--draft` 30 fps ve doğrudan 1080p verir; varsayılan 60 fps ve 2× süper örneklemedir.
+Bölüm dosyası: `{ "id", "scene": "map=set&tank=02&weather=sunset", "shots": [{ "id", "camera", "scene": "spawn=whoops", "slow", "drive": [{ "seconds", "throttle", "steer", "turn", "elevation", "fire": [s], "hold": [x,y,z] }] }] }`. `--draft` 30 fps ve doğrudan 1080p verir; varsayılan 60 fps ve 2× süper örneklemedir. `--native` 60 fps'i süper örnekleme olmadan doğrudan 1080p verir.
 
 | Tuş | İş |
 |---|---|
