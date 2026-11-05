@@ -1,6 +1,6 @@
 # Reel 01 — "DOSYA 02: LEOPARD 2A6"
 
-Durum: **senaryo ve çekim planı hazır, çekimler taslak kalitede denendi.** Kurgu montajı, yazı katmanı ve ses henüz yapılmadı.
+Durum: **senaryo ve çekim planı hazır; 10 çekimin tamamı 2026-11-05'te 1080×1920, 60 fps, süper örneklemesiz (`--native`) render edildi** (`studio-out/renders/reel-leo2a6-*`). Kurgu montajı, yazı katmanı ve ses henüz yapılmadı.
 
 ## Konsept
 

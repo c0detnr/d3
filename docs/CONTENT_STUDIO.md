@@ -83,6 +83,7 @@ Kod konumları:
 
 - **Tekrar oynatma belirlenimciliği varsayılır, doğrulanmadı.** Havok, sıfırlamadan sonra aynı girdilerle büyük ölçüde aynı yolu izler. Uzun çekimlerde küçük sapmalar olabilir. Şimşek zamanlaması `Math.random` kullandığı için her render'da farklıdır.
 - MG ateşi, MG kamerası, sis perdesi, sandık toplama ve serbest kamera hareketi çekime kaydedilmez. Render'da yalnızca sürüş, taret ve top tekrar oynar.
+- Başsız otomatik render'da aynı tarayıcı oturumunda 4. render iki kez donarak takıldı (2026-11-05, Intel iGPU, ANGLE/Vulkan). Neden bulunmadı; geçici çözüm olarak çekimleri ayrı çağrılarla render et.
 - Çekim sırasında `R` ile sıfırlamak çekimi bitirir. En uzun çekim 180 s'dir.
 - Ağır çekim render'larında ses yoktur (çekim sesi gerçek zamanlıdır).
 - Ses ve görüntü eşlemesi, canlı çekimde FPS düşüp fizik adımı atlanırsa kayabilir.
