@@ -1,0 +1,33 @@
+{
+  "episode": "leo2a6",
+  "file": "DOSYA 02",
+  "music": "studio-out/music/leo2a6-march.wav",
+  "out": "studio-out/reels/leopard-2a6.mp4",
+  "disclaimer": "Oyundaki araç Leopard 2A6'dan esinlenen kurgusal IRON DUST 02'dir.",
+  "slots": [
+    { "shot": "s1-hook-front", "from": 0.5, "seconds": 2.5, "text": [
+      { "at": 0, "size": "xl", "title": "{60 TON.}" },
+      { "at": 1.0, "size": "xl", "title": "NAMLU\nKIPIRDAMIYOR." } ] },
+    { "shot": "s2-dosya-front", "from": 0, "seconds": 3, "card": true, "stamp": { "at": 1.5, "text": "İNCELENDİ" }, "text": [
+      { "at": 0, "title": "{DOSYA 02} //\nLEOPARD 2A6", "sub": ["MENŞE: Almanya", "SINIF: Ana muharebe tankı"] } ] },
+    { "shot": "s3-top-muzzle", "from": 1.983, "seconds": 4, "flash": true, "text": [
+      { "at": 0.05, "title": "{120 mm} L/55\nYİVSİZ TOP", "sub": ["Namlu, önceki L/44'ten 1,3 m daha uzun"] } ] },
+    { "shot": "s4-motor-drone", "from": 2, "seconds": 3.5, "text": [
+      { "at": 0, "title": "MTU V12 DİZEL\n{1.500 PS}", "sub": ["Çift turbo · ~1.100 kW"] } ] },
+    { "shot": "s5-hiz-track", "from": 3, "seconds": 3, "text": [
+      { "at": 0, "title": "YOLDA\n{~68 km/sa}", "sub": ["Geri viteste bile ~31 km/sa"] } ] },
+    { "shot": "s6-agirlik-crane", "from": 2, "seconds": 3.5, "text": [
+      { "at": 0, "title": "{~60 TON} · 4 KİŞİ", "sub": ["Komutan · Nişancı · Doldurucu · Sürücü"] },
+      { "at": 1.75, "title": "{~60 TON} · 4 KİŞİ", "sub": ["Otomatik doldurucu yok.", "Doldurucu bir insan."] } ] },
+    { "shot": "s7-stab-chase", "from": 1, "seconds": 3, "flash": true, "punchIn": 0.3, "text": [
+      { "at": 0, "size": "xl", "title": "{1986.}", "sub": ["Bundeswehr bir Leopard 2'nin", "namlusuna bira bardağı koydu."] } ] },
+    { "shot": "s7-stab-barrel", "from": 2, "seconds": 3, "text": [
+      { "at": 0.25, "title": "TEK DAMLA\n{DÖKÜLMEDİ.}", "sub": ["Arazide, hareket halinde.", "(Oyun içi canlandırma)"] } ] },
+    { "shot": "s8-yayilim-drone", "from": 1, "seconds": 4, "text": [
+      { "at": 0, "title": "ALMANYA'DAN\n{ŞİLİ'YE},", "sub": [] },
+      { "at": 1.5, "title": "KANADA'DAN\n{ENDONEZYA'YA}", "sub": ["TÜRKİYE: Leopard 2A4 (354 adet)"] } ] },
+    { "shot": "s9-kapanis-orbit", "from": 2, "seconds": 3.5, "disclaimer": true, "text": [
+      { "at": 0, "title": "DOSYA\nKAPANDI.", "sub": [] },
+      { "at": 1.25, "title": "SIRADAKİ\n{DOSYA?}", "sub": ["Yorumlara yaz ↓"] } ] }
+  ]
+}

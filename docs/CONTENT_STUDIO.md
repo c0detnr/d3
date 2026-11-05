@@ -39,6 +39,7 @@ Canlı sürüş gerekmeden, okunabilir sürüş parçalarından çekim üretip b
 ```bash
 node --experimental-strip-types scripts/reel/render-shots.ts <bolum.json> [çekimId…] [--draft] [--native]
 node --experimental-strip-types scripts/reel/contact-sheet.ts <çıktı.png> <video.mp4>
+node --experimental-strip-types scripts/reel/compose.ts <bolum.edit.json>   # kurgu: kesim + yazı katmanı + müzik
 ```
 
 Bölüm dosyası: `{ "id", "scene": "map=set&tank=02&weather=sunset", "shots": [{ "id", "camera", "scene": "spawn=whoops", "slow", "drive": [{ "seconds", "throttle", "steer", "turn", "elevation", "fire": [s], "hold": [x,y,z] }] }] }`. `--draft` 30 fps ve doğrudan 1080p verir; varsayılan 60 fps ve 2× süper örneklemedir. `--native` 60 fps'i süper örnekleme olmadan doğrudan 1080p verir.
@@ -83,6 +84,7 @@ Kod konumları:
 
 - **Tekrar oynatma belirlenimciliği varsayılır, doğrulanmadı.** Havok, sıfırlamadan sonra aynı girdilerle büyük ölçüde aynı yolu izler. Uzun çekimlerde küçük sapmalar olabilir. Şimşek zamanlaması `Math.random` kullandığı için her render'da farklıdır.
 - MG ateşi, MG kamerası, sis perdesi, sandık toplama ve serbest kamera hareketi çekime kaydedilmez. Render'da yalnızca sürüş, taret ve top tekrar oynar.
+- Tek ffmpeg geçişinde 10 kesilmiş girdi + boru ile yazı katmanı ffmpeg 8'de kilitlendi; `compose.ts` bu yüzden aşamalı çalışır.
 - Başsız otomatik render'da aynı tarayıcı oturumunda 4. render iki kez donarak takıldı (2026-11-05, Intel iGPU, ANGLE/Vulkan). Neden bulunmadı; geçici çözüm olarak çekimleri ayrı çağrılarla render et.
 - Çekim sırasında `R` ile sıfırlamak çekimi bitirir. En uzun çekim 180 s'dir.
 - Ağır çekim render'larında ses yoktur (çekim sesi gerçek zamanlıdır).

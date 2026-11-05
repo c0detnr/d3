@@ -1,6 +1,6 @@
 # Reel 01 — "DOSYA 02: LEOPARD 2A6"
 
-Durum: **senaryo ve çekim planı hazır; 10 çekimin tamamı 2026-11-05'te 1080×1920, 60 fps, süper örneklemesiz (`--native`) render edildi** (`studio-out/renders/reel-leo2a6-*`). Kurgu montajı, yazı katmanı ve ses henüz yapılmadı.
+Durum: **ilk kurgu hazır (2026-11-05):** `studio-out/reels/leopard-2a6.mp4`, 1080×1920, 60 fps, 33,0 sn, H.264 + AAC (koddan üretilen marş). 10 çekimin tamamı 60 fps ve süper örneklemesiz (`--native`) render edildi. Oyun sesi (motor, palet, atış) henüz yok; telefonda izleme ve yayın onayı bekliyor.
 
 ## Konsept
 
@@ -91,7 +91,9 @@ Süreler kurgudaki süredir; "kaynak" sütunu taslak klipte hangi aralığın ku
 3. **Ses:**
    - Motor, palet ve atış seslerini oyunun kendi ses sisteminden kayıtla almak hedef. Senaryodan üretilen çekimler şu an sessiz; stüdyo yalnız elle kaydedilmiş çekimin `.webm` sesini ekliyor.
    - **Müzik (taslak hazır):** `node --experimental-strip-types scripts/reel/music.ts` → `studio-out/music/leo2a6-march.wav`. Özgün, koddan sentezlenen askeri marş: 120 BPM (her kesim bir vuruşa denk), Re minör, Dm–B♭–C–A. Hazır örnek ya da dış varlık kullanılmadı, lisans sorunu yok. Trampet, davul, bakır nefesli ve yaylı katmanları zaman çizelgesini izler: 2,5'te giriş, 5,5'te atış vuruşu, 16,0–19,5 düşüş, 22,5–25,5 sessiz an ve trampet ruloyla tırmanış, 25,5'te melodili tepe noktası, 32,0'de tek vuruşla kapanış. Ses düzeyi -16 LUFS. Dinleyerek onay bekliyor.
-4. **Montaj:** `scripts/reel/compose.ts` yukarıdaki zaman çizelgesini okuyup kesme, flaş, yazı katmanı ve sesi tek ffmpeg geçişinde birleştirir. Çıktı `studio-out/reels/leopard-2a6.mp4` dosyasına yazılır.
+4. **Montaj:** `node --experimental-strip-types scripts/reel/compose.ts scripts/reel/episodes/leopard-2a6.edit.json`. Zaman çizelgesi, kaynak aralıkları ve yazılar `leopard-2a6.edit.json` içinde. Betik her kesimi ayrı klibe çevirir, yazı katmanını (`scripts/reel/overlay/index.html`) başsız Chromium'da yalnız değişen karelerde PNG olarak çeker ve son geçişte müzikle birleştirir. Çıktı `studio-out/reels/leopard-2a6.mp4`, ara dosyalar `studio-out/compose/`. Süre yaklaşık 2 dakika. Yazı tipleri Google Fonts'tan yüklendiği için internet gerekir.
+   - s3 kesimi 1,983 sn'den başlar: 2 karelik beyaz flaşın ardından top 5,53 sn'de ateşlenir ve müzikteki 5,5 sn vuruşuna denk gelir.
+   - Başlıklar sağdan 72 px boşluk kalacak şekilde otomatik küçülür.
 5. **İnceleme:** kare tablosu (`contact-sheet.ts`) ve telefonda bir kez izleme, sonra yayın.
 
 ## Açık konular
