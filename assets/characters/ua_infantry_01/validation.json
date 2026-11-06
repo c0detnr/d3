@@ -1,0 +1,57 @@
+{
+  "asset": "ua_infantry_01",
+  "glb": "assets/characters/ua_infantry_01/ua_infantry_01.glb",
+  "glb_bytes": 1058748,
+  "reimport": {
+    "objects": [
+      "Belt.001",
+      "Body.001",
+      "Boots.001",
+      "Glasses.001",
+      "Gloves.001",
+      "Head.001",
+      "Headset.001",
+      "Helmet.001",
+      "Insignia.001",
+      "KneePads.001",
+      "PlateCarrier.001",
+      "SoldierRoot.001",
+      "UniformDetails.001"
+    ],
+    "triangles": 16806,
+    "z_min_m": 0.0005,
+    "z_max_m": 1.813,
+    "glasses_front_y_m": -0.1169
+  },
+  "gltf": {
+    "nodes": 13,
+    "meshes": 12,
+    "materials": [
+      "UA_Boot",
+      "UA_Camo",
+      "UA_Dark",
+      "UA_Gear",
+      "UA_Insignia",
+      "UA_Lens",
+      "UA_Skin"
+    ],
+    "images": [
+      "ua_gear_cordura",
+      "ua_mm14_camo",
+      "ua_skin_face",
+      "ua_insignia_atlas"
+    ],
+    "generator": "Khronos glTF Blender I/O v5.2.40"
+  },
+  "checks": {
+    "height_between_1_78_and_1_86_m": true,
+    "feet_on_ground_z0": true,
+    "faces_forward_minus_y_in_blender": true,
+    "triangles_under_18000": true,
+    "materials_7": true,
+    "all_images_embedded": true,
+    "every_node_has_asset_node_id": true,
+    "root_is_SoldierRoot": true
+  },
+  "passed": true
+}

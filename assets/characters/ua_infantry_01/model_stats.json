@@ -1,0 +1,107 @@
+{
+  "objects": {
+    "Body": {
+      "triangles": 5776,
+      "materials": [
+        "UA_Camo",
+        "UA_Skin"
+      ]
+    },
+    "Head": {
+      "triangles": 1496,
+      "materials": [
+        "UA_Skin"
+      ]
+    },
+    "Gloves": {
+      "triangles": 704,
+      "materials": [
+        "UA_Dark"
+      ]
+    },
+    "Helmet": {
+      "triangles": 1940,
+      "materials": [
+        "UA_Camo",
+        "UA_Dark",
+        "UA_Gear"
+      ]
+    },
+    "Headset": {
+      "triangles": 376,
+      "materials": [
+        "UA_Dark"
+      ]
+    },
+    "Glasses": {
+      "triangles": 728,
+      "materials": [
+        "UA_Lens",
+        "UA_Dark"
+      ]
+    },
+    "PlateCarrier": {
+      "triangles": 2508,
+      "materials": [
+        "UA_Gear",
+        "UA_Dark"
+      ]
+    },
+    "Belt": {
+      "triangles": 728,
+      "materials": [
+        "UA_Gear",
+        "UA_Dark"
+      ]
+    },
+    "UniformDetails": {
+      "triangles": 680,
+      "materials": [
+        "UA_Camo"
+      ]
+    },
+    "KneePads": {
+      "triangles": 576,
+      "materials": [
+        "UA_Dark"
+      ]
+    },
+    "Boots": {
+      "triangles": 880,
+      "materials": [
+        "UA_Boot",
+        "UA_Dark"
+      ]
+    },
+    "Insignia": {
+      "triangles": 414,
+      "materials": [
+        "UA_Insignia"
+      ]
+    }
+  },
+  "triangles": 16806,
+  "bounds_m": {
+    "x": [
+      -0.644,
+      0.647
+    ],
+    "y": [
+      -0.231,
+      0.227
+    ],
+    "z": [
+      0.0,
+      1.813
+    ]
+  },
+  "materials": [
+    "UA_Boot",
+    "UA_Camo",
+    "UA_Dark",
+    "UA_Gear",
+    "UA_Insignia",
+    "UA_Lens",
+    "UA_Skin"
+  ]
+}

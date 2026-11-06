@@ -41,6 +41,7 @@ Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağ�
 | [Tank modelleme standardı](docs/TANK_ASSET.md) | Blender parça hiyerarşisi, hareket hazırlığı, üçgen hedefi ve teslim önerisi |
 | [Oynanabilir ikinci tank planı](docs/SECOND_TANK_BLENDER_PLAN.md) | Kum beji tankın kaynak/GLB teslimi ve otomatik oyun kontrolleri mevcut; insan oynanabilirlik kabulü açık |
 | [Makineli tüfek Blender planı](docs/MACHINE_GUN_ASSET_PLAN.md) | POV kameralı ikinci silahın yerleşimi, hareket grupları, modelleme sırası ve teslim kontrolleri |
+| [Ukraynalı piyade modeli planı](docs/INFANTRY_MODEL_PLAN.md) | TPS piyadesinin modeli teslim edildi (Blender + GLB, 16,8 bin üçgen); iskelet/animasyon/silah sonraki adım, görsel kabul açık |
 | [İçerik stüdyosu](docs/CONTENT_STUDIO.md) | `npm run studio`: canlı çekim, kare kare 1080×1920 MP4 render, Reels kameraları |
 | [Teknik mimari](docs/ARCHITECTURE.md) | Seçilen yığın, sistem sınırları ve fizik yaklaşımı |
 | [İlk tank düellosu planı](docs/COMBAT_DUEL_PLAN.md) | Yerel hasar, kolay mod AI ve LAN hasar entegrasyonu; son oynanış kabulü açık |

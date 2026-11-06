@@ -254,3 +254,10 @@ Yeni karar kaydında tarih, kararın sahibi, gerekçe ve etkilenen belgeler beli
 - **Kabul edilen öneri:** Görünür üçgen tavanı bu tank için yaklaşık 30–35 bine çıkarıldı; teslim 27.988 üçgen. Oranlar ve parça dizilimi Leopard 2A6'ya yakın; birebir kopya, marka veya işaret yok. Kullanıcı öneriyi "Blender MCP kullanarak yapalım" diyerek sürdürdü; açık bir sayı onayı vermedi.
 - **Uygulama kararı:** Aynı varlık (`iron_dust_02`) yerinde yenilendi. Tekerlek merkezleri, `TurretPivot`, `GunPitchPivot`, `MuzzlePoint`, `COL_Hull`, düğüm adları ve GLB özel alanları korundu. Yol tekeri yarıçapı 0,475'ten 0,418 m'ye indi; palet alt kenarı yükseldiği için oyundaki temas yarıçapı yaklaşık 0,55'ten 0,52 m'ye düştü. Sürüş testi geçti.
 - **Açık:** Oyun içinde görsel kabul ve sürüş hissi. Palet görünümü hâlâ geçici şerit shader'ına bağlı.
+
+## 2026-11-06 — Ukraynalı piyade modeli
+
+- **Kesin kullanıcı kararları:** Oyuna TPS modunda oynanacak 3D bir piyade eklenecek. Asker açıkça Ukraynalı olacak (bayrak, tryzub, MM-14 kamuflaj). Model Blender'da özgün low-poly olarak üretilecek ve tankın yanına yakışacak, gerçekçi görünecek. Önce yalnız model; silah, animasyon ve oynanış sonra. Şimdilik düşman piyade yok.
+- **Önceki kararla ilişki:** 2026-10-23 "Tema: kurgusal modern tanklar" kararı ve "piyade MVP dışında" çizgisi bu istekle genişliyor. Kartal Bölüğü / görev hikâyesiyle ilişki açık.
+- **Öneri (onay bekler):** 1,80 m boy, 10–15 bin üçgen, 5–7 malzeme, A-poz ve rig'e hazır döngüler, `assets/characters/ua_infantry_01/`. F0 oran taslağı kullanıcı onayına sunulacak.
+- **Durum:** Model teslim edildi (F0–F6). Kullanıcı ara onay beklemeden bitirilmesini istedi. Varsayılanlar: yüz görünür ve gözlüklü, yelek zeytin yeşili. 16.806 üçgen ve 7 malzeme; önerilen bütçenin biraz üstünde. Görsel kabul açık. [Plan](INFANTRY_MODEL_PLAN.md), [varlık notu](../assets/characters/ua_infantry_01/README.md).

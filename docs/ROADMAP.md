@@ -334,3 +334,9 @@ Marka tekrarları kaldırıldı; tek üst logo ve TR/EN segmentleri, ortak buton
 ### 2026-11-05 — Çaylak Günü görev sistemi
 
 Doğal arazide 3 sıralı kontrol noktası → 3 farklı zırh hedefi → 2 kolay AI tankı, olay tabanlı görev çekirdeği, amaç/yön/mesafe HUD'u, TR/EN telsiz, zafer/yenilgi/istatistik/yıldız/kayıt ve görev 2'nin Yakında olarak açılması uygulandı. R kurtarması görev süresi/toplam hasarı korur; tam yeniden başlatma sahneyi yeniden kurar. Sis atıcıları gerçek kule dünya dönüşümünü kullanır. [Kapsam, kontroller ve açık insan kabulü](MISSIONS.md#2026-11-05--görev-1-uygulaması-ve-doğrulama). Genel M1/M2/M3 insan kabulü kapanmaz.
+
+### 2026-11-06 — Ukraynalı piyade modeli (UA Infantry 01)
+
+Kullanıcının TPS modunda oynanacak Ukraynalı piyade isteği üzerine ilk adım olarak yalnız model üretildi. Model, Blender MCP ile özgün bir betikten çıktı: 1,81 m boy, A-poz, 16.806 üçgen, 7 malzeme, kodla üretilmiş MM-14 kamuflaj. [Varlık notu](../assets/characters/ua_infantry_01/README.md).
+
+GLB yeniden içe aktarıldı ve 8 otomatik kontrolün hepsi geçti. Model geçici bir kodla oyunda IRON DUST 02'nin yanına yüklendi ve headless Chromium'da (SwiftShader, 1280×720) görsel olarak incelendi; geçici kod kaldırıldı. Oyun kodu değişmedi. İskelet, animasyon, silah, TPS kontrolü ve kullanıcının görsel kabulü açık. M1/M2/M3 kabul durumları değişmez.
