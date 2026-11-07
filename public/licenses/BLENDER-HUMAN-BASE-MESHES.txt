@@ -1,0 +1,17 @@
+Human Base Meshes — Asset Bundle v1.4.1
+By Blender Studio and community contributions
+Source: https://www.blender.org/download/demo/ (Asset Bundles → Human Base Meshes)
+Downloaded: 2026-11-07, human-base-meshes-bundle-v1.4.1.zip (50,643,039 bytes)
+
+LICENSE: Creative Commons Zero (CC0 1.0 Universal) — public domain.
+The bundle README states: "All provided assets are public domain under the CC0 license."
+
+Used in IRON DUST:
+- GEO-body_male_realistic, multires level 0 cage only (no sculpt detail),
+  stored as assets/characters/ua_infantry_01/source/hbm_body_male_realistic_l0.blend.
+- Modified: scaled to 1.77 m, unsubdivided twice, feet removed, clothing
+  inflation and smoothing, region materials, used as the body/head/hands of
+  ua_infantry_01. Eye positions taken from the bundle's eye objects.
+
+Note: the bundle also contains a "License" text block referring to the Rain Rig
+(CC-BY 4.0). The Rain Rig is not part of the bundle content used here.

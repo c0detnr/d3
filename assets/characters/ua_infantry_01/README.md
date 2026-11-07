@@ -1,12 +1,16 @@
 # UA Infantry 01
 
-Durum: **Model teslim edildi (F0–F6).** Kullanıcının görsel kabulü bekleniyor. Bu teslimde iskelet, skinning, animasyon, silah ve oyun entegrasyonu yok. Plan: [INFANTRY_MODEL_PLAN.md](../../../docs/INFANTRY_MODEL_PLAN.md).
+Durum: **v4 (2026-11-07): gövde, kafa ve eller CC0 anatomik taban modele geçirildi.** v2 kumaş kıvrımı normal map'i ve ortam gölgesini, v3 yelek ayrıntılarını ekledi. Kullanıcının görsel kabulü bekleniyor. Bu teslimde iskelet, skinning, animasyon, silah ve oyun entegrasyonu yok. Plan: [INFANTRY_MODEL_PLAN.md](../../../docs/INFANTRY_MODEL_PLAN.md).
 
 Modern Ukraynalı piyade. Üzerinde MM-14 esinli piksel kamuflaj üniforma, kılıflı yüksek kesim kask, kulaklık ve mikrofon, balistik gözlük ve zeytin yeşili plaka taşıyıcı var. Plaka taşıyıcıda üçlü şarjör cebi, idari cep, telsiz ve anten, ilk yardım cebi bulunuyor. Ayrıca taktik kemer, kargo cepleri, dizlikler, coyote bot ve beş parmaklı eldiven var. Kimlik işaretleri: sol omuzda bayrak, sağ omuzda kalkan üzerinde tryzub, göğüste küçük bayrak, kol ve dizlerin üstünde sarı tanıma bandı.
 
 ## Kaynak ve lisans
 
-Model, Blender 5.2.2 içinde Blender MCP ile [scripts/blender/build_ua_infantry_01.py](../../../scripts/blender/build_ua_infantry_01.py) betiğinden üretildi. Bu proje için özgün çalışmadır. Dış model, doku, fotoğraf veya marka kullanılmadı. Dört doku da betikte numpy ile üretilir. Bayrak ve tryzub, Ukrayna devlet simgelerinin sadeleştirilmiş çizimleridir. Kask, kulaklık ve yelek gerçek ürünlerin kopyası değildir; genel modern form örnek alındı.
+Model, Blender 5.2.2 içinde Blender MCP ile [scripts/blender/build_ua_infantry_01.py](../../../scripts/blender/build_ua_infantry_01.py) betiğinden üretildi.
+
+- **Gövde, kafa ve eller (v4):** Blender Studio *Human Base Meshes* v1.4.1 paketindeki `GEO-body_male_realistic` modelinden geliyor. Lisans CC0; paketin README'si "All provided assets are public domain under the CC0 license" diyor. Kaynak blender.org/download/demo, indirme tarihi 2026-11-07. Paketten yalnız multires seviye 0 kafesi ve göz konumları alındı: [source/hbm_body_male_realistic_l0.blend](source/hbm_body_male_realistic_l0.blend) (594 KB). Lisans kaydı: [public/licenses/BLENDER-HUMAN-BASE-MESHES.txt](../../../public/licenses/BLENDER-HUMAN-BASE-MESHES.txt).
+- **Taban modelde yapılan değişiklikler:** 1,77 m'ye ölçeklendi ve iki kademe seyreltildi (un-subdivide). Ayaklar silindi. Üniforma bölgesi yumuşatılıp kumaş payı kadar dışa şişirildi. Bölgelere ten, eldiven ve üniforma malzemeleri atandı.
+- **Bunun dışındaki her şey özgün:** kıyafet ayrıntıları, ekipman, kask, bot ve bütün dokular. Dokular betikte numpy ile üretiliyor. Bayrak ve tryzub, Ukrayna devlet simgelerinin sadeleştirilmiş çizimleridir. Kask, kulaklık ve yelek gerçek ürünlerin kopyası değildir; genel modern form örnek alındı.
 
 Yeniden üretmek için Blender'da şu satırı çalıştırın:
 
@@ -20,24 +24,23 @@ Bu komut modeli kurar, GLB'yi dışa aktarır, yeniden okuyup doğrular, ardınd
 
 | Ölçü | Değer |
 |---|---|
-| Boy (bot tabanı → kask tepesi) | 1,813 m |
-| Kol açıklığı (A-poz, kollar yataydan 45° aşağı) | 1,29 m |
-| Görünür üçgen | 16.806 |
-| Malzeme | 7: `UA_Camo`, `UA_Gear`, `UA_Dark`, `UA_Boot`, `UA_Skin`, `UA_Lens`, `UA_Insignia` |
-| Doku | 4 PNG, GLB içine gömülü: MM-14 512², cordura 256², yüz 256², nişan atlası 64² |
-| GLB boyutu | 1,06 MB |
+| Boy (bot tabanı → kask tepesi) | 1,817 m (çıplak boy 1,77 m) |
+| Kol açıklığı (A-poz, kollar yataydan ~67° aşağı) | 0,92 m |
+| Görünür üçgen | 16.428 |
+| Malzeme | 8: `UA_Uniform` (gövde), `UA_Camo`, `UA_Gear`, `UA_Dark`, `UA_Boot`, `UA_Skin`, `UA_Lens`, `UA_Insignia` |
+| Doku | 5 PNG, GLB içine gömülü: MM-14 512², üniforma normal map'i 1024², cordura 256², yüz 256², nişan atlası 64² |
+| Köşe rengi | `COLOR_0`: bake edilmiş ortam gölgesi, her parçada |
+| GLB boyutu | 2,02 MB |
 
-Üçgen sayısı plandaki 10–15 bin önerisinin biraz üstünde. En büyük pay 5.776 üçgenle gövdeye ait; bu yoğunluk ileride iskelet bağlarken eklemlerde kenar halkası sağlıyor. Değer tankın (27.988) altında. Bu bir modelleme bütçesidir; performans ölçümü yapılmadı.
+Üçgen sayısı plandaki 10–15 bin önerisinin biraz üstünde. En büyük paylar gövdeye (5.018; kafa ve eller dahil) ve yeleğe (3.816) ait. Gövde, taban modelin eklem halkalarını koruyan dörtgen topolojisinde. Değer tankın (27.988) altında. Bu bir modelleme bütçesidir; performans ölçümü yapılmadı.
 
 ## Parça sözleşmesi
 
 ```text
 SoldierRoot  (origin: iki ayağın ortası, zemin seviyesi)
-├── Body            tek skinlenebilir mesh: gövde, kollar, bacaklar, boyun (skin modifier + subdivision; eklemlerde 3 halka)
-├── Head            yüz ve kafa, analitik biçim + sadeleştirme; tamamen kafa kemiğine bağlanacak
-├── Gloves          ayrı parmaklı eldivenler (başparmak + 4 parmak, her biri 3 boğum)
+├── Body            tek skinlenebilir mesh (CC0 taban model): kafa ve boyun UA_Skin, eller UA_Dark (eldiven), gövde/kollar/bacaklar UA_Uniform
 ├── Helmet          kabuk, raylar, gece görüşü plakası, cırt bantları, denge cebi, çene kayışları
-├── Headset · Glasses
+├── Headset · Glasses (gözlük + göz küreleri)
 ├── PlateCarrier    plakalar, yan kuşak, MOLLE, omuz askıları, cepler, telsiz ve anten
 ├── Belt · UniformDetails (yaka, kol ve kargo cepleri) · KneePads · Boots
 └── Insignia        bayrak, tryzub, tanıma bantları
@@ -48,20 +51,46 @@ SoldierRoot  (origin: iki ayağın ortası, zemin seviyesi)
 - Çarpışma mesh'i üretilmedi. Oyuncu için kodda kapsül önerisi: yarıçap ~0,30 m, yükseklik ~1,80 m.
 - Kamuflaj ve ekipman yüzlerinde 0,42 m'de bir tekrarlanan küp izdüşümü UV kullanıldı. Yüzde küresel UV, nişanlarda atlas hücresi UV'si var.
 
+## v2 — Kumaş kıvrımları ve ortam gölgesi
+
+- **Kıvrımlar:** Gövdeye ikinci bir UV katmanı (`UVMap_Detail`) eklendi; adalar 1024² dokuya sıkıştırıldı. Gövdenin iki kat alt bölünmüş kopyasına kıvrımlar işlendi: dirsek içinde ve diz arkasında daha güçlü toplanma, bilekte ve bot üstünde bolluk, kasıkta çapraz kıvrımlar, kemer üstünde gömlek toplanması, kol ve pantolon dikişleri. Bu kopyadan tanjant normal map'i bake edildi. glTF'te `normalTexture.texCoord = 1`. Üçgen sayısı değişmedi.
+- **Ortam gölgesi (AO):** Cycles ile 0,12 m mesafede, yalnız askerin kendi parçaları hesaba katılarak her parçanın köşe rengine bake edildi. Değerler 0,42–1,0 aralığına sıkıştırıldı. glTF `COLOR_0` taban rengini çarptığı için yeleğin altı, cep kenarları ve kask içi oyunda koyulaşıyor.
+- Blender'ın malzeme önizlemesinde AO görünmez, çünkü köşe rengi malzemeye bağlanmadı; etkisi oyunda görünür.
+- Bilinen küçük kusur: normal map'te ışın kaçırmasından kalan ~%0,2 hatalı piksel, büyük kısmı ada kenarlarında.
+
+## v3 — Üst vücut ve kollar
+
+- **Omuz ve gövde:** Omuz eklemi dışa ve yukarı alındı (x 0,185 → 0,198 m). Boyun ile omuz arasına trapez düğümü eklendi; üst göğüs ve sırt genişledi.
+- **Kollar:** Deltoid başı, pazu ve ön kol kası için ek iskelet istasyonları eklendi. Kollar artık omuzda dolgun, dirsekte dar, ön kolda hafif kaslı; boru görünümü kalktı.
+- **Üniforma:** Dirseklere yastıklı dirsek pedleri eklendi.
+- **Yelek:** Ön ve arka plakaya kenar biyesi eklendi; omuz pedleri kalınlaştırıldı. Ayrıca kuşakla ön plakanın birleşiminde tokalar, ön üstte iki MOLLE şeridi ve sol omuz askısında turnike var. Şarjör cepleri ağzı açık yapıldı: lastik bant ve görünen şarjör uçları.
+- Kıvrım haritası yeni gövdeye göre yeniden bake edildi. Doğrulamadaki üçgen eşiği 18 binden 20 bine çıkarıldı.
+
+## v4 — Anatomik taban model
+
+Kullanıcı kolların gerçekçi olmadığını söyledi; haklıydı. Skin-modifier'la üretilen gövde boru şekilli uzuvlardan oluşan bir manken gibiydi. Gövde, kafa ve eller CC0 anatomik taban modelle değiştirildi.
+
+- **Eklem noktaları:** Modelden ölçülüp betiğe yazıldı (`SHOULDER`, `ELBOW`, `WRIST`, `HIP`, `KNEE`, `ANKLE`). Kollar taban modelin A-pozunda, yataydan ~67° aşağıda. Cepler, yamalar, dizlikler ve botlar bu noktalara göre yeniden yerleşti.
+- **Kafa ekipmanı:** Kafa merkezi ve yarıçapları gerçek kafadan ölçülüyor (`fit_head`). Kask, kafanın kesim çizgisi üstündeki her noktası içeride kalacak şekilde ölçekleniyor; bu sürümde %6,3 büyüdü. Gözlük lensi yüzün göz bandındaki en dış noktalarından yumuşatılarak, kulaklık ile çene kayışları ise gerçek kafaya ışın atılarak oturtuluyor.
+- **Bot ve pantolon:** Botlar yuvarlatıldı ve alçaltıldı, bot ağzına yastık eklendi. Pantolon bot ağzının üstüne bolca dökülüyor.
+- Eski analitik kafa, skin-modifier gövde ve ayrı eldiven parçaları kaldırıldı.
+
 ## Doğrulama
 
-`validation.json` (2026-11-06): GLB yeniden içe aktarıldı ve 8 kontrolün hepsi geçti:
+`validation.json` (2026-11-07, v4): GLB yeniden içe aktarıldı ve 10 kontrolün hepsi geçti:
 
 - boy 1,78–1,86 m arasında
 - ayaklar zeminde
 - yüz −Y yönüne bakıyor
-- üçgen sayısı 18 binin altında
-- 7 malzeme var
-- 4 doku gömülü
+- üçgen sayısı 20 binin altında
+- 8 malzeme var
+- 5 doku gömülü
 - bütün düğümlerde kimlik alanı var
 - kök düğüm `SoldierRoot`
+- üniforma normal map'i ikinci UV'yi kullanıyor
+- her parçada AO köşe rengi (`COLOR_0`) var
 
-Oyun içi kontrol: GLB, geliştirme sunucusunda geçici bir kodla IRON DUST 02'nin yanına yüklendi. Görüntü headless Chromium ile alındı (SwiftShader WebGL, 1280×720, varsayılan kalite). Ölçek, zemine oturma, yön, gölge ve kamuflajın okunması incelendi. Geçici kod geri alındı. Performans ölçülmedi.
+Oyun içi kontrol: GLB, geliştirme sunucusunda geçici bir kodla IRON DUST 02'nin yanına yüklendi. Görüntü headless Chromium ile alındı (SwiftShader WebGL, 1280×720, varsayılan kalite). Ölçek, zemine oturma, yön, gölge ve kamuflajın okunması incelendi. Geçici kod geri alındı. v2, v3 ve v4 aynı yöntemle önden ve arkadan yeniden incelendi. Performans ölçülmedi.
 
 ## Önizlemeler
 
@@ -69,11 +98,15 @@ Oyun içi kontrol: GLB, geliştirme sunucusunda geçici bir kodla IRON DUST 02'n
 - [previews/final_head_closeup.png](previews/final_head_closeup.png): kafa, kask, kulaklık ve gözlük
 - [previews/final_with_iron_dust_02_close.png](previews/final_with_iron_dust_02_close.png) ve [geniş görünüm](previews/final_with_iron_dust_02_wide.png): tankın yanında
 - [previews/ingame_babylon_next_to_tank.png](previews/ingame_babylon_next_to_tank.png): oyun ışığında, Babylon.js
+- v4: [vücut](previews/v4_body_views.png), [kafa yakın plan](previews/v4_head_closeup.png), [oyunda önden ve arkadan](previews/ingame_v4_front_back.png)
+- v3: [üst vücut](previews/v3_upper_body_views.png), [yelek yakın plan](previews/v3_plate_carrier_closeup.png), [oyunda önden ve arkadan](previews/ingame_v3_front_back.png)
+- v2: [oyunda önden ve arkadan](previews/ingame_v2_front_back.png), [oyunda tam kare](previews/ingame_v2_full.png), [Blender EEVEE](previews/v2_eevee_front_back.png)
 - F0 oran taslağı: [previews/f0_blockout_views.png](previews/f0_blockout_views.png)
 
 ## Açık konular
 
 - Kullanıcının görsel kabulü.
 - Sıradaki adımlar: iskelet ve skinning, animasyonlar, silah, TPS kontrolcüsü.
-- Yüz yakın planda stilize kalıyor; ağız ve göz detayı dokuya bağlı ve göz gözlüğün arkasında.
+- Yüz taban modelden geldiği için gerçekçi. Ten dokusu (sakal, kaş, dudak) yine betikle üretiliyor ve yakın planda basit kalıyor.
+- v1–v3 önizlemeleri eski skin-modifier gövdeyi gösteriyor.
 - Kamuflaj UV'sinde küp izdüşümü dikişleri yakından fark edilebilir.

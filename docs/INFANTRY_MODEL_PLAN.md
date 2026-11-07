@@ -1,6 +1,6 @@
 # UA Infantry 01 — Ukraynalı piyade modeli planı
 
-Tarih: 2026-11-06. Durum: **F0–F6 tamamlandı; model teslim edildi, kullanıcının görsel kabulü bekleniyor.** Kullanıcı ara onay noktalarını beklemeden işin bitirilmesini istedi. Açık sorular için varsayılanlar kullanıldı: yüz görünür ve gözlüklü, yelek zeytin yeşili. Sonuç, ölçüler ve kontroller: [varlık notu](../assets/characters/ua_infantry_01/README.md). Teslim 16.806 üçgen; aşağıdaki 10–15 bin önerisinin biraz üstünde.
+Tarih: 2026-11-06. Durum: **F0–F6 tamamlandı; model teslim edildi, kullanıcının görsel kabulü bekleniyor.** Kullanıcı ara onay noktalarını beklemeden işin bitirilmesini istedi. Açık sorular için varsayılanlar kullanıldı: yüz görünür ve gözlüklü, yelek zeytin yeşili. Sonuç, ölçüler ve kontroller: [varlık notu](../assets/characters/ua_infantry_01/README.md). Teslim 16.806 üçgen; aşağıdaki 10–15 bin önerisinin biraz üstünde. v2'de gövdeye kumaş kıvrımı normal map'i ve köşe rengine ortam gölgesi eklendi; üçgen sayısı değişmedi, malzeme sayısı 8 oldu. v3'te omuzlar, kollar ve yelek ayrıntıları geliştirildi; toplam 18.690 üçgen. v4'te kullanıcı onayıyla gövde, kafa ve eller CC0 anatomik taban modele geçirildi (Blender Studio Human Base Meshes); toplam 16.428 üçgen. Plandaki "dış model kullanılmaz" ilkesinin yerini bu karar aldı.
 
 ## Amaç ve kapsam
 

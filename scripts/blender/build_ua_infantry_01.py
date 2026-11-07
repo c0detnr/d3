@@ -242,6 +242,7 @@ def make_insignia_texture():
 MATERIALS = {
     # ad: (renk sRGB, pürüzlülük, metalik, doku anahtarı)
     "UA_Camo": ((1, 1, 1), 0.88, 0.0, "camo"),
+    "UA_Uniform": ((1, 1, 1), 0.90, 0.0, "camo"),  # gövde: kamuflaj + kıvrım normal map'i (UVMap_Detail)
     "UA_Gear": ((1, 1, 1), 0.82, 0.0, "cordura"),
     "UA_Dark": ((0.17, 0.18, 0.18), 0.78, 0.0, None),
     "UA_Boot": ((0.47, 0.39, 0.29), 0.86, 0.0, None),
@@ -262,7 +263,7 @@ def get_material(name):
     mat.use_nodes = True
     nt = mat.node_tree
     bsdf = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
-    for n in [n for n in nt.nodes if n.type == "TEX_IMAGE"]:
+    for n in [n for n in nt.nodes if n.type not in ("BSDF_PRINCIPLED", "OUTPUT_MATERIAL")]:
         nt.nodes.remove(n)
     lin = [srgb_to_linear(c) for c in color]
     bsdf.inputs["Base Color"].default_value = (*lin, 1.0)
@@ -275,6 +276,24 @@ def get_material(name):
         node.interpolation = "Linear"
         node.location = (bsdf.location.x - 320, bsdf.location.y)
         nt.links.new(node.outputs["Color"], bsdf.inputs["Base Color"])
+        if name == "UA_Uniform":
+            uvn = nt.nodes.new("ShaderNodeUVMap")
+            uvn.uv_map = "UVMap"
+            uvn.location = (node.location.x - 220, node.location.y)
+            nt.links.new(uvn.outputs["UV"], node.inputs["Vector"])
+    if name == "UA_Uniform" and "uniform_normal" in TEXTURES:
+        uvd = nt.nodes.new("ShaderNodeUVMap")
+        uvd.uv_map = DETAIL_UV
+        uvd.location = (bsdf.location.x - 760, bsdf.location.y - 320)
+        nimg = nt.nodes.new("ShaderNodeTexImage")
+        nimg.image = TEXTURES["uniform_normal"]
+        nimg.location = (bsdf.location.x - 540, bsdf.location.y - 320)
+        nmap = nt.nodes.new("ShaderNodeNormalMap")
+        nmap.uv_map = DETAIL_UV
+        nmap.location = (bsdf.location.x - 240, bsdf.location.y - 320)
+        nt.links.new(uvd.outputs["UV"], nimg.inputs["Vector"])
+        nt.links.new(nimg.outputs["Color"], nmap.inputs["Color"])
+        nt.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
     return mat
 
 
@@ -570,262 +589,181 @@ def limb_band(surface, p1, p2, t0, t1, gap, thick, seg=12, ray_r=0.16):
 # Oranlar ve iskelet noktaları (sol taraf +X; sağ taraf aynalanır)
 # ---------------------------------------------------------------------------
 
-SKIN_K = 1.16  # subdivision'ın skin yarıçaplarını küçültmesini telafi eder
-HIP = Vector((0.092, 0.002, 0.855))
-KNEE = Vector((0.108, -0.012, 0.50))
-ANKLE = Vector((0.120, 0.010, 0.10))
-SHOULDER = Vector((0.185, 0.005, 1.435))
-ARM_DIR = Vector((0.707, 0.0, -0.707))  # A-poz: yataydan 45° aşağı
+# Eklem noktaları: CC0 taban modelden ölçüldü (ölçek ve kaldırma sonrası, sol taraf +X).
+HIP = Vector((0.095, 0.0, 0.89))
+KNEE = Vector((0.130, -0.005, 0.52))
+ANKLE = Vector((0.178, 0.055, 0.105))
+SHOULDER = Vector((0.185, 0.0, 1.43))
+ARM_DIR = Vector((0.395, 0.0, -0.918)).normalized()  # A-poz: yataydan ~67° aşağı
 ELBOW = SHOULDER + ARM_DIR * 0.30
-FORE_DIR = Vector((0.62, -0.18, -0.76)).normalized()
-WRIST = ELBOW + FORE_DIR * 0.265
+FORE_DIR = Vector((0.346, -0.285, -0.894)).normalized()
+WRIST = ELBOW + FORE_DIR * 0.25
+NECK_C = (0.0, -0.015)
 
 
 def mx(v, sx):
     return Vector((v.x * sx, v.y, v.z))
 
 
+def arm_out(sx):
+    """Üst kolun dış-üst yüzeyi (yama, cep yönü)."""
+    return Vector((sx * abs(ARM_DIR.z), 0.0, abs(ARM_DIR.x))).normalized()
+
+
 def torso_center(z):
-    return (0.0, 0.004 if z > 1.0 else 0.010)
+    return (0.0, -0.02)
 
 
 # ---------------------------------------------------------------------------
-# F1 — Gövde (tek skinlenebilir mesh) ve eldivenler
+# F1 — Gövde: CC0 taban model (Blender Studio Human Base Meshes)
 # ---------------------------------------------------------------------------
 
+BODY_SRC = os.path.join(ASSET_DIR, "source", "hbm_body_male_realistic_l0.blend")
+BODY_MESH = "HBM_BodyMale_L0"
+BODY_SCALE = 1.77 / 1.690  # çıplak boy 1,77 m
+BODY_LIFT = 0.028          # bot tabanı payı
+FEET_CUT_Z = 0.125         # ayaklar bot içinde kalır, silinir
 
-def build_body_skin(col):
-    verts, edges, radii = [], [], []
 
-    def add(p, r, link=None):
-        verts.append(Vector(p))
-        radii.append((r[0] * SKIN_K, r[1] * SKIN_K))
-        i = len(verts) - 1
-        if link is not None:
-            edges.append((link, i))
-        return i
+def body_xform(co):
+    return Vector((co.x * BODY_SCALE, co.y * BODY_SCALE, (co.z + 0.006) * BODY_SCALE + BODY_LIFT))
 
-    def chain(start, items):
-        prev = start
-        for p, r in items:
-            prev = add(p, r, prev)
-        return prev
 
-    root = add((0, 0.012, 0.90), (0.165, 0.118))
-    t1 = add((0, 0.006, 1.00), (0.150, 0.108), root)
-    t2 = add((0, 0.000, 1.10), (0.146, 0.106), t1)
-    t3 = add((0, -0.004, 1.20), (0.156, 0.112), t2)
-    t4 = add((0, -0.006, 1.30), (0.170, 0.120), t3)
-    t5 = add((0, 0.000, 1.39), (0.170, 0.112), t4)
-    chain(t5, [((0, 0.018, 1.475), (0.060, 0.056)), ((0, 0.024, 1.54), (0.053, 0.050)), ((0, 0.024, 1.60), (0.050, 0.047))])
-    for sx in (1, -1):
-        sh, el, wr = mx(SHOULDER, sx), mx(ELBOW, sx), mx(WRIST, sx)
-        d, fd = mx(ARM_DIR, sx), mx(FORE_DIR, sx)
-        c = add((sx * 0.115, 0.004, 1.44), (0.075, 0.068), t5)
-        chain(c, [
-            (sh, (0.066, 0.062)),
-            (sh + d * 0.15, (0.061, 0.058)),
-            (el - d * 0.035, (0.051, 0.050)),
-            (el, (0.049, 0.048)),
-            (el + fd * 0.035, (0.048, 0.047)),
-            (el + fd * 0.14, (0.045, 0.043)),
-            (wr - fd * 0.02, (0.040, 0.038)),
-            (wr + fd * 0.005, (0.041, 0.039)),
-        ])
-        hp, kn, an = mx(HIP, sx), mx(KNEE, sx), mx(ANKLE, sx)
-        h = add(hp, (0.098, 0.098), root)
-        chain(h, [
-            (hp.lerp(kn, 0.45), (0.090, 0.088)),
-            (kn + Vector((0, 0, 0.045)), (0.071, 0.071)),
-            (kn, (0.069, 0.069)),
-            (kn - Vector((0, 0, 0.045)), (0.068, 0.068)),
-            (kn.lerp(an, 0.35), (0.068, 0.066)),
-            (Vector((an.x, an.y, 0.25)), (0.067, 0.066)),
-            (Vector((an.x, an.y, 0.20)), (0.057, 0.057)),
-            (Vector((an.x, an.y, 0.15)), (0.050, 0.050)),
-        ])
+def load_base_mesh():
+    me = bpy.data.meshes.get(BODY_MESH)
+    if me is None:
+        with bpy.data.libraries.load(BODY_SRC, link=False) as (src, dst):
+            dst.meshes = [BODY_MESH]
+        me = dst.meshes[0]
+    return me
 
-    me = bpy.data.meshes.new("_tmp_body_skin")
-    me.from_pydata([tuple(v) for v in verts], edges, [])
-    ob = bpy.data.objects.new("_tmp_body_skin", me)
-    col.objects.link(ob)
-    mod = ob.modifiers.new("Skin", "SKIN")
-    mod.branch_smoothing = 0.3
-    for i, r in enumerate(radii):
-        me.skin_vertices[0].data[i].radius = r
-    me.skin_vertices[0].data[root].use_root = True
-    ob.modifiers.new("Subsurf", "SUBSURF").levels = 2
-    dg = bpy.context.evaluated_depsgraph_get()
+
+def region_of(p):
+    """'head' (ten), 'hand' (eldiven) veya 'cloth' (üniforma)."""
+    if p.z > 1.56 or (p.z > 1.515 and math.hypot(p.x, p.y - NECK_C[1]) < 0.09):
+        return "head"
+    if abs(p.x) > 0.30:
+        sx = 1 if p.x > 0 else -1
+        if (p - mx(WRIST, sx)).dot(mx(FORE_DIR, sx)) > -0.005:
+            return "hand"
+    return "cloth"
+
+
+def cloth_thickness(z):
+    """Gövdeden dışa kumaş payı (m): gömlek, pantolon, bot üstünde bolluk, bot içinde ince."""
+    if z > 0.95:
+        return 0.011
+    if z > 0.30:
+        return 0.014
+    if z > 0.205:
+        return 0.014 + 0.010 * smoothstep(0.30, 0.24, z)
+    return max(0.004, 0.024 * smoothstep(0.185, 0.205, z))
+
+
+def build_body_base():
+    me = load_base_mesh()
     bm = bmesh.new()
-    bm.from_object(ob, dg)
-    bpy.data.objects.remove(ob, do_unlink=True)
-    bpy.data.meshes.remove(me)
-
-    # Biçimlendirme: kalça arkası, sırt düzlüğü, pantolon arka bolluğu
+    bm.from_mesh(me)
+    for layer in list(bm.loops.layers.uv.values()):
+        bm.loops.layers.uv.remove(layer)
+    bmesh.ops.unsubdivide(bm, verts=bm.verts[:], iterations=2)
     for v in bm.verts:
-        x, y, z = v.co
-        ax = abs(x)
-        if y > 0 and 0.76 < z < 1.0 and ax < 0.17:
-            v.co.y += 0.020 * gauss((z - 0.87) / 0.06) * gauss((ax - 0.075) / 0.05)
-        if y < 0 and 0.80 < z < 0.95 and ax < 0.06:
-            v.co.y -= 0.006 * gauss((z - 0.88) / 0.03)
+        v.co = body_xform(v.co)
+    doomed = [f for f in bm.faces if all(v.co.z < FEET_CUT_Z for v in f.verts)]
+    bmesh.ops.delete(bm, geom=doomed, context="FACES")
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
+    reg = {v: region_of(v.co) for v in bm.verts}
+    cloth = [v for v in bm.verts if reg[v] == "cloth"]
+    inner = [v for v in cloth if not v.is_boundary and all(reg[e.other_vert(v)] == "cloth" for e in v.link_edges)]
+    # giysi altında küçük anatomi ayrıntılarını yumuşat (kas hatları, karın)
+    for _ in range(3):
+        bmesh.ops.smooth_vert(bm, verts=inner, factor=0.5, use_axis_x=True, use_axis_y=True, use_axis_z=True)
     bm.normal_update()
-    return bm
+    moves = []
+    for v in cloth:
+        t = cloth_thickness(v.co.z)
+        if not all(reg[e.other_vert(v)] == "cloth" for e in v.link_edges):
+            t *= 0.6
+        moves.append((v, v.normal * t))
+    for v in bm.verts:
+        if reg[v] == "hand":
+            moves.append((v, v.normal * 0.0015))  # eldiven kalınlığı
+    for v, dv in moves:
+        v.co += dv
+    bm.normal_update()
+    return bm, me
 
 
-def build_gloves(part):
-    for sx in (1, -1):
-        wr = mx(WRIST, sx)
-        f = mx(FORE_DIR, sx)
-        n = (Vector((0, 0, -1)) - f * f.dot(Vector((0, 0, -1)))).normalized()  # avuç içi yönü
-        s = n.cross(f).normalized()
-        if s.y > 0:
-            s = -s  # başparmak öne (−Y)
-        # avuç
-        rings = [(-0.02, 0.030, 0.020), (0.0, 0.034, 0.019), (0.04, 0.042, 0.017), (0.072, 0.044, 0.0145), (0.084, 0.041, 0.013)]
-        bm = bmesh.new()
-        built = []
-        for t, ws, wn in rings:
-            c = wr + f * t
-            built.append([bm.verts.new(c + s * math.cos(2 * math.pi * k / 10) * ws + n * math.sin(2 * math.pi * k / 10) * wn) for k in range(10)])
-        for a, b in zip(built, built[1:]):
-            for k in range(10):
-                j = (k + 1) % 10
-                bm.faces.new((a[k], a[j], b[j], b[k]))
-        bm.faces.new(list(reversed(built[0])))
-        bm.faces.new(built[-1])
-        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-        part.add(bm, "UA_Dark")
-        # parmaklar: işaret, orta, yüzük, serçe
-        fingers = [(0.030, (0.036, 0.022, 0.018), 4), (0.010, (0.040, 0.025, 0.019), 0), (-0.010, (0.037, 0.023, 0.018), -4), (-0.028, (0.029, 0.018, 0.016), -9)]
-        for off, lens, splay in fingers:
-            p = wr + f * 0.076 + s * off + n * 0.002
-            d = (Matrix.Rotation(math.radians(splay), 3, n) @ f).normalized()
-            pts, rad = [p], [0.0098]
-            for i, ln in enumerate(lens):
-                curl = math.radians((8, 14, 12)[i])
-                axis = d.cross(n).normalized()
-                d = (Matrix.Rotation(curl, 3, axis) @ d).normalized()
-                if d.dot(n) < 0:
-                    d = (Matrix.Rotation(-2 * curl, 3, axis) @ d).normalized()
-                p = p + d * ln
-                pts.append(p)
-                rad.append(0.0095 - 0.0005 * (i + 1))
-            part.add(tube(pts, [(r, r * 0.88) for r in rad], seg=6, ref=n), "UA_Dark")
-        # başparmak
-        p = wr + f * 0.012 + s * 0.028 + n * 0.010
-        d = (f * 0.75 + s * 0.42 + n * 0.45).normalized()
-        pts, rad = [p], [0.012]
-        for i, ln in enumerate((0.030, 0.026, 0.022)):
-            axis = d.cross(n).normalized()
-            d = (Matrix.Rotation(math.radians(12), 3, axis) @ d).normalized()
-            if d.dot(n) < 0.2:
-                d = (Matrix.Rotation(math.radians(-24), 3, axis) @ d).normalized()
-            p = p + d * ln
-            pts.append(p)
-            rad.append(0.0115 - 0.0008 * (i + 1))
-        part.add(tube(pts, [(r, r * 0.9) for r in rad], seg=6, ref=n), "UA_Dark")
-        # eldiven bilek manşeti
-        part.add(tube([wr - f * 0.012, wr + f * 0.012], [(0.040, 0.026), (0.039, 0.025)], seg=10, ref=n), "UA_Dark")
-
-
+# ---------------------------------------------------------------------------
 # ---------------------------------------------------------------------------
 # F2 — Kafa, kask, kulaklık, gözlük
 # ---------------------------------------------------------------------------
 
-HEAD_C = Vector((0.0, 0.004, 1.685))
-HEAD_R = (0.074, 0.097, 0.118)
+HEAD_C = Vector((0.0, -0.055, 1.683))  # fit_head() gerçek kafadan yeniden hesaplar
+HEAD_R = (0.081, 0.087, 0.117)
+HEAD_SURF = None
+HELMET_C = Vector((0.0, -0.049, 1.693))
+HELMET_R = (0.111, 0.115, 0.119)
+HELMET_T = 0.011
+# Kask kesim çizgisi: kafa merkezine göre yükseklik (m), önden açıya göre
+_CUT = [(0, 0.053), (40, 0.049), (70, 0.041), (85, 0.037), (105, 0.037), (125, 0.013), (150, -0.009), (180, -0.017)]
+
+
+def head_dir(az, zn):
+    zn = max(-1.0, min(1.0, zn))
+    rxy = math.sqrt(max(0.0, 1 - zn * zn))
+    return Vector((math.sin(az) * rxy * HEAD_R[0], -math.cos(az) * rxy * HEAD_R[1], zn * HEAD_R[2]))
 
 
 def head_point(az, zn, extra=0.0):
-    """Analitik kafa yüzeyi. az: önden (−Y) açı, zn: −1 (çene) .. 1 (tepe)."""
-    zn = max(-1.0, min(1.0, zn))
-    rxy = math.sqrt(max(0.0, 1 - zn * zn))
-    x = math.sin(az) * rxy
-    y = -math.cos(az) * rxy
-    front = max(0.0, -y)
-    back = max(0.0, y)
-    aa = abs(az)
-    mw = 1.0 - 0.22 * smoothstep(-0.30, -1.0, zn)
-    mw *= 1.0 + 0.05 * back * smoothstep(-0.4, 0.2, zn)
-    md = 0.93 if y < 0 else 1.0
-    if y > 0:
-        md *= 1.0 - 0.30 * smoothstep(-0.25, -0.95, zn)
-    if y < 0:
-        md *= 1.0 - 0.05 * smoothstep(-0.55, -1.0, zn)
-    p = HEAD_C + Vector((x * HEAD_R[0] * mw, y * HEAD_R[1] * md, zn * HEAD_R[2]))
-    fwd = Vector((0, -1, 0))
-    # burun
-    if -0.42 < zn < 0.10:
-        k = max(0.0, min(1.0, (0.08 - zn) / 0.38))
-        amp = (0.004 + 0.017 * k ** 1.5) * smoothstep(-0.42, -0.31, zn)
-        sig = 0.12 + 0.04 * k
-        p += fwd * amp * gauss(az / sig) * front
-    p += fwd * 0.005 * gauss((zn - 0.14) / 0.07) * gauss(az / 0.55) * front  # kaş kemeri
-    p -= fwd * 0.007 * gauss((zn - 0.01) / 0.08) * gauss((aa - 0.36) / 0.17) * front  # göz çukuru
-    p += fwd * 0.004 * gauss((zn + 0.56) / 0.06) * gauss(az / 0.28) * front  # dudaklar
-    p += fwd * 0.009 * gauss((zn + 0.86) / 0.10) * gauss(az / 0.35) * front  # çene ucu
-    side = Vector((math.sin(az), 0, 0))
-    p += side * 0.004 * gauss((zn + 0.12) / 0.12) * gauss((aa - 0.75) / 0.25)  # elmacık
+    """Kafa yüzeyinde nokta: elipsoid yönünde gerçek kafaya ışın atılır."""
+    d = head_dir(az, zn)
+    dirn = d.normalized()
+    p = HEAD_C + d
+    if HEAD_SURF is not None:
+        hit, _ = HEAD_SURF.hit(HEAD_C + dirn * 0.35, -dirn)
+        if hit is not None:
+            p = hit
     if extra:
-        p += (p - HEAD_C).normalized() * extra
+        p = p + dirn * extra
     return p
 
 
-def build_head(col):
-    n_az, n_z = 64, 40
-    bm = bmesh.new()
-    uvl = bm.loops.layers.uv.new("UVMap")
-    grid = []
-    for j in range(1, n_z):
-        th = math.pi * j / n_z
-        zn = -math.cos(th)
-        grid.append([(bm.verts.new(head_point(2 * math.pi * i / n_az - math.pi, zn)), i / n_az, (zn + 1) / 2) for i in range(n_az)])
-    bottom = bm.verts.new(head_point(0, -1.0))
-    top = bm.verts.new(head_point(0, 1.0))
-
-    def put(face, uvs):
-        for l, uv in zip(face.loops, uvs):
-            l[uvl].uv = uv
-
-    for r in range(len(grid) - 1):
-        for i in range(n_az):
-            j = (i + 1) % n_az
-            a, b = grid[r][i], grid[r][j]
-            c, d = grid[r + 1][j], grid[r + 1][i]
-            ub = b[1] if j != 0 else 1.0
-            f = bm.faces.new((a[0], b[0], c[0], d[0]))
-            put(f, [(a[1], a[2]), (ub, b[2]), (ub, c[2]), (d[1], d[2])])
-    for i in range(n_az):
-        j = (i + 1) % n_az
-        a, b = grid[0][i], grid[0][j]
-        ub = b[1] if j != 0 else 1.0
-        f = bm.faces.new((bottom, b[0], a[0]))
-        put(f, [((a[1] + ub) / 2, 0.0), (ub, b[2]), (a[1], a[2])])
-        a, b = grid[-1][i], grid[-1][j]
-        f = bm.faces.new((top, a[0], b[0]))
-        put(f, [((a[1] + ub) / 2, 1.0), (a[1], a[2]), (ub, b[2])])
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    # yüksek çözünürlüklü biçimi koruyarak sadeleştir
-    me = bpy.data.meshes.new("_tmp_head")
-    bm.to_mesh(me)
-    bm.free()
-    ob = bpy.data.objects.new("_tmp_head", me)
-    col.objects.link(ob)
-    dec = ob.modifiers.new("Decimate", "DECIMATE")
-    dec.ratio = 0.30
-    dg = bpy.context.evaluated_depsgraph_get()
-    out = bmesh.new()
-    out.from_object(ob, dg)
-    bpy.data.objects.remove(ob, do_unlink=True)
-    bpy.data.meshes.remove(me)
-    return out
-
-
-HELMET_C = Vector((0.0, 0.010, 1.695))
-HELMET_R = (0.108, 0.128, 0.118)
-HELMET_T = 0.011
-_CUT = [(0, 1.738), (40, 1.734), (70, 1.726), (85, 1.722), (105, 1.722), (125, 1.698), (150, 1.676), (180, 1.668)]
+def fit_head(body_bm):
+    """Kafa merkezini/yarıçaplarını ölçer, ışın yüzeyini kurar, kaskı kafaya sığdırır."""
+    global HEAD_C, HEAD_R, HEAD_SURF, HELMET_C, HELMET_R
+    hb = bmesh.new()
+    vmap = {}
+    for f in body_bm.faces:
+        if f.calc_center_median().z > 1.50:
+            vs = []
+            for v in f.verts:
+                if v not in vmap:
+                    vmap[v] = hb.verts.new(v.co)
+                vs.append(vmap[v])
+            hb.faces.new(vs)
+    HEAD_SURF = Surface(hb)
+    pts = [v.co.copy() for v in hb.verts if v.co.z > 1.56]
+    top = max(p.z for p in pts)
+    chin = min(p.z for p in pts if p.y < -0.07)
+    cran = [p for p in pts if 1.71 < p.z < 1.76]
+    rx = max(abs(p.x) for p in cran)
+    y0, y1 = min(p.y for p in cran), max(p.y for p in cran)
+    HEAD_C = Vector((0.0, (y0 + y1) / 2, (top + chin) / 2))
+    HEAD_R = (rx, (y1 - y0) / 2, (top - chin) / 2)
+    HELMET_C = HEAD_C + Vector((0.0, 0.006, 0.010))
+    base = [rx + 0.030, HEAD_R[1] + 0.028, HEAD_R[2] + 0.002]
+    margin = HELMET_T + 0.006
+    k = 1.0
+    for p in pts:
+        d = p - HELMET_C
+        az = math.atan2(d.x, -d.y)
+        if p.z < helmet_cut_z(az) - 0.01:
+            continue
+        e = math.sqrt(sum((d[i] / (base[i] - margin)) ** 2 for i in range(3)))
+        k = max(k, e)
+    HELMET_R = tuple((b - margin) * k + margin for b in base)
+    return {"head_c": tuple(round(c, 4) for c in HEAD_C), "head_r": tuple(round(c, 4) for c in HEAD_R), "helmet_r": tuple(round(c, 4) for c in HELMET_R), "fit_k": round(k, 3)}
 
 
 def helmet_cut_z(az):
@@ -834,8 +772,8 @@ def helmet_cut_z(az):
         if a0 <= a <= a1:
             t = (a - a0) / (a1 - a0)
             t = t * t * (3 - 2 * t)
-            return z0 + (z1 - z0) * t
-    return _CUT[-1][1]
+            return HEAD_C.z + z0 + (z1 - z0) * t
+    return HEAD_C.z + _CUT[-1][1]
 
 
 def helmet_el_cut(az):
@@ -954,7 +892,24 @@ def build_headset(part):
     part.add(ellipsoid(mouth + Vector((0.004, -0.003, 0)), (0.008, 0.007, 0.007), seg=8, rings=5), "UA_Dark")
 
 
-def build_glasses(part):
+def build_glasses(part, eyes=()):
+    # lens yüzeyi: her açıda yüzün göz bandındaki en dış noktası, yumuşatılmış
+    samples = [(-1.7 + 0.05 * i) for i in range(69)]
+    raw = [max((head_point(a, zn) - HEAD_C).length for zn in (-0.20, -0.12, -0.05, 0.0, 0.06, 0.12)) for a in samples]
+    smooth_r = [sum(raw[max(0, i - 3):i + 4]) / len(raw[max(0, i - 3):i + 4]) for i in range(len(raw))]
+
+    def lens_r(a):
+        x = (a + 1.7) / 0.05
+        i = max(0, min(len(samples) - 2, int(x)))
+        t = max(0.0, min(1.0, x - i))
+        return smooth_r[i] * (1 - t) + smooth_r[i + 1] * t
+
+    def lp(a, zn, extra):
+        return HEAD_C + head_dir(a, zn).normalized() * (lens_r(a) + extra)
+
+    for e in eyes:
+        part.add(ellipsoid(e[:3], (e[3], e[3], e[3]), seg=10, rings=6), "UA_Dark")
+
     def strip(az0, az1, z0, z1, extra, nu, thick):
         z0f = z0 if callable(z0) else (lambda a: z0)
         z1f = z1 if callable(z1) else (lambda a: z1)
@@ -964,8 +919,7 @@ def build_glasses(part):
             for c in range(nu + 1):
                 az = az0 + (az1 - az0) * c / nu
                 zn = z0f(az) + (z1f(az) - z0f(az)) * r / 2
-                ex = extra + 0.006 * math.cos(az)
-                p = head_point(az, zn, ex)
+                p = lp(az, zn, extra)
                 n = (p - HEAD_C)
                 n.z = 0
                 n.normalize()
@@ -978,11 +932,11 @@ def build_glasses(part):
         return slab(inner, normals, th)
 
     lens_bottom = lambda a: -0.04 - 0.13 * gauss((abs(a) - 0.38) / 0.30)
-    part.add(strip(-1.10, 1.10, lens_bottom, 0.11, 0.012, 26, 0.003), "UA_Lens")
-    part.add(strip(-1.12, 1.12, 0.095, 0.135, 0.013, 22, 0.005), "UA_Dark")
+    part.add(strip(-1.10, 1.10, lens_bottom, 0.11, 0.008, 26, 0.003), "UA_Lens")
+    part.add(strip(-1.12, 1.12, 0.095, 0.135, 0.009, 22, 0.005), "UA_Dark")
     for s in (1, -1):
         a0, a1 = sorted((s * 1.08, s * 1.62))
-        part.add(strip(a0, a1, 0.05, 0.10, 0.006, 5, 0.003), "UA_Dark")
+        part.add(strip(a0, a1, 0.05, 0.10, 0.004, 5, 0.003), "UA_Dark")
 
 
 # ---------------------------------------------------------------------------
@@ -1011,7 +965,16 @@ def panel_rays(surface, zs, hw_fn, front, gap, thick, nx=9, pillow=0.4):
         inner.append(row_i)
         normals.append(row_n)
         th.append(row_t)
-    return slab(inner, normals, th), inner
+    outer = [[inner[r][c] + normals[r][c] * th[r][c] for c in range(len(inner[0]))] for r in range(len(inner))]
+    return slab(inner, normals, th), inner, outer
+
+
+def border_trim(inner, outer, out, radius=0.0055):
+    """Plaka kenarını saran biye (yuvarlak kenar bandı)."""
+    rows, cols = len(inner), len(inner[0])
+    path = [(0, c) for c in range(cols)] + [(r, cols - 1) for r in range(1, rows)] + [(rows - 1, c) for c in range(cols - 2, -1, -1)] + [(r, 0) for r in range(rows - 2, -1, -1)]
+    pts = [inner[r][c].lerp(outer[r][c], 0.55) for r, c in path]
+    return tube(pts, [radius] * len(pts), seg=6, caps=False, ref=out)
 
 
 def surface_y(surface, x, z, front=True):
@@ -1027,10 +990,12 @@ def build_plate_carrier(part, surface):
         return 0.145
 
     zs = [1.10 + i * (1.46 - 1.10) / 8 for i in range(9)]
-    front_bm, _ = panel_rays(surface, zs, front_hw, True, 0.012, 0.042)
+    front_bm, fi, fo = panel_rays(surface, zs, front_hw, True, 0.012, 0.042)
     part.add(front_bm, "UA_Gear")
-    back_bm, _ = panel_rays(surface, [1.10 + i * (1.47 - 1.10) / 8 for i in range(9)], front_hw, False, 0.010, 0.038)
+    part.add(border_trim(fi, fo, Vector((0, -1, 0))), "UA_Gear")
+    back_bm, bi, bo = panel_rays(surface, [1.10 + i * (1.47 - 1.10) / 8 for i in range(9)], front_hw, False, 0.010, 0.038)
     part.add(back_bm, "UA_Gear")
+    part.add(border_trim(bi, bo, Vector((0, 1, 0))), "UA_Gear")
     # yan kuşak (cummerbund) ön/arka plaka arasında iki yanda
     for s in (1, -1):
         a0, a1 = (math.radians(48), math.radians(132)) if s > 0 else (math.radians(-132), math.radians(-48))
@@ -1053,7 +1018,19 @@ def build_plate_carrier(part, surface):
             pts.append(Vector((x, y, z + 0.006)))
         pts[0].z = max(pts[0].z, 1.445)
         pts[-1].z = max(pts[-1].z, 1.45)
-        part.add(tube(pts, [(0.030, 0.008)] * len(pts), seg=8, ref=Vector((1, 0, 0))), "UA_Gear")
+        part.add(tube(pts, [(0.034, 0.012)] * len(pts), seg=10, ref=Vector((1, 0, 0))), "UA_Gear")
+        # kuşak tokaları (ön plaka birleşimi)
+        a = s * math.radians(50)
+        dd = Vector((math.sin(a), -math.cos(a), 0))
+        tg = UP.cross(dd).normalized()
+        for zb in (1.165, 1.225):
+            hit, _ = surface.hit(Vector((0, 0.004, zb)) + dd * 0.29, -dd)
+            if hit is not None:
+                part.add(box(hit + dd * 0.030, (0.034, 0.012, 0.024), axes=(tg, dd, UP), bevel=0.003), "UA_Dark", smooth=False)
+    # turnike: sol omuz askısının önünde
+    ty = surface_y(surface, 0.105, 1.42) - 0.012 - 0.042
+    part.add(tube([Vector((0.105, ty - 0.004, 1.47)), Vector((0.105, ty - 0.010, 1.36))], [0.017, 0.017], seg=10), "UA_Dark")
+    part.add(tube([Vector((0.105, ty - 0.004, 1.448)), Vector((0.105, ty - 0.005, 1.438))], [0.019, 0.019], seg=10), "UA_Gear")
     # arka sürükleme kulpu
     yb = surface_y(surface, 0.0, 1.45, front=False) + 0.045
     part.add(tube([(-0.035, yb, 1.43), (-0.03, yb + 0.018, 1.47), (0.03, yb + 0.018, 1.47), (0.035, yb, 1.43)], [(0.009, 0.004)] * 4, seg=6), "UA_Dark")
@@ -1063,8 +1040,14 @@ def build_plate_carrier(part, surface):
     for i, x in enumerate((-0.083, 0.0, 0.083)):
         y = fy(x, 1.18)
         part.add(box((x, y - 0.026, 1.175), (0.076, 0.052, 0.13), bevel=0.008), "UA_Gear", smooth=False)
-        part.add(box((x, y - 0.028, 1.245), (0.080, 0.058, 0.03), bevel=0.006), "UA_Gear", smooth=False)
-        part.add(box((x, y - 0.054, 1.205), (0.012, 0.004, 0.06), bevel=0.0), "UA_Dark", smooth=False)
+        # ağzı açık cep: lastik bant + görünen şarjör ucu
+        part.add(box((x, y - 0.026, 1.236), (0.079, 0.056, 0.007), bevel=0.002), "UA_Dark", smooth=False)
+        part.add(box((x, y - 0.024, 1.258), (0.064, 0.026, 0.040), bevel=0.004), "UA_Dark", smooth=False)
+        part.add(box((x, y - 0.054, 1.195), (0.012, 0.004, 0.07), bevel=0.0), "UA_Dark", smooth=False)
+    # üst MOLLE şeritleri
+    for z in (1.405, 1.432):
+        w = 2 * front_hw(z) - 0.035
+        part.add(box((0, fy(0.0, z) - 0.002, z), (w, 0.006, 0.022), bevel=0.0015), "UA_Gear", smooth=False)
     y = fy(0.0, 1.34)
     part.add(box((0, y - 0.014, 1.335), (0.20, 0.028, 0.105), bevel=0.008), "UA_Gear", smooth=False)
     # telsiz cebi + anten (sol arka yan)
@@ -1113,30 +1096,25 @@ def build_belt(part, surface):
 
 
 def build_uniform_details(part, surface):
-    # yaka
-    inner, normals, th = [], [], []
-    for z, rx, ry in ((1.465, 0.080, 0.074), (1.51, 0.070, 0.066), (1.556, 0.064, 0.061)):
-        row_i, row_n, row_t = [], [], []
-        for k in range(16):
-            a = 2 * math.pi * k / 16
-            d = Vector((math.sin(a), -math.cos(a), 0))
-            row_i.append(Vector((math.sin(a) * rx, 0.012 + 0.008 * (z - 1.465) / 0.09 - math.cos(a) * ry, z)))
-            row_n.append(d)
-            row_t.append(0.006)
-        inner.append(row_i)
-        normals.append(row_n)
-        th.append(row_t)
-    part.add(slab(inner, normals, th, wrap=True), "UA_Camo")
+    # yaka (boyun tabanını saran bant)
+    part.add(wrap_band(surface, lambda z: NECK_C, [1.475, 1.51, 1.545], 18, 0.003, 0.007, origin_r=0.13), "UA_Camo")
     for sx in (1, -1):
         sh, el = mx(SHOULDER, sx), mx(ELBOW, sx)
         d = mx(ARM_DIR, sx)
-        n = Vector((sx * 0.707, 0, 0.707))
+        n = arm_out(sx)
         e2 = -d
+        # eldiven manşeti (kol ile eldiven geçişi)
+        part.add(limb_band(surface, el, mx(WRIST, sx), 0.93, 1.02, 0.0, 0.006, ray_r=0.08), "UA_Dark")
         e1 = e2.cross(n).normalized()
         # kol cebi + kapak
         c = sh.lerp(el, 0.36)
         part.add(conform_panel(surface, c, n, e1, e2, [-0.045, -0.022, 0, 0.022, 0.045], [-0.05, -0.02, 0.02, 0.05], 0.002, 0.008, ray_from=0.2), "UA_Camo")
         part.add(conform_panel(surface, c + e2 * 0.057, n, e1, e2, [-0.047, -0.022, 0, 0.022, 0.047], [-0.012, 0.012], 0.009, 0.004, ray_from=0.2, pillow=0.0), "UA_Camo")
+        # dirsek pedi (A-pozda dirsek ucu +Y yönünde)
+        en = Vector((0, 1, 0))
+        ee2 = -d
+        ee1 = ee2.cross(en).normalized()
+        part.add(conform_panel(surface, el, en, ee1, ee2, [-0.04, -0.02, 0, 0.02, 0.04], [-0.055, -0.03, 0, 0.03, 0.055], 0.002, 0.011, pillow=0.6, ray_from=0.2), "UA_Camo")
         # kargo cebi (uyluk yanı)
         hp, kn = mx(HIP, sx), mx(KNEE, sx)
         tn = Vector((sx * 0.94, -0.34, 0)).normalized()
@@ -1153,22 +1131,22 @@ def build_knee_pads(part, surface):
         n = Vector((sx * 0.15, -1, 0)).normalized()
         axis = (hp - kn).normalized()
         e1 = axis.cross(n).normalized()
-        part.add(conform_panel(surface, kn, n, e1, axis, [-0.052, -0.03, 0, 0.03, 0.052], [-0.068, -0.04, 0, 0.04, 0.068], 0.004, 0.022, ray_from=0.2, pillow=0.6), "UA_Dark")
+        part.add(conform_panel(surface, kn, n, e1, axis, [-0.052, -0.03, 0, 0.03, 0.052], [-0.068, -0.04, 0, 0.04, 0.068], 0.0, 0.02, ray_from=0.2, pillow=0.6), "UA_Dark")
         for t in (-0.05, 0.05):
             c = kn + axis * t
             part.add(limb_band(surface, c - axis * 0.01, c + axis * 0.01, 0.0, 1.0, 0.002, 0.004, ray_r=0.14), "UA_Dark", smooth=False)
 
 
 def build_boots(part):
-    def ring(c, lat, hw, z0, z1, k=10):
+    def ring(c, lat, hw, z0, z1, k=14):
         pts = []
         mid = (z0 + z1) / 2
         hh = (z1 - z0) / 2
         for i in range(k):
             a = 2 * math.pi * i / k
             ca, sa = math.cos(a), math.sin(a)
-            x = hw * math.copysign(abs(ca) ** 0.6, ca)
-            z = mid + hh * math.copysign(abs(sa) ** 0.6, sa)
+            x = hw * math.copysign(abs(ca) ** 0.8, ca)
+            z = mid + hh * math.copysign(abs(sa) ** 0.8, sa)
             pts.append(Vector((c.x, c.y, 0)) + lat * x + Vector((0, 0, z)))
         return pts
 
@@ -1193,12 +1171,14 @@ def build_boots(part):
         if lat.x * sx < 0:
             lat = -lat
         base = Vector((an.x, an.y, 0))
-        upper = [(-0.075, 0.040, 0.105), (-0.050, 0.047, 0.13), (0.0, 0.051, 0.15), (0.06, 0.053, 0.105), (0.11, 0.055, 0.078), (0.16, 0.050, 0.062), (0.20, 0.042, 0.052), (0.222, 0.026, 0.044)]
+        upper = [(-0.078, 0.034, 0.085), (-0.060, 0.043, 0.105), (-0.030, 0.048, 0.118), (0.0, 0.050, 0.122), (0.045, 0.051, 0.104), (0.09, 0.053, 0.082), (0.135, 0.052, 0.066), (0.175, 0.047, 0.056), (0.205, 0.038, 0.049), (0.222, 0.024, 0.044), (0.229, 0.010, 0.040)]
         part.add(loft([ring(base + fwd * s, lat, hw, 0.026, top) for s, hw, top in upper]), "UA_Boot")
-        sole = [(-0.082, 0.042), (-0.05, 0.051), (0.0, 0.054), (0.06, 0.057), (0.11, 0.060), (0.16, 0.055), (0.20, 0.046), (0.228, 0.03)]
-        part.add(loft([ring(base + fwd * s, lat, hw, 0.0, 0.032, k=10) for s, hw in sole]), "UA_Dark")
+        sole = [(-0.084, 0.036), (-0.065, 0.047), (-0.03, 0.052), (0.02, 0.054), (0.08, 0.057), (0.13, 0.058), (0.175, 0.052), (0.21, 0.042), (0.229, 0.026), (0.235, 0.010)]
+        part.add(loft([ring(base + fwd * s, lat, hw, 0.0, 0.032) for s, hw in sole]), "UA_Dark")
         shaft_c = Vector((an.x, an.y + 0.004, 0))
-        part.add(tube([shaft_c + Vector((0, 0, 0.09)), shaft_c + Vector((0, 0, 0.16)), shaft_c + Vector((0, 0, 0.225))], [(0.060, 0.064), (0.058, 0.062), (0.060, 0.063)], seg=12), "UA_Boot")
+        part.add(tube([shaft_c + Vector((0, 0, 0.06)), shaft_c + Vector((0, 0, 0.13)), shaft_c + Vector((0, 0, 0.195))], [(0.050, 0.056), (0.047, 0.052), (0.048, 0.053)], seg=14), "UA_Boot")
+        # yastıklı bot ağzı
+        part.add(tube([shaft_c + Vector((0, 0, 0.183)), shaft_c + Vector((0, 0, 0.198))], [(0.052, 0.057), (0.051, 0.056)], seg=14), "UA_Boot")
         # bağcık sırası
         for i in range(5):
             s = 0.005 + 0.022 * i
@@ -1222,7 +1202,7 @@ def build_insignia(part, surface):
     for sx in (1, -1):
         sh, el = mx(SHOULDER, sx), mx(ELBOW, sx)
         d = mx(ARM_DIR, sx)
-        n = Vector((sx * 0.707, 0, 0.707))
+        n = arm_out(sx)
         e2 = -d
         e1 = e2.cross(n).normalized()
         c = sh.lerp(el, 0.36)
@@ -1251,6 +1231,233 @@ def build_insignia(part, surface):
         if f.normal.y > 0:
             f.normal_flip()
         part.add(bm, "UA_Insignia", uv_const=insignia_uv(cell), smooth=False)
+
+
+
+# ---------------------------------------------------------------------------
+# v2 — Kumaş kıvrımları (normal map) ve ortam gölgesi (köşe rengi)
+# ---------------------------------------------------------------------------
+
+DETAIL_UV = "UVMap_Detail"
+NORMAL_RES = 1024
+
+
+def _angle_diff(a, b):
+    return (a - b + math.pi) % (2 * math.pi) - math.pi
+
+
+def fold_offset(p):
+    """Yüksek çözünürlüklü gövdede normal boyunca kumaş kıvrımı/dikiş yer değiştirmesi (m)."""
+    best = None
+    for sx in (1, -1):
+        chains = (
+            ("arm", [mx(SHOULDER, sx), mx(ELBOW, sx), mx(WRIST, sx)]),
+            ("leg", [mx(HIP, sx), mx(KNEE, sx), Vector((ANKLE.x * sx, ANKLE.y, 0.15))]),
+        )
+        for kind, pts in chains:
+            s0 = 0.0
+            for a, b in zip(pts, pts[1:]):
+                ab = b - a
+                ln = ab.length
+                t = max(0.0, min(1.0, (p - a).dot(ab) / (ln * ln)))
+                q = a + ab * t
+                d = (p - q).length
+                if best is None or d < best[0]:
+                    best = (d, kind, sx, s0 + t * ln, a, b, q)
+                s0 += ln
+    d, kind, sx, s, a, b, q = best
+    off = 0.0
+    if d > 0.115 or (kind == "arm" and s < 0.02):
+        # gövde: kemer üstünde gömlek toplanması
+        z = p.z
+        th = math.atan2(p.x, -(p.y - 0.004))
+        if 1.03 < z < 1.14:
+            env = gauss((z - 1.085) / 0.022)
+            off += 0.0035 * env * math.sin(2 * math.pi * z / 0.021 + 3.0 * th + 1.3 * math.sin(2 * th))
+        return off
+    axis = (b - a).normalized()
+    front = Vector((0, -1, 0))
+    u = (front - axis * front.dot(axis)).normalized()
+    w = axis.cross(u)
+    r = p - q
+    th = math.atan2(r.dot(w), r.dot(u))
+    wob = 1.1 * math.sin(2 * th + 0.7) + 0.6 * math.sin(3 * th)
+
+    def ang_of(v):
+        v = v - axis * v.dot(axis)
+        return math.atan2(v.dot(w), v.dot(u))
+
+    def ridge(x):
+        r = 0.5 + 0.5 * math.sin(x)
+        return (r ** 2.2 - 0.33) * 1.6
+
+    # düzensizlik: genlik ve dalga boyu açıya/uzunluğa göre değişir
+    irr = 0.65 + 0.35 * math.sin(1.7 * th + 23.0 * s + 0.9 * sx)
+    if kind == "arm":
+        # dirsek toplanması (iç tarafta güçlü), bilek bolluğu, koltuk altından çapraz kıvrımlar
+        inner = 0.45 + 0.55 * max(0.0, math.cos(_angle_diff(th, ang_of(Vector((0, -1, 0.3))))))
+        off += 0.0052 * inner * irr * gauss((s - 0.30) / 0.065) * ridge(2 * math.pi * s / (0.026 + 0.006 * math.sin(th)) + 2.0 * th + wob)
+        off += 0.0040 * irr * smoothstep(0.44, 0.52, s) * ridge(2 * math.pi * s / 0.022 + 1.4 * th + wob)
+        off += 0.0032 * irr * gauss((s - 0.08) / 0.06) * ridge(2 * math.pi * s / 0.05 + 3.0 * th)
+        seam = ang_of(-arm_out(sx))
+        off -= 0.0010 * gauss(_angle_diff(th, seam) / 0.06)
+    else:
+        # diz arkası/üstü, bot üstü bolluk, kasık çapraz kıvrımları, dikişler
+        back = 0.4 + 0.6 * max(0.0, math.cos(_angle_diff(th, ang_of(Vector((0, 1, 0))))))
+        off += 0.0058 * back * irr * gauss((s - 0.36) / 0.075) * ridge(2 * math.pi * s / (0.032 + 0.006 * math.sin(2 * th)) + 1.5 * th + wob)
+        off += 0.0065 * irr * smoothstep(0.56, 0.64, s) * ridge(2 * math.pi * s / 0.026 + 2.2 * th + wob)
+        off += 0.0036 * irr * gauss((s - 0.07) / 0.06) * ridge(2 * math.pi * s / 0.045 + 4.0 * th)
+        off += 0.0020 * smoothstep(0.38, 0.46, s) * (1 - smoothstep(0.56, 0.62, s)) * math.sin(6 * th + 2 * math.pi * s / 0.25)
+        lat = ang_of(Vector((sx, 0, 0)))
+        off -= 0.0009 * gauss(_angle_diff(th, lat) / 0.05)
+        off -= 0.0007 * gauss(_angle_diff(th, lat + math.pi) / 0.05)
+    return off
+
+
+def _select_only(objs, active):
+    bpy.context.view_layer.update()
+    for o in bpy.context.view_layer.objects:
+        if o is not None:
+            o.select_set(False)
+    for o in objs:
+        o.hide_set(False)
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = active
+
+
+def _set_cycles(scene, samples):
+    try:
+        scene.render.engine = "CYCLES"
+    except TypeError as exc:
+        raise RuntimeError(f"Cycles gerekli: {exc}")
+    scene.cycles.device = "CPU"
+    scene.cycles.samples = samples
+
+
+def bake_uniform_detail(body, col, scene):
+    """Gövdeye ikinci UV açar, kıvrımlı yüksek mesh'ten tanjant normal map'i bake eder."""
+    me = body.data
+    detail = me.uv_layers.new(name=DETAIL_UV)
+    me.uv_layers.active = detail
+    _select_only([body], body)
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.004, scale_to_bounds=True)
+    bpy.ops.uv.select_all(action="SELECT")
+    bpy.ops.uv.pack_islands(rotate=True, margin=0.004)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    me.uv_layers.active = me.uv_layers["UVMap"]
+    me.uv_layers["UVMap"].active_render = True
+
+    # Yüksek çözünürlüklü kıvrımlı kopya
+    tmp = bpy.data.objects.new("_ua_hi_src", me.copy())
+    col.objects.link(tmp)
+    sub = tmp.modifiers.new("Sub", "SUBSURF")
+    sub.levels = 2
+    sub.render_levels = 2
+    dg = bpy.context.evaluated_depsgraph_get()
+    hi_me = bpy.data.meshes.new_from_object(tmp.evaluated_get(dg))
+    old = tmp.data
+    bpy.data.objects.remove(tmp, do_unlink=True)
+    bpy.data.meshes.remove(old)
+    bm = bmesh.new()
+    bm.from_mesh(hi_me)
+    bm.normal_update()
+    uni = [i for i, m in enumerate(hi_me.materials) if m is not None and m.name == "UA_Uniform"]
+    moves = [(v, v.normal.copy() * fold_offset(v.co)) for v in bm.verts if v.link_faces and all(f.material_index in uni for f in v.link_faces)]
+    for v, dv in moves:
+        v.co += dv
+    bm.to_mesh(hi_me)
+    bm.free()
+    hi = bpy.data.objects.new("_ua_hi", hi_me)
+    col.objects.link(hi)
+    for poly in hi_me.polygons:
+        poly.use_smooth = True
+
+    # Bake hedefi: tek geçici malzemeli düşük kopya
+    img = bpy.data.images.get("UA_UniformNormal")
+    if img is not None:
+        bpy.data.images.remove(img)
+    img = bpy.data.images.new("UA_UniformNormal", NORMAL_RES, NORMAL_RES, alpha=False)
+    img.colorspace_settings.name = "Non-Color"
+    img.generated_color = (0.5, 0.5, 1.0, 1.0)
+    lo = bpy.data.objects.new("_ua_lo", me.copy())
+    col.objects.link(lo)
+    lo.data.materials.clear()
+    tmat = bpy.data.materials.new("_ua_bake")
+    tmat.use_nodes = True
+    tnode = tmat.node_tree.nodes.new("ShaderNodeTexImage")
+    tnode.image = img
+    tmat.node_tree.nodes.active = tnode
+    lo.data.materials.append(tmat)
+    for poly in lo.data.polygons:
+        poly.material_index = 0
+    lo.data.uv_layers.active = lo.data.uv_layers[DETAIL_UV]
+
+    _set_cycles(scene, 1)
+    bk = scene.render.bake
+    bk.use_selected_to_active = True
+    bk.cage_extrusion = 0.02
+    bk.max_ray_distance = 0.06
+    bk.normal_space = "TANGENT"
+    bk.margin = 6
+    bk.target = "IMAGE_TEXTURES"
+    _select_only([hi, lo], lo)
+    bpy.ops.object.bake(type="NORMAL")
+
+    path = os.path.join(TEX_DIR, "ua_uniform_normal.png")
+    img.filepath_raw = path
+    img.file_format = "PNG"
+    img.save()
+    img.filepath = path
+    TEXTURES["uniform_normal"] = img
+
+    for o in (hi, lo):
+        data = o.data
+        bpy.data.objects.remove(o, do_unlink=True)
+        bpy.data.meshes.remove(data)
+    bpy.data.materials.remove(tmat)
+    get_material("UA_Uniform")
+    scene.render.engine = "BLENDER_EEVEE"
+
+
+AO_FLOOR = 0.42  # glTF COLOR_0 taban rengi çarpar; en koyu nokta %42
+
+
+def bake_ambient_occlusion(objs, scene):
+    """Askerin kendi parçalarından gelen ortam gölgesini köşe rengine (COLOR_0) bake eder."""
+    layer = bpy.context.view_layer
+    ref_lc = layer.layer_collection.children.get(COL_REF)
+    was_excluded = ref_lc.exclude if ref_lc is not None else None
+    if ref_lc is not None:
+        ref_lc.exclude = True
+    if scene.world is None:
+        scene.world = bpy.data.worlds.new("UA_World")
+    scene.world.light_settings.distance = 0.12
+    for o in objs:
+        me = o.data
+        for a in list(me.color_attributes):
+            me.color_attributes.remove(a)
+        a = me.color_attributes.new("AO", "BYTE_COLOR", "POINT")
+        me.color_attributes.active_color = a
+        me.color_attributes.render_color_index = me.color_attributes.active_color_index
+    _set_cycles(scene, 64)
+    bk = scene.render.bake
+    bk.use_selected_to_active = False
+    bk.target = "VERTEX_COLORS"
+    _select_only(objs, objs[0])
+    try:
+        bpy.ops.object.bake(type="AO")
+    finally:
+        bk.target = "IMAGE_TEXTURES"
+        scene.render.engine = "BLENDER_EEVEE"
+        if ref_lc is not None:
+            ref_lc.exclude = was_excluded
+    for o in objs:
+        for item in o.data.color_attributes["AO"].data:
+            v = item.color[0]
+            k = AO_FLOOR + (1 - AO_FLOOR) * v
+            item.color = (k, k, k, 1.0)
 
 
 # ---------------------------------------------------------------------------
@@ -1298,37 +1505,56 @@ def build():
     root.empty_display_size = 0.3
     col.objects.link(root)
     root["asset_node_id"] = f"{ASSET_ID}/SoldierRoot"
-    root["asset_version"] = 1
+    root["asset_version"] = 2
     root["height_m"] = 1.83
     root["suggested_capsule"] = "radius 0.30 m, height 1.80 m"
 
-    body_bm = build_body_skin(col)
+    body_bm, base_me = build_body_base()
+    head_fit = fit_head(body_bm)
+    print("head fit", head_fit)
     surface = Surface(body_bm.copy())
+    chin_z = HEAD_C.z - HEAD_R[2] * 0.92
 
-    def is_neck(f):
-        c = f.calc_center_median()
-        return c.z > 1.49 and math.hypot(c.x, c.y - 0.02) < 0.072
+    def face_region(f):
+        return region_of(f.calc_center_median())
 
-    body = Part("Body")
     uvl = body_bm.loops.layers.uv.new("UVMap")
     for f in body_bm.faces:
-        if is_neck(f):
+        if face_region(f) != "head":
+            continue
+        if f.calc_center_median().z < chin_z:
             for l in f.loops:
                 l[uvl].uv = NECK_UV
-    body.add(body_bm, "UA_Camo", uv_fixed=is_neck, face_mat=lambda f: "UA_Skin" if is_neck(f) else None)
-
-    head = Part("Head")
-    head.add(build_head(col), "UA_Skin", uv_fixed=True)
-
-    gloves = Part("Gloves")
-    build_gloves(gloves)
+            continue
+        uvs = []
+        for l in f.loops:
+            d = l.vert.co - HEAD_C
+            az = math.atan2(d.x, -d.y)
+            zn = max(-1.0, min(1.0, d.z / HEAD_R[2]))
+            uvs.append([0.5 + az / (2 * math.pi), (zn + 1) / 2])
+        us = [u for u, _ in uvs]
+        if max(us) - min(us) > 0.5:
+            for uv in uvs:
+                if uv[0] < 0.5:
+                    uv[0] += 1.0
+        for l, uv in zip(f.loops, uvs):
+            l[uvl].uv = uv
+    body = Part("Body")
+    body.add(body_bm, "UA_Uniform", uv_fixed=lambda f: face_region(f) == "head",
+             face_mat=lambda f: {"head": "UA_Skin", "hand": "UA_Dark"}.get(face_region(f)))
+    eyes = []
+    for side in ("L", "R"):
+        e = base_me.get(f"eye_{side}")
+        if e is not None:
+            c = body_xform(Vector(e[:3]))
+            eyes.append((c.x, c.y, c.z, e[3] * BODY_SCALE))
 
     helmet = Part("Helmet")
     build_helmet(helmet)
     headset = Part("Headset")
     build_headset(headset)
     glasses = Part("Glasses")
-    build_glasses(glasses)
+    build_glasses(glasses, eyes)
 
     carrier = Part("PlateCarrier")
     build_plate_carrier(carrier, surface)
@@ -1343,9 +1569,11 @@ def build():
     insignia = Part("Insignia")
     build_insignia(insignia, surface)
 
-    parts = [body, head, gloves, helmet, headset, glasses, carrier, belt, uniform, knees, boots, insignia]
+    parts = [body, helmet, headset, glasses, carrier, belt, uniform, knees, boots, insignia]
     objs = [p.finish(col, root) for p in parts]
     surface.bm.free()
+    bake_uniform_detail(objs[0], col, scene)
+    bake_ambient_occlusion(objs, scene)
     return root, objs
 
 
@@ -1407,6 +1635,8 @@ def export_and_validate(root, objs):
         export_normals=True,
         export_materials="EXPORT",
         export_animations=False,
+        export_vertex_color="ACTIVE",
+        export_all_vertex_colors=False,
     )
     gltf, size = read_glb_json(GLB_PATH)
 
@@ -1441,9 +1671,11 @@ def export_and_validate(root, objs):
         "height_between_1_78_and_1_86_m": 1.78 <= zmax - zmin <= 1.86,
         "feet_on_ground_z0": abs(zmin) < 0.002,
         "faces_forward_minus_y_in_blender": nose_y is not None and nose_y < -0.08,
-        "triangles_under_18000": tris < 18000,
-        "materials_7": len(gltf.get("materials", [])) == 7,
-        "all_images_embedded": all("bufferView" in im for im in images) and len(images) == 4,
+        "triangles_under_20000": tris < 20000,
+        "materials_8": len(gltf.get("materials", [])) == 8,
+        "all_images_embedded": all("bufferView" in im for im in images) and len(images) == 5,
+        "uniform_normal_uses_texcoord_1": any(m["name"] == "UA_Uniform" and m.get("normalTexture", {}).get("texCoord") == 1 for m in gltf.get("materials", [])),
+        "every_primitive_has_ao_color_0": all("COLOR_0" in pr["attributes"] for m in gltf.get("meshes", []) for pr in m["primitives"]),
         "every_node_has_asset_node_id": all(v for v in node_ids.values()),
         "root_is_SoldierRoot": any(n.get("name") == "SoldierRoot" for n in gltf.get("nodes", [])),
     }

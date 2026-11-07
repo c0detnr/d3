@@ -340,3 +340,9 @@ Doğal arazide 3 sıralı kontrol noktası → 3 farklı zırh hedefi → 2 kola
 Kullanıcının TPS modunda oynanacak Ukraynalı piyade isteği üzerine ilk adım olarak yalnız model üretildi. Model, Blender MCP ile özgün bir betikten çıktı: 1,81 m boy, A-poz, 16.806 üçgen, 7 malzeme, kodla üretilmiş MM-14 kamuflaj. [Varlık notu](../assets/characters/ua_infantry_01/README.md).
 
 GLB yeniden içe aktarıldı ve 8 otomatik kontrolün hepsi geçti. Model geçici bir kodla oyunda IRON DUST 02'nin yanına yüklendi ve headless Chromium'da (SwiftShader, 1280×720) görsel olarak incelendi; geçici kod kaldırıldı. Oyun kodu değişmedi. İskelet, animasyon, silah, TPS kontrolü ve kullanıcının görsel kabulü açık. M1/M2/M3 kabul durumları değişmez.
+
+v2 (aynı gün): Gövdeye bake edilmiş kumaş kıvrımı normal map'i (1024², ikinci UV) ve bütün parçalara köşe rengi olarak ortam gölgesi eklendi. Üçgen sayısı değişmedi; 8 malzeme, 5 doku, GLB 1,87 MB. 10/10 otomatik kontrol geçti ve oyunda headless Chromium ile önden ve arkadan incelendi. Görsel kabul açık.
+
+v3 (2026-11-07): Kullanıcı isteğiyle üst vücut ve kollar geliştirildi: daha geniş omuz ve trapez, deltoid, pazu ve ön kol kütlesi, dirsek pedleri. Yeleğe kenar biyesi, omuz pedleri, tokalar, MOLLE şeritleri, ağzı açık şarjör cepleri ve turnike eklendi. 18.690 üçgen, GLB 2,04 MB. 10/10 otomatik kontrol geçti ve oyunda önden ve arkadan incelendi. Görsel kabul açık.
+
+v4 (2026-11-07): Kullanıcı kolların gerçekçi olmadığını belirtti. Onayıyla Blender Studio'nun CC0 *Human Base Meshes* paketi indirildi ve gövde, kafa ve eller bu anatomik modele geçirildi. Eklem noktaları modelden ölçüldü; kask, gözlük ve kulaklık gerçek kafaya oturtuldu; botlar ve pantolon bitişi düzeltildi. 16.428 üçgen, GLB 2,02 MB. 10/10 otomatik kontrol geçti ve oyunda önden ve arkadan incelendi. Görsel kabul açık.

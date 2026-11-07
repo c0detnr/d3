@@ -1,15 +1,13 @@
 {
   "asset": "ua_infantry_01",
   "glb": "assets/characters/ua_infantry_01/ua_infantry_01.glb",
-  "glb_bytes": 1058748,
+  "glb_bytes": 2024464,
   "reimport": {
     "objects": [
       "Belt.001",
       "Body.001",
       "Boots.001",
       "Glasses.001",
-      "Gloves.001",
-      "Head.001",
       "Headset.001",
       "Helmet.001",
       "Insignia.001",
@@ -18,14 +16,14 @@
       "SoldierRoot.001",
       "UniformDetails.001"
     ],
-    "triangles": 16806,
-    "z_min_m": 0.0005,
-    "z_max_m": 1.813,
-    "glasses_front_y_m": -0.1169
+    "triangles": 16428,
+    "z_min_m": 0.0003,
+    "z_max_m": 1.8166,
+    "glasses_front_y_m": -0.1817
   },
   "gltf": {
-    "nodes": 13,
-    "meshes": 12,
+    "nodes": 11,
+    "meshes": 10,
     "materials": [
       "UA_Boot",
       "UA_Camo",
@@ -33,10 +31,12 @@
       "UA_Gear",
       "UA_Insignia",
       "UA_Lens",
-      "UA_Skin"
+      "UA_Skin",
+      "UA_Uniform"
     ],
     "images": [
       "ua_gear_cordura",
+      "ua_uniform_normal",
       "ua_mm14_camo",
       "ua_skin_face",
       "ua_insignia_atlas"
@@ -47,9 +47,11 @@
     "height_between_1_78_and_1_86_m": true,
     "feet_on_ground_z0": true,
     "faces_forward_minus_y_in_blender": true,
-    "triangles_under_18000": true,
-    "materials_7": true,
+    "triangles_under_20000": true,
+    "materials_8": true,
     "all_images_embedded": true,
+    "uniform_normal_uses_texcoord_1": true,
+    "every_primitive_has_ao_color_0": true,
     "every_node_has_asset_node_id": true,
     "root_is_SoldierRoot": true
   },
