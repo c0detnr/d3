@@ -160,3 +160,9 @@ Zafer/yenilgi ekranı süre, isabet oranı ve toplam alınan hasarı gösterir. 
 - Test kancası `window.__missionTest` yalnız Vite **DEV** modunda açılır; dağıtım paketinde bulunmaz. `advance()` gerçek checkpoint mesafesi/hedef gövdesi/düşman hasarı yollarını kullanır; insan oynayışının yerine geçmez.
 
 `src/game/mission/MissionDirector.ts` render/fizikten bağımsız görev çekirdeğidir: veri tanımlı checkpoint / N farklı hedef isabeti / N düşman imhası / süre adımları, brifing → aktif → zafer/yenilgi. `rookieDay.ts` ilk görevin verisi; `RookieMission.ts` mevcut ArmorRange, DuelTank ve EasyDuelAI adaptörüdür. Sonraki dört görevin içeriği henüz uygulanmadı. **İnsan oynanış, öğreticinin anlaşılabilirliği, telsiz/ses ve AI dengesi kabulü açık.**
+
+## Geçici Cloudflare paylaşımı
+
+`npm run map:build` sonrasında `python3 scripts/share-server.py` statik derlemeyi `127.0.0.1:18743` adresinde sunar. Paylaşımın kök adresi Kül Vadisi büyük savaş haritasını ve Leopard esintili IRON DUST 02'yi (`/map-preview.html?map=kul&tank=02`) açar; URL'de açıkça verilen seçimler korunur. Mevcut görev menüsü kaynakları değişmez.
+
+Yerel sunucu `cloudflared tunnel --url http://127.0.0.1:18743 --protocol http2 --no-autoupdate` ile ücretsiz geçici bağlantıya açılır. Bu kalıcı hosting değildir; bilgisayar, internet, sunucu ve tünel açık kalmalıdır. Bu oturumun süreçleri `iron-dust-share-web.service` ve `iron-dust-share-tunnel.service` kullanıcı birimleridir. Durdurmak için `systemctl --user stop iron-dust-share-tunnel iron-dust-share-web` kullanılır. Statik yayın LAN sunucusunu içermez.

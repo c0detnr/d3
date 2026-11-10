@@ -346,3 +346,9 @@ v2 (aynı gün): Gövdeye bake edilmiş kumaş kıvrımı normal map'i (1024², 
 v3 (2026-11-07): Kullanıcı isteğiyle üst vücut ve kollar geliştirildi: daha geniş omuz ve trapez, deltoid, pazu ve ön kol kütlesi, dirsek pedleri. Yeleğe kenar biyesi, omuz pedleri, tokalar, MOLLE şeritleri, ağzı açık şarjör cepleri ve turnike eklendi. 18.690 üçgen, GLB 2,04 MB. 10/10 otomatik kontrol geçti ve oyunda önden ve arkadan incelendi. Görsel kabul açık.
 
 v4 (2026-11-07): Kullanıcı kolların gerçekçi olmadığını belirtti. Onayıyla Blender Studio'nun CC0 *Human Base Meshes* paketi indirildi ve gövde, kafa ve eller bu anatomik modele geçirildi. Eklem noktaları modelden ölçüldü; kask, gözlük ve kulaklık gerçek kafaya oturtuldu; botlar ve pantolon bitişi düzeltildi. 16.428 üçgen, GLB 2,02 MB. 10/10 otomatik kontrol geçti ve oyunda önden ve arkadan incelendi. Görsel kabul açık.
+
+### 2026-11-10 — Geçici Cloudflare paylaşımı
+
+Kullanıcının seçimiyle ücretsiz Quick Tunnel açıldı. Ayrı paylaşım sunucusu kök adresi `map=kul&tank=02` ile Kül Vadisi / Leopard esintili IRON DUST 02'ye yönlendirir; açık URL seçimlerini korur. Mevcut oyun kabuğu ve devam eden kullanıcı çalışmaları değiştirilmedi.
+
+`npm run map:build`, yerel varsayılan/açık seçim yönlendirme kontrolleri, dış HTTPS üzerinden yönlendirme, oyun sayfası, giriş JS'i, harita JS'i, tank GLB'si, Havok WASM ve lisans erişimi geçti. Mevcut büyük paket uyarısı sürüyor. Tarayıcı erişim host'u kullanılamadığından görsel/oynanış/FPS doğrulanmadı; M1/M2/M3 kabulü değişmez. Bu bir kalıcı Pages yayını değildir; bilgisayar ve iki kullanıcı servisi açık kalmalıdır.
