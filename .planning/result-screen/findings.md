@@ -1,0 +1,4 @@
+- Görev bitişi yalnız sahneyi durduruyordu; MG veya dar görüş aktif kalabiliyordu.
+- Sonuç kartı menünün sol hizalı ölçülerini kullanıyordu.
+- Dev yeşil poligonların bir kısmı fizik gövdesi olmayan ince örnekli ağaç tepeleri; sonuç açısı fizik taramasına ek görsel yaprak seçimi kullanıyor.
+- Paralel Vite sunucularının ortak önbelleği WASM yüklemesini kesebiliyor; doğrulama 18764 portunda HMR kapalı, /tmp altında ayrı önbellekle çalıştırılıyor.

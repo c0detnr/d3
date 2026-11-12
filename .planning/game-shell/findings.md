@@ -1,0 +1,6 @@
+- Mevcut README/GAME_DESIGN/ROADMAP/MISSIONS/ART_DIRECTION okundu; mevcut askeri endüstriyel zeytin/kum paleti ve özgün tank sahnesi korundu.
+- Sis/efekt/ses dosyaları paralel ajan tarafından değişiyor; bu görev bunlara yazmadı.
+- Headless Chromium ilk varsayılan OpenGL açılışında CSM desteği vermedi; `--use-gl=angle --use-angle=swiftshader` ile gerçek WebGL2 yolu kullanıldı.
+- Tarayıcı çalışırken dist yeniden üretmek o oturumda geçici eski varlık 404'leri oluşturdu. Son doğrulama, derleme tamamlandıktan sonra sabit çıktıya karşı çalıştırılır.
+- Simülasyon Babylon otomatik adımı kapalı, FixedStep üzerinden sürülüyor; pause dalı fizik ve oyun güncellemelerine girmez. Menüde yalnız kamera/atmosfer render edilir.
+- Varsayım: 1. görev bu teslimde doğal arazide serbest tatbikat açar; amaç mantığı sonraki işte bağlanır. Brifing bunu açıkça belirtir.

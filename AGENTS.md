@@ -1,8 +1,5 @@
 # IRON DUST — Ajan çalışma kuralları
 
-## Mevcut aşama
-
-Kullanıcı 2026-10-23 tarihinde proje altyapısının kurulmasını istedi; uygulama geliştirmeye başlama izni verilmiştir. Seçilen yığınla altyapı ve M1 temel dünya aşamasından ilerle. Aynı izin için tekrar sorma.
 Önce dünya, sonra sürüş, ardından savaş sırasını koru. Blender tank varlığına ilişkin mevcut çalışmaları koru; teslim edilmemiş varlığı hazır kabul etme.
 
 ## Önce oku

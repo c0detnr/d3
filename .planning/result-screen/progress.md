@@ -1,0 +1,7 @@
+- Sonuç anında üçüncü şahıs kamera, normal FOV, sıfır roll, engel/yaprak kontrolü ve yavaş dönüş tamamlandı; azaltılmış hareket tercihinde dönüş kapanır.
+- Ortalanmış iki sütunlu kart ve eş ölçülü ortak stil butonlar tamamlandı; dar ekranda tek sütun.
+- shell:test, combat:test, map:build, build:itch ve git diff --check geçti. Derlemelerde mevcut büyük chunk uyarısı var.
+- Gerçek Havok duvarı, fizik gövdesiz yaprak ve tüm açılardan kısmen örtülen tankta dönüş regresyonları geçti. İlk katı yaprak elemesi tüm açılar kapalıyken dönüşü durduruyordu; en açık dış açı seçimiyle giderildi.
+- check-mission-browser.ts: Chromium / ANGLE SwiftShader, 1440x817 düşük kalite ve 640x800 sonuç yerleşimi; zafer/yenilgi, MG görüşünden çıkış, dış kamera mesafesi, dönüş, azaltılmış hareket, kart ortası/taşma, 5 yeniden başlatma, TR/EN ve kayıt geçti. Hata günlüğü boş.
+- artifacts/mission1 altında zafer/yenilgi ve dar ekran görüntüleri yenilendi. Gerçek oyuncu sürüş hissi/FPS kabulü bu düzeltmenin kapsamı dışında.
+- Paralel HUD/i18n dosyalarına dokunulmadı. Commit/push yapılmadı.
