@@ -1,8 +1,9 @@
 import { inKulRailYard } from './kulRailYardLayout.ts';
-import { Color3, LoadAssetContainerAsync, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, StandardMaterial, TransformNode, Vector3, type AbstractMesh, type AssetContainer, type Scene } from '@babylonjs/core';
+import { Color3, Color4, InstancedMesh, LoadAssetContainerAsync, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, StandardMaterial, TransformNode, Vector3, type AbstractMesh, type AssetContainer, type Scene } from '@babylonjs/core';
 import { registerBuiltInLoaders } from '@babylonjs/loaders/dynamic.js';
 import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
-import { KUL_FIELD_COVER, KUL_FIELD_ROCKS } from './kulBattlefieldLayout.ts';
+import { KUL_CORNER_GROVES, KUL_FIELD_COVER, KUL_FIELD_ROCKS, KUL_RIDGE_GROVES } from './kulBattlefieldLayout.ts';
+import { treeRandom } from './treeVariation.ts';
 import { KUL_STRUCTURES, kulRoadDistance, kulTerrainHeight } from './kulVadisiLayout.ts';
 
 registerBuiltInLoaders();
@@ -25,7 +26,21 @@ export const fieldSources = {
 export async function createKulBattlefield(scene: Scene, sources: Record<keyof typeof fieldSources, string | Uint8Array> = fieldSources, emplacementSource: string | Uint8Array = new URL('../../../assets/environment/concrete_emplacement_01/concrete_emplacement_01.glb', import.meta.url).href) {
   const meshes: AbstractMesh[] = [], materials: StandardMaterial[] = [], bodies: PhysicsAggregate[] = [], assets: AssetContainer[] = [];
   const roots: { dispose(): void }[] = [];
+  const crowns: { mesh: AbstractMesh; x: number; z: number; phase: number; speed: number }[] = [];
+  let windTime = 0;
+  const windObserver = scene.onBeforeRenderObservable.add(() => {
+    windTime += scene.getEngine().getDeltaTime() / 1000;
+    // Only leaf instances move; bark, anchors and the independent Havok trunks remain static.
+    for (const crown of crowns) {
+      const t = windTime * crown.speed + crown.phase;
+      crown.mesh.unfreezeWorldMatrix();
+      crown.mesh.rotation.x = crown.x + Math.sin(t) * 0.004;
+      crown.mesh.rotation.z = crown.z + Math.sin(t * 0.73 + 1.7) * 0.006;
+      crown.mesh.freezeWorldMatrix();
+    }
+  });
   const dispose = () => {
+    scene.onBeforeRenderObservable.remove(windObserver); crowns.length = 0;
     bodies.forEach(b => b.dispose()); roots.forEach(r => r.dispose()); meshes.forEach(m => m.dispose());
     assets.forEach(a => a.dispose()); materials.forEach(m => m.dispose());
   };
@@ -36,6 +51,9 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
   const vegetation = material('field-dry-vegetation', '#777A50'); vegetation.backFaceCulling = false;
   const metal = material('field-rusted-steel', '#62554A');
   const scuff = material('field-track-scuff', '#514A3A'); scuff.alpha = 0.32;
+  // Red gains above one counter the green source texture, giving dry/olive leaves rather than darker green.
+  const leafTints = [new Color3(1.65, 0.88, 0.64), new Color3(0.72, 0.8, 0.64), new Color3(1.1, 0.9, 0.62), new Color3(1.9, 0.95, 0.72)];
+  const barkTints = ['#AAA08E', '#89877B', '#B1A18A'].map(Color3.FromHexString);
   const solid = (m: AbstractMesh) => bodies.push(new PhysicsAggregate(m, PhysicsShapeType.MESH, { mass: 0, friction: 0.85, restitution: 0 }, scene));
   const box = (name: string, x: number, z: number, width: number, depth: number, height: number, mat: StandardMaterial, hardCover = false) => {
     const mesh = MeshBuilder.CreateBox(name, { width, depth, height }, scene);
@@ -65,6 +83,10 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
       for (const mesh of container.meshes) {
         // Recompute accessor bounds from vertices so clones and instances use the same footprint.
         mesh.refreshBoundingInfo({});
+        if (['pine', 'pineTall', 'broadTree', 'deadTree'].includes(key) && mesh instanceof Mesh && mesh.getTotalVertices() > 0) {
+          mesh.registerInstancedBuffer('instanceColor', 4);
+          mesh.instancedBuffers.instanceColor = new Color4(1, 1, 1, 1);
+        }
         if (key === 'bush' || key === 'grass') mesh.material = vegetation;
         mesh.receiveShadows = true;
         mesh.freezeWorldMatrix();
@@ -72,6 +94,13 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
       templates[key] = container;
     }
     const nature = (key: keyof typeof sources, id: string, x: number, z: number, size: number, yaw: number, hardCover: boolean, tree = false) => {
+      const random = treeRandom(id);
+      const width = tree ? 0.83 + random() * 0.31 : 1;
+      const depth = tree ? 0.87 + random() * 0.26 : 1;
+      const leanX = tree ? (random() - 0.5) * 0.065 : 0;
+      const leanZ = tree ? (random() - 0.5) * 0.065 : 0;
+      const tint = random(), shade = 0.88 + random() * 0.16;
+      const phase = random() * Math.PI * 2, speed = 0.7 + random() * 0.45;
       // Keep mesh colliders independent; decorative instances share the render and shadow geometry.
       const entry = templates[key].instantiateModelsToScene(name => `${id}-${name}`, false, { doNotInstantiate: hardCover });
       roots.push(...entry.rootNodes);
@@ -89,8 +118,20 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
         const anchor = new TransformNode(`${id}-anchor`, scene); roots.push(anchor); root.parent = anchor;
         root.position.subtractInPlace(new Vector3(center.x, min.y, center.z).scale(scale));
         anchor.metadata = { nature: true, key, tree, size }; anchor.rotation.y = yaw; anchor.position.set(x, kulTerrainHeight(x, z) - (hardCover ? 0.3 : 0.04), z);
+        anchor.scaling.set(width, 1, depth); anchor.rotation.x = leanX; anchor.rotation.z = leanZ;
       }
       for (const m of children) {
+        if (tree && m instanceof InstancedMesh) {
+          const leaf = m.material?.name.startsWith('Leaves_');
+          const palette = leaf ? leafTints : barkTints;
+          const at = tint * (palette.length - 1), index = Math.floor(at);
+          const color = Color3.Lerp(palette[index], palette[Math.min(index + 1, palette.length - 1)], at - index).scale(shade);
+          m.instancedBuffers.instanceColor = Color4.FromColor3(color);
+          if (leaf) {
+            if (m.rotationQuaternion) { m.rotationQuaternion.toEulerAnglesToRef(m.rotation); m.rotationQuaternion = null; }
+            crowns.push({ mesh: m, x: m.rotation.x, z: m.rotation.z, phase, speed });
+          }
+        }
         m.computeWorldMatrix(true); m.metadata = { battlefield: true, hardCover, surface: hardCover ? 'concrete' : 'foliage', tree };
         m.isPickable = hardCover; meshes.push(m); if (hardCover) solid(m);
       }
@@ -119,32 +160,52 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
         box(`field-steel-${i}`, x - 1, z + 1, 0.2, 2.5, 0.16, metal).rotation.y = i;
       }
     }
-    // Fixed clusters give each corridor a distinct silhouette without filling the combat centre.
-    for (let i = 0; i < 96; i++) {
-      const x = -326 + ((i * 37.71) % 190), z = -258 + ((i * 83.13) % 516);
-      if (!clear(x, z) || kulRoadDistance(x, z) < 23) continue;
-      nature(i % 7 === 0 ? 'deadTree' : i % 4 === 0 ? 'broadTree' : i % 3 === 0 ? 'pineTall' : 'pine',
-        `ridge-tree-${i}`, x, z, 10 + (i % 6) * 1.4, i * 2.399, false, true);
-      for (let j = 0; j < 3; j++) {
-        const px = x + Math.cos(j * 2.1 + i) * 5, pz = z + Math.sin(j * 2.1 + i) * 5;
-        if (clear(px, pz)) nature(j === 0 ? 'fern' : 'shortGrass', `ridge-understory-${i}-${j}`, px, pz, j === 0 ? 1.8 : 2.6, i + j, false);
+    const treePositions: { x: number; z: number }[] = [];
+    const plantTree = (key: keyof typeof sources, id: string, x: number, z: number, size: number, yaw: number) => {
+      if (!clear(x, z) || treePositions.some(p => Math.hypot(x - p.x, z - p.z) < 6)) return;
+      treePositions.push({ x, z });
+      nature(key, id, x, z, size, yaw, false, true);
+      const random = treeRandom(`${id}-undergrowth`);
+      const count = random() < 0.35 ? 2 : 1;
+      for (let j = 0; j < count; j++) {
+        const angle = random() * Math.PI * 2, radius = 1.1 + random() * 2.1;
+        const px = x + Math.cos(angle) * radius, pz = z + Math.sin(angle) * radius;
+        if (!clear(px, pz)) continue;
+        const species = ['fern', 'bush', 'shortGrass', 'grass'] as const;
+        nature(species[Math.floor(random() * species.length)], `${id}-understory-${j}`, px, pz, 0.9 + random() * 1.5, random() * Math.PI * 2, false);
       }
+    };
+    const ridgeRandom = treeRandom('kul-ridge-groves');
+    for (let i = 0; i < 88; i++) {
+      const grove = KUL_RIDGE_GROVES[Math.floor(ridgeRandom() * KUL_RIDGE_GROVES.length)];
+      const angle = ridgeRandom() * Math.PI * 2, radius = Math.sqrt(ridgeRandom()) * 37;
+      const edge = i % 5 === 0;
+      const x = edge ? -326 + ridgeRandom() * 190 : grove.x + Math.cos(angle) * radius;
+      const z = edge ? -258 + ridgeRandom() * 516 : grove.z + Math.sin(angle) * radius;
+      if (kulRoadDistance(x, z) < 23) continue;
+      const kind = ridgeRandom();
+      plantTree(kind < 0.13 ? 'deadTree' : kind < 0.35 ? 'broadTree' : kind < 0.61 ? 'pineTall' : 'pine',
+        `ridge-tree-${i}`, x, z, 9.5 + ridgeRandom() * 9, ridgeRandom() * Math.PI * 2);
     }
     for (let i = 0; i < 32; i++) {
       const x = 155 + ((i * 43.7) % 165), z = -240 + ((i * 73.3) % 480);
       if (!clear(x, z) || kulRoadDistance(x, z) < 23) continue;
       nature('rock3', `quarry-rock-${i}`, x, z, 4 + i % 5, i * 1.7, true);
-      if (i % 4 === 0) nature('deadTree', `quarry-tree-${i}`, x - 7, z, 9 + i % 5, i, false, true);
+      if (i % 4 === 0) plantTree('deadTree', `quarry-tree-${i}`, x - 7, z, 9 + i % 5, i);
     }
-    // Dense woodland fills the four corner pockets outside the routes; one pattern, mirrored for A/B symmetry.
+    // Seeded groves and sparse outliers replace the former mirrored 7 × 7 lattice.
     const species = ['pine', 'pineTall', 'broadTree'] as const;
-    for (const sx of [-1, 1]) for (const sz of [-1, 1]) for (let j = 0; j < 7; j++) for (let k = 0; k < 7; k++) {
-      const n = j * 7 + k, h = (n * 0.6180339) % 1, h2 = (n * 0.7548777) % 1;
-      if (h > 0.85) continue;
-      const x = sx * (246 + j * 15 + (h2 - 0.5) * 9), z = sz * (246 + k * 15 + (h - 0.5) * 9);
-      if (!clear(x, z)) continue;
-      nature(species[n % 3], `corner-tree-${sx}-${sz}-${n}`, x, z, 11 + h2 * 7, n * 2.3, false, true);
-      if (n % 4 === 0) nature('fern', `corner-fern-${sx}-${sz}-${n}`, x + 4, z + 3, 2, n, false);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+      const random = treeRandom(`kul-corner-${sx}-${sz}`);
+      for (let n = 0; n < 40; n++) {
+        const grove = KUL_CORNER_GROVES[Math.floor(random() * KUL_CORNER_GROVES.length)];
+        const angle = random() * Math.PI * 2, radius = Math.sqrt(random()) * 26;
+        const edge = n % 6 === 0;
+        const x = sx * (edge ? 243 + random() * 98 : grove.x + Math.cos(angle) * radius);
+        const z = sz * (edge ? 243 + random() * 98 : grove.z + Math.sin(angle) * radius);
+        plantTree(species[Math.floor(random() * species.length)], `corner-tree-${sx}-${sz}-${n}`,
+          x, z, 10 + random() * 9, random() * Math.PI * 2);
+      }
     }
     // Low creek-bank vegetation and pebbles leave the graded crossings unobstructed.
     for (const bank of [-1, 1]) for (let i = 0; i < 100; i++) {
@@ -154,7 +215,7 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
       if (i % 3 === 0) nature('pebble', `creek-pebble-${bank}-${i}`, x + 1, z + 1, 0.5 + i % 4 * 0.2, i, false);
     }
     for (const [i, p] of [{ x: -108, z: -134 }, { x: 108, z: 134 }, { x: -121, z: 62 }, { x: 121, z: -90 }].entries()) {
-      if (clear(p.x, p.z)) nature('deadTree', `field-dead-tree-${i}`, p.x, p.z, 10 + i, i * 1.9, false, true);
+      plantTree('deadTree', `field-dead-tree-${i}`, p.x, p.z, 10 + i, i * 1.9);
     }
     // Short, broken paired impressions follow the actual surface instead of floating strips.
     for (const side of [-1, 1]) for (let i = 0; i < 56; i++) {
