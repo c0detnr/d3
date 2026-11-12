@@ -1,3 +1,4 @@
+import type { DevSessionConfig } from './game/core/devConfig.ts';
 import { RookieMission } from './game/mission/RookieMission.ts';
 import type { MissionScore } from './game/mission/MissionDirector.ts';
 import { LaneDrones } from './game/combat/LaneDrones.ts';
@@ -69,6 +70,7 @@ import { readSave, type Settings } from './game/core/playerSave.ts';
 
 export interface GameSessionOptions {
   shell?: boolean;
+  dev?: DevSessionConfig;
   onReady?: () => void;
   onError?: () => void;
   onMissionResult?: (score: MissionScore) => void;
@@ -84,17 +86,18 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const HIT_SHAKE = 5, DESTROYED_SHAKE = 9; // camera shake relative to a cannon shot
 const HIT_IMPULSE_SCALE = 0.6; // incoming shell momentum relative to the cannon recoil impulse
 
-const teamDuelMode = !options.shell && new URLSearchParams(location.search).get('duel') === '5v5';
-const kulVadisi = !options.shell && (teamDuelMode || new URLSearchParams(location.search).get('map') === 'kul');
-const kulTeam = new URLSearchParams(location.search).get('base') === 'B' ? 'B' : 'A';
-const filmSet = !options.shell && !kulVadisi && new URLSearchParams(location.search).get('map') === 'set';
-const filmSpot = FILM_SPOTS[filmSpotFromSearch(location.search)];
+const dev = options.dev;
+const teamDuelMode = dev ? dev.map === 'kul' && dev.mode === '5v5' : !options.shell && new URLSearchParams(location.search).get('duel') === '5v5';
+const kulVadisi = dev ? dev.map === 'kul' : !options.shell && (teamDuelMode || new URLSearchParams(location.search).get('map') === 'kul');
+const kulTeam = dev ? dev.base : new URLSearchParams(location.search).get('base') === 'B' ? 'B' : 'A';
+const filmSet = dev ? dev.map === 'set' : !options.shell && !kulVadisi && new URLSearchParams(location.search).get('map') === 'set';
+const filmSpot = FILM_SPOTS[dev ? dev.filmSpot : filmSpotFromSearch(location.search)];
 const spawnYaw = kulVadisi && kulTeam === 'B' ? Math.PI : filmSet ? filmSpot.yaw : 0;
 const mapHeight = kulVadisi ? kulTerrainHeight : filmSet ? filmSetHeight : terrainHeight;
-const twoTankTest = !options.shell && !teamDuelMode && new URLSearchParams(location.search).has('duel');
-const secondTank = !options.shell && new URLSearchParams(location.search).get('tank') === '02';
-const studioMode = !options.shell && new URLSearchParams(location.search).has('studio');
-if (secondTank) document.querySelector<HTMLButtonElement>('[data-action="weapon"]')!.hidden = true;
+const twoTankTest = dev ? dev.mode === 'duel' : !options.shell && !teamDuelMode && new URLSearchParams(location.search).has('duel');
+const secondTank = dev ? dev.tank === '02' : !options.shell && new URLSearchParams(location.search).get('tank') === '02';
+const studioMode = !dev && !options.shell && new URLSearchParams(location.search).has('studio');
+document.querySelector<HTMLButtonElement>('[data-action="weapon"]')!.hidden = secondTank;
 
 const canvas = document.querySelector<HTMLCanvasElement>('#map')!;
 const status = document.querySelector<HTMLElement>('#status')!;
@@ -107,7 +110,7 @@ const scene = new Scene(engine);
 scene.skipPointerMovePicking = true;
 scene.imageProcessingConfiguration.exposure = 1;
 scene.imageProcessingConfiguration.contrast = 1.15;
-const atmosphere = kulVadisi || filmSet ? KUL_WEATHER[weatherFromSearch(location.search)] : TEST_GROUND_ATMOSPHERE;
+const atmosphere = kulVadisi || filmSet ? KUL_WEATHER[dev ? dev.weather : weatherFromSearch(location.search)] : TEST_GROUND_ATMOSPHERE;
 const sky = createChaoticSky(scene, kulVadisi || filmSet ? 2800 : 1800, atmosphere);
 const followCamera = new FollowCamera(scene, canvas, mobile);
 followCamera.camera.maxZ = 1600;
@@ -462,7 +465,7 @@ async function start() {
       }
     };
   }
-  if (options.shell) {
+  if (options.shell && !dev) {
     mission = new RookieMission({ scene, player: { tank, vehicle, damage: damageHudState }, range: combatRange!,
       blocksSight: (from, to) => smokeSupply!.model.blocksSight(from, to),
       onFinish: score => {

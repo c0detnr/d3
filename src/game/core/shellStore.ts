@@ -1,19 +1,22 @@
 import { create } from 'zustand';
+import { DEFAULT_DEV_CONFIG, type DevSessionConfig } from './devConfig.ts';
 import { readSave, writeSave, type Settings } from './playerSave.ts';
 import { MISSIONS } from './missions.ts';
 import { setLanguage } from '../i18n/index.ts';
-export type ShellScreen = 'home' | 'missions' | 'briefing' | 'settings' | 'controls' | 'credits' | 'playing' | 'pause' | 'result';
+export type ShellScreen = 'home' | 'developer' | 'missions' | 'briefing' | 'settings' | 'controls' | 'credits' | 'playing' | 'pause' | 'result';
 /** Mission logic calls finishMission when authoritative objectives resolve. */
 export interface MissionResult { missionId: string; victory: boolean; seconds: number; shots: number; hits: number; damageTaken?: number; stars: number }
 const initial = readSave();
 setLanguage(initial.settings.language);
 interface ShellState {
+  devConfig: DevSessionConfig;
   screen: ShellScreen; returnTo: ShellScreen; selected: string; settings: Settings; progress: typeof initial.missions; result?: MissionResult; storageAvailable: boolean;
   navigate: (screen: ShellScreen) => void;
   updateSettings: (settings: Partial<Settings>) => void;
   finishMission: (result: MissionResult) => void;
 }
 export const useShellStore = create<ShellState>((set, get) => ({
+  devConfig: { ...DEFAULT_DEV_CONFIG },
   screen: 'home', returnTo: 'home', selected: 'rookie', settings: initial.settings, progress: initial.missions, storageAvailable: true,
   navigate: screen => set({ screen }),
   updateSettings: patch => {

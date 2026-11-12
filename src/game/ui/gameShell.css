@@ -75,3 +75,6 @@ select{background:#35473b;color:var(--shell-paper);border:1px solid var(--shell-
 
 .shell-home{background:linear-gradient(90deg,#17231b 0%,#17231b 33%,#17231bdb 42%,#17231b00 65%)}
 @media(max-width:1000px){.briefing-body{grid-template-columns:1fr}.briefing-objectives{padding-left:0;border-left:0}.briefing-objectives h2{margin-top:0}.shell-home{background:linear-gradient(90deg,#17231b 0%,#17231bf5 48%,#17231b55 100%)}}
+
+.developer-settings select{max-width:65%;min-width:0}
+.developer-settings select:disabled{opacity:.6;cursor:not-allowed}
