@@ -8,6 +8,14 @@ export interface DroneTarget { id: string; team: DroneTeam; position: Vector3; h
 export interface LaneDrone extends DroneTarget {
   lane: number; slot: number; previous: Vector3; yaw: number; waypoint: number;
   age: number; cooldown: number; route: Vector3[];
+  /** Inside an enemy jammer field this tick: no link, so it neither drives nor fires. */
+  jammed: boolean;
+}
+/** A moving jamming field; metres, horizontal distance. */
+export interface DroneJammer { team: DroneTeam; position: Vector3; radius: number }
+export function inJammerField(drone: { team: DroneTeam; position: Vector3 }, jammers: readonly DroneJammer[]) {
+  return jammers.some(j => j.team !== drone.team
+    && (drone.position.x - j.position.x) ** 2 + (drone.position.z - j.position.z) ** 2 <= j.radius ** 2);
 }
 export interface DroneShot { shooter: LaneDrone; target: DroneTarget }
 
@@ -37,13 +45,13 @@ export class LaneDroneModel {
         position.y = this.height(position.x, position.z);
         this.drones.push({ id: `lane-drone-${++this.serial}`, team, lane, slot, route, position,
           previous: position.clone(), hp: LANE_DRONES.hp, yaw: Math.atan2(direction.x, direction.z),
-          waypoint: 1, age: 0, cooldown: slot * .15 });
+          waypoint: 1, age: 0, cooldown: slot * .15, jammed: false });
       }
     }
   }
 
   update(dt: number, tanks: readonly DroneTarget[], canSee: (from: LaneDrone, to: DroneTarget) => boolean,
-    canMove: (drone: LaneDrone, to: Vector3) => boolean, shoot: (event: DroneShot) => void) {
+    canMove: (drone: LaneDrone, to: Vector3) => boolean, shoot: (event: DroneShot) => void, jammers: readonly DroneJammer[] = []) {
     this.elapsed += dt;
     this.removeExpired();
     if (this.elapsed + 1e-8 >= this.nextWave) {
@@ -54,6 +62,8 @@ export class LaneDroneModel {
       drone.previous.copyFrom(drone.position);
       if (drone.hp <= 0) continue;
       drone.age += dt; drone.cooldown = Math.max(0, drone.cooldown - dt);
+      drone.jammed = inJammerField(drone, jammers);
+      if (drone.jammed) continue;
       let target: DroneTarget | undefined, nearest = LANE_DRONES.range ** 2;
       for (const candidate of targets) {
         if (candidate.team === drone.team || candidate.hp <= 0) continue;

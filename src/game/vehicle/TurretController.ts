@@ -22,6 +22,8 @@ export class TurretController {
   private readonly pitchMotion = new SmoothJoint();
   private smoothElevation = 0;
   limited = false;
+  /** Damage-driven multiplier on turret yaw speed (1 = intact). */
+  traverseScale = 1;
   constructor(tank: TankModel, definition: Readonly<VehicleDefinition> = IRON_DUST_01) {
     this.definition = definition;
     const nodes = [...tank.assets.transformNodes, ...tank.assets.meshes];
@@ -57,7 +59,7 @@ export class TurretController {
     if (Math.hypot(local.x, local.z) > 1e-6) {
       const delta = wrapAngle(Math.atan2(local.x, local.z) - this.current.yaw);
       this.current.yaw = wrapAngle(this.current.yaw + this.yawMotion.advanceTarget(
-        delta, this.definition.turretYawSpeed, this.definition.turretResponseTime, dt));
+        delta, this.definition.turretYawSpeed * this.traverseScale, this.definition.turretResponseTime, dt));
     }
     this.apply(this.current.yaw, this.current.elevation);
     const gun = this.restDirection(this.pitchPivot, this.pitchRest, target);
@@ -78,7 +80,7 @@ export class TurretController {
   fixedUpdateSmoothManual(turn: number, elevationDelta: number, dt: number) {
     this.previous = { ...this.current };
     this.current.yaw = wrapAngle(this.current.yaw + this.yawMotion.advanceVelocity(
-      -clamp(turn, -1, 1) * this.definition.turretYawSpeed, this.definition.turretResponseTime, dt));
+      -clamp(turn, -1, 1) * this.definition.turretYawSpeed * this.traverseScale, this.definition.turretResponseTime, dt));
     const desired = this.smoothElevation + elevationDelta;
     this.smoothElevation = clamp(desired, this.definition.gunMinElevation, this.definition.gunMaxElevation);
     this.limited = Math.abs(desired - this.smoothElevation) > 1e-9;

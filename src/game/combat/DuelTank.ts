@@ -5,7 +5,7 @@ import { TankVehicle } from '../vehicle/TankVehicle.ts';
 import { TankVisual } from '../vehicle/TankVisual.ts';
 import { TurretController } from '../vehicle/TurretController.ts';
 import { WeaponSystem } from './WeaponSystem.ts';
-import { freshDamage, driveDisabled, trackPower } from './DamageModel.ts';
+import { freshDamage, driveDisabled, tickDamage, trackPower, turretTraverse } from './DamageModel.ts';
 import type { DriveCommand } from '../input/DriveInput.ts';
 
 const parked: DriveCommand = { throttle: 0, steer: 0, brake: 1 };
@@ -33,7 +33,11 @@ export class DuelTank {
     try { return new DuelTank(scene, tank, spawn); }
     catch (error) { tank.dispose(); throw error; }
   }
-  beforeStep(dt: number, command: DriveCommand = parked) { this.vehicle.beforeStep(dt, driveDisabled(this.damage) ? parked : command, trackPower(this.damage)); }
+  beforeStep(dt: number, command: DriveCommand = parked) {
+    tickDamage(this.damage, dt);
+    this.turret.traverseScale = turretTraverse(this.damage);
+    this.vehicle.beforeStep(dt, driveDisabled(this.damage) ? parked : command, trackPower(this.damage));
+  }
   afterStep(dt: number, turretTarget: Vector3 | null = null) {
     this.vehicle.afterStep();
     this.visual.fixedUpdate(this.vehicle, dt);

@@ -7,6 +7,8 @@ interface Pose extends MapPosition { yaw: number }
 interface Contact { id: string; position: MapPosition; friend: boolean; visible: boolean }
 export interface MinimapState {
   tank: Pose; lookYaw: number; drone?: Pose; contacts: Contact[]; waypoint?: MapPosition;
+  /** Own roof-jammer field radius, metres. */
+  tankJammer?: number;
 }
 interface MapLayout {
   limit: number; height: (x: number, z: number) => number;
@@ -92,6 +94,11 @@ export class Minimap {
       ctx.globalAlpha = .6; ctx.stroke(); ctx.globalAlpha = 1; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(p.x,p.y-7); ctx.lineTo(p.x-6,p.y+6); ctx.lineTo(p.x+6,p.y+6); ctx.closePath(); ctx.stroke();
       ctx.fillRect(p.x-1,p.y-10,2,4); ctx.restore();
+    }
+    if (state.tankJammer) {
+      const p = project(state.tank); ctx.save(); ctx.strokeStyle = ctx.fillStyle = this.colors.amber;
+      ctx.globalAlpha = .18; ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(4, state.tankJammer * size / this.span), 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = .8; ctx.setLineDash([3, 3]); ctx.stroke(); ctx.restore();
     }
     const dot = (point: MapPosition, color: string, radius = 5) => { const p = project(point); ctx.fillStyle = color; ctx.beginPath(); ctx.arc(p.x, p.y, radius, 0, Math.PI * 2); ctx.fill(); };
     for (const contact of state.contacts) {

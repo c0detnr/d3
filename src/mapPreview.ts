@@ -11,6 +11,7 @@ import { KUL_RAIL_DEPOT } from './game/world/kulRailYardLayout.ts';
 import { TERRAIN_LIMIT, pathCenter } from './game/world/terrain.ts';
 import { FILM_LIMIT, FILM_BUILDINGS, RUNWAY } from './game/world/filmSetLayout.ts';
 import { FpvDrone } from './game/drone/FpvDrone.ts';
+import { TankJammer } from './game/vehicle/TankJammer.ts';
 import { InfantryNpcs } from './game/infantry/InfantryNpcs.ts';
 import { SoldierProfileCard } from './game/ui/SoldierProfileCard.ts';
 import infantryFallbackUrl from '../assets/characters/ua_infantry_01/ua_infantry_01.glb?url';
@@ -24,8 +25,8 @@ import { LANE_DRONES } from './game/combat/LaneDroneModel.ts';
 import './game/input/gamePointerLock.css';
 import { GamePointerLock } from './game/input/GamePointerLock.ts';
 import { DamageHud } from './game/ui/DamageHud.ts';
-import { freshDamage, applyDamage, driveDisabled, trackPower, ricochets } from './game/combat/DamageModel.ts';
-import { pickTankHit, tankDamageRegion } from './game/combat/tankHit.ts';
+import { freshDamage, applyDamage, driveDisabled, trackPower, ricochets, tickDamage, turretTraverse } from './game/combat/DamageModel.ts';
+import { pickTankHit, tankDamageRegion, tankHitFacing } from './game/combat/tankHit.ts';
 import { IRON_DUST_01_AMMO } from './game/combat/WeaponDefinition.ts';
 import { DuelTank } from './game/combat/DuelTank.ts';
 import { TeamDuel, type TeamImpact } from './game/combat/TeamDuel.ts';
@@ -153,6 +154,7 @@ let visual: TankVisual | undefined;
 let movementEffects: MovementEffects | undefined;
 let observation: DrivingObservation | undefined;
 let turret: TurretController | undefined;
+let tankJammer: TankJammer | undefined;
 let alignDirection: Vector3 | undefined;
 let weapon: WeaponSystem | undefined;
 let machineGun: MachineGun | undefined;
@@ -263,7 +265,8 @@ function minimapState(): MinimapState {
   }
   const look = turret?.getMuzzleRay().direction ?? forward;
   return { tank: { x: tank.x, z: tank.z, yaw: Math.atan2(forward.x, forward.z) },
-    lookYaw: Math.atan2(look.x, look.z), drone, contacts, waypoint: mission?.waypoint };
+    lookYaw: Math.atan2(look.x, look.z), drone, contacts, waypoint: mission?.waypoint,
+    tankJammer: damageHudState.hp > 0 ? vehicle!.definition.jammerRadius : undefined };
 }
 
 const smokeInventory = new SmokeInventory(() => useSmoke(), () => collectSmoke());
@@ -355,8 +358,7 @@ function reset() {
   smokeSupply?.reset();
   if (freeCamera.active) freeCamera.toggle();
   teamDuel?.reset();
-  opponent?.reset(); opponentAI?.reset(); opponentProjectiles?.reset(); damageHudState.hp = 100;
-  Object.assign(damageHudState.modules, freshDamage().modules); damageHud.reset(); damageHud.setState(damageHudState); damageTrailTime = 0;
+  opponent?.reset(); opponentAI?.reset(); opponentProjectiles?.reset(); Object.assign(damageHudState, freshDamage()); damageHud.reset(); damageHud.setState(damageHudState); damageTrailTime = 0;
   touch.clear(); keys.clear(); input.reset(); clock.reset(); vehicle?.reset(undefined, spawnYaw); visual?.reset(); movementEffects?.reset();
   alignDirection = undefined;
   vehicleAudio?.reset(); combatAudio?.reset(); turret?.reset(); weapon?.reset(); projectiles?.reset(); combatEffects?.reset();
@@ -453,6 +455,7 @@ async function start() {
   visual = new TankVisual(tank, rig);
   movementEffects = new MovementEffects(scene, vehicle);
   turret = new TurretController(tank, vehicle.definition);
+  tankJammer = new TankJammer(scene, tank.anchor, vehicle.definition.jammerRadius, mapHeight);
   weapon = new WeaponSystem(turret, IRON_DUST_01_WEAPON);
   if (!secondTank) {
     machineGun = await MachineGun.load(scene, mgUrl, turret.yawPivot);
@@ -638,7 +641,7 @@ async function start() {
       if (teamDuel) { teamDuel.playerImpact(hit); return; }
       if (opponent && hit.body === opponent.vehicle.body) {
         const module = tankDamageRegion(opponent, hit.point);
-        const applied = applyDamage(opponent.damage, module);
+        const applied = applyDamage(opponent.damage, module, tankHitFacing(opponent, hit.point));
         damageHud.outgoing(module, !!module && opponent.damage.modules[module] === 0, opponent.damage.hp === 0, applied);
       }
     },
@@ -728,6 +731,8 @@ async function start() {
       let fire = combatInput.consumeFire() || touch.consumeFire();
       // Studio takes record these per step; renders replay them in place of live input.
       if (studio) ({ command, turn, elevation, align: alignDirection, fire } = studio.step({ command, turn, elevation, align: alignDirection, fire }));
+      if (tickDamage(damageHudState, step)) damageHud.setState(damageHudState);
+      turret!.traverseScale = turretTraverse(damageHudState);
       vehicle!.beforeStep(step, command, trackPower(damageHudState));
       movementEffects!.fixedUpdate(vehicle!, step);
       const aiState = opponentAI && opponent && vehicle ? (() => {
@@ -740,7 +745,8 @@ async function start() {
       })() : undefined;
       opponent?.beforeStep(step, opponent?.damage.hp === 0 || damageHudState.hp === 0 ? undefined : aiState?.drive);
       teamDuel?.beforeStep(step);
-      laneDrones?.fixedUpdate(step, teamDuel?.finished);
+      laneDrones?.fixedUpdate(step, teamDuel?.finished, damageHudState.hp > 0
+        ? [{ team: kulTeam, position: vehicle!.node.position, radius: vehicle!.definition.jammerRadius }] : []);
       fpv?.fixedUpdate(step);
       scene.getPhysicsEngine()!._step(step);
       vehicle!.afterStep();
@@ -830,7 +836,7 @@ async function start() {
         if (tankHit || armor) {
           combatEffects!.armorImpact(hit.point, hit.normal, !!penetrated);
           const module = tankHit ? tankDamageRegion(opponent!, hit.point) : null;
-          const applied = tankHit && !glanced && applyDamage(opponent!.damage, module);
+          const applied = tankHit && !glanced && applyDamage(opponent!.damage, module, tankHitFacing(opponent!, hit.point));
           const destroyed = !!applied && opponent!.damage.hp === 0;
           const disabled = !!module && opponent!.damage.modules[module] === 0;
           if (destroyed) combatEffects!.destruction(hit.point);
@@ -857,7 +863,7 @@ async function start() {
           return;
         }
         const module = tank && vehicle ? tankDamageRegion({ tank, vehicle }, hit.point) : null;
-        const applied = applyDamage(damageHudState, module);
+        const applied = applyDamage(damageHudState, module, tank && vehicle ? tankHitFacing({ tank, vehicle }, hit.point) : 'side');
         // The shell's momentum jolts the hull at the contact point, so the hit also yaws and pitches it.
         vehicle!.body.applyImpulse(shell.velocity.normalizeToNew().scale(SHOT_FEEDBACK.hullImpulse * HIT_IMPULSE_SCALE), hit.point);
         const disabled = !!module && damageHudState.modules[module] === 0;
@@ -897,6 +903,7 @@ async function start() {
     teamDuel?.render(alpha);
     opponent?.render(alpha);
     visual.render(vehicle, alpha);
+    tankJammer?.render(tank!.anchor.position, damageHudState.hp > 0);
     movementEffects!.render(alpha);
     turret!.render(alpha);
     weapon!.render(alpha);
@@ -990,7 +997,7 @@ function dispose() {
   combatAudio?.dispose(); vehicleAudio?.dispose();
   audio.dispose();
   damageHud.dispose();
-  aim.dispose(); turret?.dispose(); visual?.dispose(); vehicle?.dispose(); followCamera.dispose();
+  aim.dispose(); turret?.dispose(); tankJammer?.dispose(); visual?.dispose(); vehicle?.dispose(); followCamera.dispose();
   mgProjectiles?.dispose(); machineGun?.dispose();
   removeTeamDuelLink(); teamDuelHud?.dispose(); teamDuel?.dispose();
   opponent?.dispose();

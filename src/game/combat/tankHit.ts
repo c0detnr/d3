@@ -1,6 +1,6 @@
 import { Ray, Vector3, type Scene } from '@babylonjs/core';
 import type { ProjectileHit } from './ProjectileSystem.ts';
-import { damageRegion } from './DamageModel.ts';
+import { damageRegion, hitFacing } from './DamageModel.ts';
 
 type HitTank = { tank: { assets: { meshes: import('@babylonjs/core').AbstractMesh[] }; anchor: import('@babylonjs/core').TransformNode }; vehicle: { body: import('@babylonjs/core').PhysicsBody; rig: { size: { x: number; z: number } } } };
 
@@ -17,7 +17,11 @@ export function pickTankHit(scene: Scene, tank: HitTank, from: Vector3, to: Vect
   }
   return worldHit;
 }
+const anchorLocal = (tank: HitTank, point: Vector3) =>
+  Vector3.TransformCoordinates(point, tank.tank.anchor.computeWorldMatrix(true).clone().invert());
 export function tankDamageRegion(tank: HitTank, point: Vector3) {
-  const local = Vector3.TransformCoordinates(point, tank.tank.anchor.computeWorldMatrix(true).clone().invert());
-  return damageRegion(local, tank.vehicle.rig.size);
+  return damageRegion(anchorLocal(tank, point), tank.vehicle.rig.size);
+}
+export function tankHitFacing(tank: HitTank, point: Vector3) {
+  return hitFacing(anchorLocal(tank, point), tank.vehicle.rig.size);
 }

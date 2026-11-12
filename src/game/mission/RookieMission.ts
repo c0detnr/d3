@@ -5,7 +5,7 @@ import { pathCenter, terrainHeight } from '../world/terrain.ts';
 import { DuelTank } from '../combat/DuelTank.ts';
 import { EasyDuelAI } from '../combat/EasyDuelAI.ts';
 import { ProjectileSystem, type ProjectileHit } from '../combat/ProjectileSystem.ts';
-import { pickTankHit, tankDamageRegion } from '../combat/tankHit.ts';
+import { pickTankHit, tankDamageRegion, tankHitFacing } from '../combat/tankHit.ts';
 import { applyDamage, ricochets, type DamageState } from '../combat/DamageModel.ts';
 import { IRON_DUST_01_AMMO } from '../combat/WeaponDefinition.ts';
 import type { TankVehicle } from '../vehicle/TankVehicle.ts';
@@ -142,7 +142,7 @@ export class RookieMission {
         if (this.ambushTime < 2.0) return;
         const penetrated = !ricochets(shell.velocity, hit.normal);
         const previous = player.damage.hp;
-        if (penetrated) applyDamage(player.damage, tankDamageRegion(player, hit.point));
+        if (penetrated) applyDamage(player.damage, tankDamageRegion(player, hit.point), tankHitFacing(player, hit.point));
         this.director.dispatch({ type: 'damage', amount: previous - player.damage.hp });
         onPlayerHit(hit, shell.velocity, player.damage.hp === 0);
         if (player.damage.hp === 0 && !this.world.lastFlightActive?.()) this.director.dispatch({ type: 'playerDestroyed' });
@@ -170,7 +170,7 @@ export class RookieMission {
     if (!this.director.active) return true;
     this.director.dispatch({ type: 'hit', id: scout.id });
     const penetrated = cannon && !ricochets(velocity, hit.normal);
-    const applied = penetrated && applyDamage(scout.actor.damage, tankDamageRegion(scout.actor, hit.point));
+    const applied = penetrated && applyDamage(scout.actor.damage, tankDamageRegion(scout.actor, hit.point), tankHitFacing(scout.actor, hit.point));
     const destroyed = !!applied && scout.actor.damage.hp === 0;
     this.world.onEnemyHit(hit, destroyed, penetrated);
     if (destroyed) this.director.dispatch({ type: 'destroy', id: scout.id });

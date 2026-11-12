@@ -42,7 +42,7 @@ export class DamageHud {
     this.parts = Object.fromEntries(MODULES.map(module => [module, this.vehicle.element.querySelector(`[data-module="${module}"]`)!])) as Record<DamageModule, Element>;
   }
   setState(state: DamageState) {
-    const key = t('vehicleCondition') + MODULES.map(module => state.modules[module]).join('/');
+    const key = t('vehicleCondition') + MODULES.map(module => `${state.modules[module]}:${Math.ceil(state.repair[module])}`).join('/') + (state.fire > 0 ? 'F' : '');
     if (state.hp === this.lastHp && key === this.lastModules) return;
     if (state.hp > 0 && state.hp <= 25 && state.hp < this.health.value) this.criticalLife = 3;
     if (state.hp === 0 || state.hp > 25) this.criticalLife = 0;
@@ -56,8 +56,11 @@ export class DamageHud {
       const hp = state.modules[module];
       this.parts[module].setAttribute('class', hp === 0 ? 'module-disabled' : hp < 100 ? 'module-damaged' : 'module-ok');
       this.parts[module].setAttribute('aria-label', `${t(module === 'engine' ? 'engineModule' : module === 'turret' ? 'turretModule' : module)}: ${hp === 0 ? t('disabled') : hp < 100 ? t('damaged') : t('intact')}`);
-      if (hp < 100) issues.push(`${t(module === 'engine' ? 'engineModule' : module === 'turret' ? 'turretModule' : module)} ${hp === 0 ? t('disabled') : t('damaged')}`);
+      const repair = Math.ceil(state.repair[module]);
+      if (hp < 100) issues.push(`${t(module === 'engine' ? 'engineModule' : module === 'turret' ? 'turretModule' : module)} ${hp === 0 ? `${t('disabled')} · ${t('repairing')} ${repair} ${t('seconds')}` : t('damaged')}`);
     }
+    if (state.fire > 0) issues.unshift(t('engineFire'));
+    this.element.dataset.fire = String(state.fire > 0 && state.hp > 0);
     if (this.noticeLife <= 0 || state.hp === 0) this.notice.textContent = state.hp === 0 ? t('vehicleDestroyed') : issues.join(' · ') || t('systemsOk');
   }
   outgoing(module: DamageModule | null, disabled: boolean, destroyed: boolean, penetrated = true) {

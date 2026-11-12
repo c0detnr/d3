@@ -1,6 +1,6 @@
 import { Color3, Matrix, Mesh, MeshBuilder, PhysicsBody, PhysicsMotionType, PhysicsShapeBox,
   Quaternion, StandardMaterial, TransformNode, Vector3, type InstancedMesh, type Scene } from '@babylonjs/core';
-import { LANE_DRONES, LaneDroneModel, type DroneTarget, type DroneTeam, type LaneDrone } from './LaneDroneModel.ts';
+import { LANE_DRONES, LaneDroneModel, type DroneJammer, type DroneTarget, type DroneTeam, type LaneDrone } from './LaneDroneModel.ts';
 import type { DamageState } from './DamageModel.ts';
 import type { ProjectileHit } from './ProjectileSystem.ts';
 import { kulTerrainHeight } from '../world/kulVadisiLayout.ts';
@@ -109,7 +109,7 @@ export class LaneDrones {
     return !hit.hasHit || hit.body === targetBody;
   }
 
-  fixedUpdate(dt: number, stopped = false) {
+  fixedUpdate(dt: number, stopped = false, jammers: readonly DroneJammer[] = []) {
     if (stopped) return;
     this.tracerAge += dt;
     if (this.tracerAge >= .08) { this.tracers.forEach(mesh => { mesh.isVisible = false; }); this.tracerAge = 0; }
@@ -135,7 +135,7 @@ export class LaneDrones {
         target.hp = Math.max(0, target.hp - LANE_DRONES.droneDamage);
         this.onImpact?.(to, target.hp === 0);
       }
-    });
+    }, jammers);
     const active = new Set(this.model.drones.map(drone => drone.id));
     for (const id of this.views.keys()) if (!active.has(id)) this.remove(id);
     for (const drone of this.model.drones) {
@@ -169,6 +169,8 @@ export class LaneDrones {
       const local = new Vector3(delta.x * c - delta.z * s, delta.y, delta.x * s + delta.z * c);
       this.parts.forEach((part, i) => { view.meshes[i].position.copyFrom(part.position); if (!part.turret) view.meshes[i].position.addInPlace(local); });
       view.turret.position.copyFrom(local.add(new Vector3(0, .84, 0)));
+      // Lost link reads at a glance: the jammed turret slews aimlessly.
+      if (drone.jammed) view.turret.rotation.y = this.model.elapsed * 2.5 + drone.slot;
       view.meshes[view.meshes.length - 1].position.copyFrom(local.add(new Vector3(0, .69, -.65)));
     }
   }

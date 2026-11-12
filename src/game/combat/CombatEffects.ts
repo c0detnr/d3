@@ -181,7 +181,7 @@ export class CombatEffects {
     this.spawn(point.add(new Vector3((this.random() - 0.5) * 0.8, 0.15, (this.random() - 0.5) * 0.8)),
       new Vector3(0.4, destroyed ? 2.6 : 1.3, 0.15), destroyed ? 4 : 2.5,
       destroyed ? 1.1 : 0.55, new Color4(shade, shade, shade * 0.94, destroyed ? 0.7 : 0.48), 1.2, 'smoke');
-    if (destroyed || critical) {
+    if (destroyed || critical || state.fire > 0) {
       const flame = point.add(new Vector3((this.random() - 0.5) * 0.7, 0, (this.random() - 0.5) * 0.7));
       this.spawn(flame, new Vector3(0.1, 2.8, 0), 0.24 + this.random() * 0.3,
         destroyed ? 1.1 : 0.5, new Color4(1, 0.32 + this.random() * 0.2, 0.04, 0.55), 0, 'fire');

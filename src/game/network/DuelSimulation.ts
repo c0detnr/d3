@@ -1,5 +1,5 @@
 import { applyDamage, ricochets } from '../combat/DamageModel.ts';
-import { pickTankHit, tankDamageRegion } from '../combat/tankHit.ts';
+import { pickTankHit, tankDamageRegion, tankHitFacing } from '../combat/tankHit.ts';
 import { impactSurface } from '../combat/ImpactSurface.ts';
 import type { ImpactEvent } from './protocol.ts';
 import { HavokPlugin, NullEngine, Scene, Vector3, type PhysicsEngineV2 } from '@babylonjs/core';
@@ -154,7 +154,7 @@ export class DuelSimulation {
       const target = hit.body === this.tanks[other].vehicle.body ? other : null;
       const module = target === null ? null : tankDamageRegion(this.tanks[target], hit.point);
       const ricochet = target !== null && ricochets(shell.velocity, hit.normal);
-      const applied = target !== null && !ricochet && applyDamage(this.tanks[target].damage, ricochet ? null : module);
+      const applied = target !== null && !ricochet && applyDamage(this.tanks[target].damage, ricochet ? null : module, tankHitFacing(this.tanks[target], hit.point));
       this.impacts.push({ id: this.nextImpactId++, tick: this.tick, shooter: slot, target,
         point: hit.point.asArray(), normal: hit.normal.asArray(), source: shell.previous.asArray(),
         surface: target === null ? impactSurface(hit.body) : 'metal', module: ricochet ? null : module, ricochet,

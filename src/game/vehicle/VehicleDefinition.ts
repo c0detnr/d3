@@ -19,6 +19,8 @@ export interface VehicleDefinition {
   gunResponseTime: number;
   gunMinElevation: number;
   gunMaxElevation: number;
+  /** Roof-mounted drone jammer field radius, metres (20 m diameter). */
+  jammerRadius: number;
 }
 export const IRON_DUST_01: Readonly<VehicleDefinition> = Object.freeze({
   mass: 42000, forwardSpeed: 48 / 3.6, reverseSpeed: 18 / 3.6,
@@ -29,4 +31,5 @@ export const IRON_DUST_01: Readonly<VehicleDefinition> = Object.freeze({
   turretYawSpeed: 35 * Math.PI / 180, gunPitchSpeed: 15 * Math.PI / 180,
   turretResponseTime: 0.08, gunResponseTime: 0.10, // seconds
   gunMinElevation: -8 * Math.PI / 180, gunMaxElevation: 20 * Math.PI / 180,
+  jammerRadius: 10,
 });

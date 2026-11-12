@@ -3,7 +3,7 @@ import { DuelTank } from './DuelTank.ts';
 import { EasyDuelAI } from './EasyDuelAI.ts';
 import { applyDamage, freshDamage, type DamageModule, type DamageState } from './DamageModel.ts';
 import { ProjectileSystem, type ProjectileHit } from './ProjectileSystem.ts';
-import { pickTankHit, tankDamageRegion } from './tankHit.ts';
+import { pickTankHit, tankDamageRegion, tankHitFacing } from './tankHit.ts';
 import { IRON_DUST_01_WEAPON } from './WeaponDefinition.ts';
 import { duelOutcome, teamRoute, teamSpawn, teamYaw, type DuelTeam } from './teamDuelLayout.ts';
 
@@ -148,7 +148,7 @@ export class TeamDuel {
     if (this.finished) return;
     const victim = this.members.find(m => m.vehicle.body === hit.body);
     const module = victim ? tankDamageRegion(victim, hit.point) : null;
-    const applied = !!victim && victim.team !== shooter.team && applyDamage(victim.damage, module);
+    const applied = !!victim && victim.team !== shooter.team && applyDamage(victim.damage, module, tankHitFacing(victim, hit.point));
     this.onImpact?.({ hit, victim, shooter, playerShot: shooter === this.player, module, applied,
       disabled: applied && !!module && victim!.damage.modules[module] === 0,
       destroyed: applied && victim!.damage.hp === 0 });
