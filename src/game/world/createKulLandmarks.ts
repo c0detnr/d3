@@ -1,11 +1,8 @@
 import type { Mesh, Scene } from '@babylonjs/core';
 import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
 import { KUL_FIELD_LANDMARKS } from './kulLandmarkLayout.ts';
-
-export const landmarkSources = {
-  ruin: new URL('../../../assets/environment/farmhouse_ruin_01/farmhouse_ruin_01.glb', import.meta.url).href,
-  wreck: new URL('../../../assets/environment/armored_wreck_01/armored_wreck_01.glb', import.meta.url).href,
-};
+import { landmarkSources } from './environmentSources.ts';
+export { landmarkSources } from './environmentSources.ts';
 
 /** Metres. Visible model heights; footprints stay within the layout width/depth. */
 const LANDMARK_HEIGHT = { ruin: 6.09, wreck: 2.51 } as const;

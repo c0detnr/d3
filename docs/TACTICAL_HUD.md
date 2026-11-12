@@ -34,3 +34,18 @@ Fare kilidi açıkken kamera bakışı bağımsızdır; taret ve namlu kamera ı
 LAN istemcisi aynı bakış hedefinden normalize `aimDirection` gönderir; mevcut yetkili sunucu taret hızını ve açı sınırlarını uygular. Ağ protokolü değişmedi. Ekrandaki LAN yardım metni ve README kontrolleri güncellendi.
 
 `npm run combat:test`, `npm run turret:test`, `npm run touch:test`, `npm run map:build`, `npm run lan:check` ve serbest kamera kontrolü geçti. Hareketli hedefte ±180° sarması, her adımda yaw/yükseliş hız sınırı ve yükseliş açı sınırları; kamera ışını isabeti, zoom sınırları, fare kilidi kapısı ve dokunmatik nişancı kamera yönü kontrol edildi. Derlemede mevcut büyük paket uyarısı sürüyor. Tarayıcıda insan hissi ve iki oyunculu LAN denemesi yapılmadı; genel kilometre taşı kabulü değişmez.
+
+## 2026-11-13 — Ortak taktik ekran dili
+
+TacticalHud, DamageHud, MissionHud, SmokeInventory ve TeamDuelHud artık minimap ile aynı `hudTokens.css` renklerini, Barlow yazı tipini, tabular rakamları, panel ve boşluk ölçülerini kullanır. Kırık beyaz 1 px çizgiler ve köşe parantezleri temel dili oluşturur; amber uyarıyı, kırmızı hasarı/tehdidi, camgöbeği dost verisini belirtir. Yeni bağımlılık veya dış marka arayüzü kullanılmadı.
+
+- Görev sol üstte, pusula üst ortada, birleşik araç bloğu sol altta, silah/sis ve ayrılmış minimap alanı sağ alttadır. Kısa yatay ekranlarda ekipman tek yatay bölgeye, dokunmatik kontrollerin üstüne geçer; telsiz metni alt ortadaki boşluğu kullanır. Yerleşimde `:has()` yaması yoktur.
+- Gövde ve kule yönü, palet/motor/kule hasarı ve hız aynı SVG/panelde gösterilir. DamageHud yalnız kendisine verilen yetkili modül/HP verisini yansıtır; TacticalHud aynı şemanın dönüşlerini ve hızı günceller. Bağımsız kurulum/kapatma sıraları desteklenir; son sahibi kapanınca ortak panel kaldırılır. Menü ve FPV görünürlük davranışı korunur.
+- Namlu halkasının dışında CSS `conic-gradient` dolum yayı bulunur; oran TacticalHud.update telemetrisinden gelir. Hazır olduğunda yanında yerelleştirilmiş kısa `HZR` / `RDY` belirir. Ayrı merkez dolum kutusu kaldırıldı; mühimmat bloğunda `APFSDS · DLM / LOAD` ve kalan süre korunur.
+- Pusula üzerinde gövde ve kulenin dünya yönleri, kameraya göre ayrı işaretlenir. Şerit dışına çıkan işaretler gizlenir; kule dünya yönü gövde açısı + göreli kule açısıdır.
+- Gelen hasar işaretleri aynı 1,4 saniyelik ömür ve kamera göreli yön mantığıyla ince, segmentli yaylar çizer. Hafif darbe amber, şiddetli darbe kırmızıdır. Ekran darbesinin yoğunluğu azaltıldı; kritik HP nabzı yeni hasardan sonra en fazla 3 saniye sürer. `prefers-reduced-motion` ekran flaşlarını ve telsiz yazılma animasyonunu kapatır.
+- Sürüş durumu TR'de `İ · İLERİ`, `N · BOŞ`, `G · GERİ`; EN'de `F · FWD`, `N · STOP`, `R · REV` olarak gösterilir. Sis düğmesi, başlığı, görsel açıklaması, envanter ve bekleme aria metinleri dahil yeni metinler TR/EN sözlüklerindedir.
+
+Doğrulama: `npm run map:build`, `npm run mission:test`, `node --experimental-strip-types scripts/check-tactical-hud.ts`, `npm run damage:test` geçti. Derlemenin mevcut büyük paket uyarısı sürüyor.
+
+Tarayıcı kontrolü: gerçek HUD sınıflarıyla ayrı Chromium DOM/CSS deneme yüzeyinde 1440×900 masaüstü, 844×390 ince/kaba işaretçi ve 390×844 kaba işaretçi düzenleri ölçüldü; görev/telsiz, pusula, araç, silah, sis ve minimap alanları arasında çakışma veya ekran dışına taşma bulunmadı. Ekran görüntüleri incelendi. Aynı denemede tek ortak SVG, modül renkleri, iki kurulum/kapatma sırası, dolum oranı/hazır metni, kritik nabzın bitmesi, menüde gizleme ve reduced-motion kontrol edildi. Bunlar sentetik telemetriyle sunum kontrolleridir; gerçek oyun sahnesinde sürüş/atış, LAN, fiziksel dokunmatik cihaz ve insan görsel/oynanış kabulü yapılmadı. Genel kilometre taşı kabulü değişmez.

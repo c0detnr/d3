@@ -1,6 +1,7 @@
 import { t } from '../i18n/index.ts';
 import icon from '../../../assets/items/smoke_supply_01/inventory.svg?url';
 import { SMOKE, type SmokeModel } from '../items/SmokeModel.ts';
+import './hudTokens.css';
 import './smokeInventory.css';
 
 export class SmokeInventory {
@@ -15,11 +16,11 @@ export class SmokeInventory {
 
   constructor(fire: () => void, collect: () => void) {
     this.element.className = 'smoke-inventory';
-    this.element.setAttribute('aria-label', 'Sis mühimmatı envanteri');
+    this.element.setAttribute('aria-label', t('smokeInventoryLabel'));
     this.element.innerHTML = `<button class="smoke-pickup" type="button" hidden><kbd>F</kbd><span>${t('smokePickup')}</span></button>
-      <button class="smoke-use" type="button" aria-label="Sis mühimmatı kullan" title="Sis mühimmatı — Geçici görüş perdesi oluşturur. Mermileri durdurmaz.">
-        <kbd>G</kbd><img src="${icon}" alt="İki sis mühimmatı tüpü"/><span class="smoke-count">${SMOKE.initialCharges} / ${SMOKE.capacity}</span>
-        <progress max="${SMOKE.cooldown}" value="0" aria-label="Sis kullanımına kalan süre"></progress>
+      <button class="smoke-use" type="button" aria-label="${t('smokeUseLabel')}" title="${t('smokeDescription')}">
+        <kbd>G</kbd><img src="${icon}" alt="${t('smokeIconLabel')}"/><span class="smoke-count">${SMOKE.initialCharges} / ${SMOKE.capacity}</span>
+        <progress max="${SMOKE.cooldown}" value="0" aria-label="${t('smokeCooldownLabel')}"></progress>
       </button><div class="smoke-caption"><span>${t('smokeAmmo')}</span><output>${t('smokeScreen')}</output></div><output class="smoke-feedback" role="status" aria-live="polite" hidden></output>`;
     this.use = this.element.querySelector('.smoke-use')!;
     this.pickup = this.element.querySelector('.smoke-pickup')!;
@@ -36,8 +37,12 @@ export class SmokeInventory {
     this.count.textContent = `${model.count} / ${SMOKE.capacity}`;
     this.cooldown.value = model.cooldown;
     this.element.querySelector('.smoke-caption > span')!.textContent = t('smokeAmmo');
-    this.use.setAttribute('aria-label', `Sis perdesi: ${model.count} / ${SMOKE.capacity} şarj${model.cooldown > 0 ? `, ${Math.ceil(model.cooldown)} saniye bekle` : ''}`);
-    this.cooldown.setAttribute('aria-valuetext', `${Math.ceil(model.cooldown)} saniye`);
+    this.element.setAttribute('aria-label', t('smokeInventoryLabel'));
+    this.use.title = t('smokeDescription');
+    this.element.querySelector('img')!.alt = t('smokeIconLabel');
+    this.cooldown.setAttribute('aria-label', t('smokeCooldownLabel'));
+    this.use.setAttribute('aria-label', t('smokeChargeLabel').replace('{count}', String(model.count)).replace('{capacity}', String(SMOKE.capacity)) + (model.cooldown > 0 ? ` · ${t('smokeCooldownSeconds').replace('{seconds}', String(Math.ceil(model.cooldown)))}` : ''));
+    this.cooldown.setAttribute('aria-valuetext', t('smokeCooldownSeconds').replace('{seconds}', String(Math.ceil(model.cooldown))));
     this.feedback.hidden = model.feedbackTime <= 0 || !alive;
     const feedback = model.feedback ? t(model.feedback.key).replace('{seconds}', String(model.feedback.seconds ?? '')) : '';
     if (this.feedback.textContent !== feedback) this.feedback.textContent = feedback;

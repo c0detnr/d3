@@ -1,28 +1,26 @@
-.smoke-inventory { position: fixed; z-index: 8; bottom: max(26px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; color: #dedbca; font: 11px/1.4 ui-monospace, monospace; pointer-events: none; }
+.smoke-inventory { position: fixed; z-index: 8; bottom: calc(var(--hud-bottom) + 212px); right: calc(var(--hud-margin) + 238px); width: 210px; display: flex; align-items: center; gap: var(--hud-gap); color: var(--hud-fg); font: 11px/1.4 var(--hud-font); font-variant-numeric: var(--hud-numerals); pointer-events: none; }
 .smoke-inventory button { pointer-events: auto; font: inherit; color: inherit; cursor: pointer; }
-.smoke-use { position: relative; width: 76px; height: 76px; padding: 5px 8px 14px; border: 1px solid #9ba68d80; border-radius: 3px; background: linear-gradient(135deg, #242d26e6, #101714d9); }
-.smoke-use:hover:not(:disabled), .smoke-use:focus-visible { border-color: #e6b164; outline: 1px solid #e6b164; outline-offset: 3px; }
+.smoke-use { flex: 0 0 60px; position: relative; width: 60px; height: 60px; padding: 5px 8px 14px; border: 1px solid var(--hud-line); border-radius: 0; background: var(--hud-panel); }
+.smoke-use:hover:not(:disabled), .smoke-use:focus-visible, .smoke-pickup:focus-visible { outline: 1px solid var(--hud-amber); outline-offset: 3px; }
 .smoke-use:disabled { cursor: default; }
 .smoke-inventory[data-empty='true'] .smoke-use img { opacity: .38; }
 .smoke-use img { width: 100%; height: 100%; object-fit: contain; }
-.smoke-inventory kbd { font: inherit; color: #c0c8b7; border: 1px solid #8b99886b; padding: 0 4px; border-radius: 2px; }
+.smoke-inventory kbd { font: inherit; color: var(--hud-fg); border: 1px solid var(--hud-line); padding: 0 4px; }
 .smoke-use > kbd { position: absolute; top: 5px; left: 5px; font-size: 9px; }
 .smoke-count { position: absolute; bottom: 5px; right: 7px; font-size: 11px; }
-.smoke-use progress { position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; border: 0; appearance: none; }
-.smoke-use progress::-webkit-progress-bar { background: #18201a; }
-.smoke-use progress::-webkit-progress-value { background: #d1a15d; }
-.smoke-use progress::-moz-progress-bar { background: #d1a15d; }
-.smoke-caption { display: grid; gap: 6px; padding: 10px 12px; background: rgb(16 23 20 / 94%); text-shadow: 0 1px 4px #000; }
-.smoke-caption > span { letter-spacing: .06em; font-size: 12px; color: #d7dfcd; }
-.smoke-caption output { font-size: 12px; color: #f1eddf; }
-.smoke-pickup { position: absolute; bottom: calc(100% + 24px); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 9px; padding: 9px 13px; white-space: nowrap; background: #131c16ed; border: 1px solid #cfda9c; border-radius: 3px; box-shadow: 0 0 18px #b7cf6630; font-size: 13px; }
-.smoke-pickup[hidden] { display: none; }
+.smoke-use progress { position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; border: 0; appearance: none; }
+.smoke-use progress::-webkit-progress-bar { background: var(--hud-line); }
+.smoke-use progress::-webkit-progress-value { background: var(--hud-amber); }
+.smoke-use progress::-moz-progress-bar { background: var(--hud-amber); }
+.smoke-caption { min-width: 0; display: grid; gap: 4px; text-shadow: 0 1px 4px #000; }
+.smoke-caption > span { letter-spacing: .06em; font-size: 10px; color: var(--hud-muted); }
+.smoke-caption output { font-size: 11px; }
+.smoke-pickup, .smoke-feedback { position: absolute; bottom: calc(100% + 12px); right: 0; box-sizing: border-box; width: max-content; max-width: min(320px, 85vw); padding: var(--hud-padding); background: var(--hud-panel); border: 1px solid var(--hud-line); font-size: 12px; }
+.smoke-pickup { display: flex; align-items: center; gap: var(--hud-gap); min-height: 44px; }
+.smoke-pickup[hidden], .smoke-feedback[hidden] { display: none; }
 .smoke-pickup:disabled { opacity: .7; cursor: default; }
-@media (max-width: 850px) { .smoke-caption { max-width: 165px; } .smoke-use { width: 64px; height: 64px; } }
-@media (pointer: coarse) { .smoke-inventory { bottom: calc(max(28px, env(safe-area-inset-bottom)) + clamp(112px, 24vh, 156px) + 24px); } .smoke-use { width: 54px; height: 54px; } .smoke-use > kbd { display: none; } .smoke-pickup { bottom: calc(100% + 24px); } }
-
-.smoke-feedback { position: absolute; bottom: calc(100% + 80px); left: 50%; transform: translateX(-50%); padding: 8px 12px; background: #182018f2; color: #f0d297; border: 1px solid #a99668; white-space: nowrap; font-size: 12px; text-align: center; }
-.smoke-feedback[hidden] { display: none; }
-.smoke-inventory[data-notice='true'] .smoke-use { border-color: #e6b164; }
-.smoke-count, .smoke-caption output { font-variant-numeric: tabular-nums; }
-@media (max-width: 480px) { .smoke-caption { max-width: 140px; } .smoke-caption > span { font-size: 11px; } .smoke-feedback { font-size: 10px; bottom: calc(100% + 80px); } }
+.smoke-feedback { bottom: calc(100% + 72px); color: var(--hud-amber); }
+.smoke-inventory[data-notice='true'] .smoke-use { border-color: var(--hud-amber); }
+@media (max-width: 850px), (pointer: coarse) { .smoke-inventory { bottom: calc(var(--hud-right-base) + 316px); right: var(--hud-margin); width: 140px; gap: 6px; } .smoke-use { flex-basis: 52px; width: 52px; height: 56px; } .smoke-caption { overflow-wrap: anywhere; } }
+@media (pointer: coarse) { .smoke-use > kbd { display: none; } }
+@media (max-height: 500px) and (min-width: 601px) { .smoke-inventory { right: calc(var(--hud-margin) + 280px); bottom: var(--hud-right-base); width: 110px; } }

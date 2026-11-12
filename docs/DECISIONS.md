@@ -1,5 +1,12 @@
 # Kararlar ve açık konular
 
+## 2026-11-13 — Oyuncu kontrollü FPV
+
+- **Kesin karar:** Tank üstünden kalkış; ASSIST ve ACRO; uçuş bitene kadar tanka dönüş yok; tank imha olsa da son saldırı devam eder. Batarya ve süre sınırı yok. FPV OSD içinde kozmetik batarya dahil uçuş göstergeleri bulunur.
+- **Prototip tercihi:** B mod, V kalkış; doğrudan çarpışma 25 HP; tank sağlamsa yeniden kalkış. Hasar ve mühimmat ekonomisi kesin tasarım kararı değildir.
+- **Açık:** İnsan uçuş hissi/ses/denge kabulü; ayrı drone avcı AI ve gamepad kapsam dışı.
+- **Ayrıntı:** [FPV drone](FPV_DRONE.md).
+
 ## 2026-10-28 — Kül Vadisi 5’e 5 üs saldırısı
 
 - **Kesin kullanıcı kararları:** İki takımda beşer oyuncu; kuzey/güney ana üsler; ormanlık sırt, merkez fabrika ve taş ocağından oluşan üç koridor; yan geçitler. Koridor başına ve takım başına bir büyük dış savunma, üs girişinde ortak iç savunma; ayrı korunaklı doğma hangarları ve komuta merkezi.

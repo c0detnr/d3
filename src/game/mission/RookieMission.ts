@@ -21,6 +21,8 @@ interface MissionWorld {
   onPlayerHit: (hit: ProjectileHit, velocity: Vector3, destroyed: boolean) => void;
   onEnemyHit: (hit: ProjectileHit, destroyed: boolean, penetrated: boolean) => void;
   onConfirm: () => void;
+  lastFlightActive?: () => boolean;
+  interceptProjectile?: (hit: ProjectileHit) => boolean;
 }
 export class RookieMission {
   readonly director = new MissionDirector(ROOKIE_DAY);
@@ -34,6 +36,7 @@ export class RookieMission {
   private disposed = false;
   private ambush = false;
   private ambushPoint?: Vector3;
+  private ambushTime = 0;
   private time = 0;
   constructor(world: MissionWorld) {
     this.world = world;
@@ -56,6 +59,7 @@ export class RookieMission {
       if (completed.id === 'drive') this.hud.say('riza', 'radioRange');
       if (completed.id === 'range') {
         this.ambush = true;
+        this.ambushTime = 0;
         this.ambushPoint = world.player.vehicle.node.position.clone();
         const spawnPoints = [...ROOKIE_AMBUSH_Z].sort((a, b) => Math.abs(a - this.ambushPoint!.z) - Math.abs(b - this.ambushPoint!.z));
         for (const [i, scout] of this.scouts.entries()) {
@@ -64,6 +68,8 @@ export class RookieMission {
           scout.actor.tank.anchor.setEnabled(true);
           scout.actor.vehicle.shape.filterCollideMask = 0xffffffff;
           scout.actor.render(1);
+          scout.ai.reset();
+          scout.ai.setInitialDelay(2.0);
         }
         this.hud.say('colonel', 'radioAmbush'); this.hud.say('defne', 'radioScouts');
       }
@@ -101,13 +107,16 @@ export class RookieMission {
     if (!this.director.active) return;
     this.director.update(dt);
     if (!this.ambush) return;
+    this.ambushTime += dt;
     const { scene, player, blocksSight } = this.world;
+    const playerVelocity = player.vehicle.body?.getLinearVelocity?.();
     for (const scout of this.scouts) {
       const actor = scout.actor;
       const from = actor.vehicle.node.position.add(new Vector3(0, 1.2, 0)), to = player.vehicle.node.position.add(new Vector3(0, 1.2, 0));
       const sight = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: actor.vehicle.body, shouldHitTriggers: true });
       const visible = actor.damage.hp > 0 && player.damage.hp > 0 && (!sight.hasHit || sight.body === player.vehicle.body) && !blocksSight(from, to);
-      scout.decision = scout.ai.update(actor, player, visible, dt, player.vehicle.spawn);
+      const allies = this.scouts.filter(s => s !== scout && s.actor.damage.hp > 0).map(s => s.actor);
+      scout.decision = scout.ai.update(actor, player, visible, dt, player.vehicle.spawn, { allies, playerVelocity });
       actor.beforeStep(dt, scout.decision.drive);
     }
   }
@@ -128,16 +137,18 @@ export class RookieMission {
         if (shot) { scout.projectiles.spawn(shot.origin, shot.direction, IRON_DUST_01_AMMO.muzzleVelocity); scout.ai.shotFired(); onShot(shot.origin, shot.direction); }
       }
       scout.projectiles.fixedUpdate(dt, (hit, shell) => {
+        if (this.world.interceptProjectile?.(hit)) return;
         if (!this.director.active || hit.body !== player.vehicle.body) return;
+        if (this.ambushTime < 2.0) return;
         const penetrated = !ricochets(shell.velocity, hit.normal);
         const previous = player.damage.hp;
         if (penetrated) applyDamage(player.damage, tankDamageRegion(player, hit.point));
         this.director.dispatch({ type: 'damage', amount: previous - player.damage.hp });
         onPlayerHit(hit, shell.velocity, player.damage.hp === 0);
-        if (player.damage.hp === 0) this.director.dispatch({ type: 'playerDestroyed' });
+        if (player.damage.hp === 0 && !this.world.lastFlightActive?.()) this.director.dispatch({ type: 'playerDestroyed' });
       });
     }
-    if (player.damage.hp === 0) this.director.dispatch({ type: 'playerDestroyed' });
+    if (player.damage.hp === 0 && !this.world.lastFlightActive?.()) this.director.dispatch({ type: 'playerDestroyed' });
   }
   raycast(from: Vector3, to: Vector3, hit: ProjectileHit | undefined) {
     if (!this.ambush) return hit;
@@ -155,6 +166,7 @@ export class RookieMission {
   impact(hit: ProjectileHit, velocity: Vector3, cannon: boolean) {
     const scout = this.ambush && this.scouts.find(s => s.actor.vehicle.body === hit.body);
     if (!scout) return false;
+    scout.ai.onDamage(hit.point);
     if (!this.director.active) return true;
     this.director.dispatch({ type: 'hit', id: scout.id });
     const penetrated = cannon && !ricochets(velocity, hit.normal);

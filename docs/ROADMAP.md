@@ -352,3 +352,9 @@ v4 (2026-11-07): Kullanıcı kolların gerçekçi olmadığını belirtti. Onay�
 Kullanıcının seçimiyle ücretsiz Quick Tunnel açıldı. Ayrı paylaşım sunucusu kök adresi `map=kul&tank=02` ile Kül Vadisi / Leopard esintili IRON DUST 02'ye yönlendirir; açık URL seçimlerini korur. Mevcut oyun kabuğu ve devam eden kullanıcı çalışmaları değiştirilmedi.
 
 `npm run map:build`, yerel varsayılan/açık seçim yönlendirme kontrolleri, dış HTTPS üzerinden yönlendirme, oyun sayfası, giriş JS'i, harita JS'i, tank GLB'si, Havok WASM ve lisans erişimi geçti. Mevcut büyük paket uyarısı sürüyor. Tarayıcı erişim host'u kullanılamadığından görsel/oynanış/FPS doğrulanmadı; M1/M2/M3 kabulü değişmez. Bu bir kalıcı Pages yayını değildir; bilgisayar ve iki kullanıcı servisi açık kalmalıdır.
+
+### 2026-11-13 — FPV ASSIST fren ve sabit duruş düzeltmesi
+
+ASSIST'te hareket bırakılınca yatay, yükselme/alçalma bırakılınca dikey fren güçlendirildi; düşük hız tam sıfırlanarak konum tutma sağlandı. 26 m/s yatay hızdan eski 1,80 s / 7,20 m süzülme yerine 0,53 s / 1,95 m'de tam duruş ölçüldü. ACRO'nun manuel itki, yatış ve sürüklenme davranışı korunur.
+
+`node --experimental-strip-types scripts/check-fpv.ts`, `npm run map:check`, mevcut `scripts/check-fpv-browser.ts` ve `/tmp/d3-check-fpv-brake-browser.ts` hedefli gerçek klavye bırakma kontrolü geçti. Headless Chromium / ANGLE SwiftShader, 1440×817, düşük kalite: W ve Space bırakıldıktan sonra 0,65 simülasyon saniyesinde fren; ardından 1,08 saniye boyunca aynı xyz konumu ve sıfır sayfa hatası (`artifacts/fpv-brake/report.json`). Genel `npm run typecheck`, kök `tsconfig.json` bulunmadığından kontrol yapamıyor; ilgili harita TypeScript kontrolü başarılı. İnsan uçuş hissi ve FPS ölçülmedi; M1/M2/M3 genel kabulü değişmez.

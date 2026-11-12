@@ -1,6 +1,7 @@
 import { t } from '../i18n/index.ts';
 import { Matrix, Vector3 } from '@babylonjs/core';
 import type { TeamDuel } from '../combat/TeamDuel.ts';
+import './hudTokens.css';
 import './teamDuelHud.css';
 
 export class TeamDuelHud {
@@ -11,6 +12,7 @@ export class TeamDuelHud {
   private readonly markers: HTMLDivElement[] = [];
   constructor(private readonly duel: TeamDuel, reset: () => void) {
     this.element.className = 'team-duel-hud'; this.element.setAttribute('aria-label', t('duelTitle'));
+    this.score.innerHTML = '<span data-side="friend"></span> · <span data-side="enemy"></span>';
     this.message.setAttribute('role', 'status'); this.message.setAttribute('aria-live', 'polite');
     this.retry.textContent = t('duelRetry'); this.retry.onclick = reset;
     this.element.append(this.score, this.message, this.retry); document.body.append(this.element);
@@ -22,7 +24,8 @@ export class TeamDuelHud {
   }
   update() {
     const duel = this.duel, own = duel.alive(duel.player.team), enemy = duel.alive(duel.player.team === 'A' ? 'B' : 'A');
-    this.score.textContent = `${t('friend')} ${own} / 5  ·  ${t('enemy')} ${enemy} / 5`;
+    this.score.querySelector('[data-side="friend"]')!.textContent = `${t('friend')} ${own} / 5`;
+    this.score.querySelector('[data-side="enemy"]')!.textContent = `${t('enemy')} ${enemy} / 5`;
     const text = duel.result === 'draw' ? t('draw') : duel.finished
       ? duel.result === duel.player.team ? t('victory').toLocaleUpperCase() : t('defeat').toLocaleUpperCase()
       : duel.player.damage.hp === 0 ? t('teamContinues') : t('duelObjective');

@@ -1,4 +1,22 @@
+import { GunnerSight } from './game/ui/GunnerSight.ts';
+import { ThermalView } from './game/effects/ThermalView.ts';
+import { LaserRangefinder } from './game/aim/LaserRangefinder.ts';
+import { nextSightMode, sightAzimuth, type SightMode } from './game/aim/gunnerSightModel.ts';
 import type { DevSessionConfig } from './game/core/devConfig.ts';
+import { KUL_JAMMERS } from './game/world/jammerLayout.ts';
+import { Minimap, type MinimapState } from './game/ui/Minimap.ts';
+import { KUL_LIMIT, KUL_PATHS, KUL_SPAWNS, KUL_STRUCTURES } from './game/world/kulVadisiLayout.ts';
+import { KUL_FIELD_LANDMARKS } from './game/world/kulLandmarkLayout.ts';
+import { KUL_RAIL_DEPOT } from './game/world/kulRailYardLayout.ts';
+import { TERRAIN_LIMIT, pathCenter } from './game/world/terrain.ts';
+import { FILM_LIMIT, FILM_BUILDINGS, RUNWAY } from './game/world/filmSetLayout.ts';
+import { FpvDrone } from './game/drone/FpvDrone.ts';
+import { InfantryNpcs } from './game/infantry/InfantryNpcs.ts';
+import { SoldierProfileCard } from './game/ui/SoldierProfileCard.ts';
+import infantryFallbackUrl from '../assets/characters/ua_infantry_01/ua_infantry_01.glb?url';
+// Optional while the rig is being produced; Vite also packages it when present.
+const infantryRigUrls = import.meta.glob('../assets/characters/ua_infantry_01/ua_infantry_01_rigged.glb',
+  { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 import { RookieMission } from './game/mission/RookieMission.ts';
 import type { MissionScore } from './game/mission/MissionDirector.ts';
 import { LaneDrones } from './game/combat/LaneDrones.ts';
@@ -53,7 +71,7 @@ import { IRON_DUST_AUDIO } from './game/audio/AudioDefinition.ts';
 import { VehicleAudio } from './game/audio/VehicleAudio.ts';
 import type { VehicleAudioSnapshot } from './game/audio/VehicleAudioModel.ts';
 import { WeaponSystem } from './game/combat/WeaponSystem.ts';
-import { ProjectileSystem } from './game/combat/ProjectileSystem.ts';
+import { ProjectileSystem, type ProjectileHit } from './game/combat/ProjectileSystem.ts';
 import { ArmorRange } from './game/combat/ArmorTarget.ts';
 import { CombatEffects } from './game/combat/CombatEffects.ts';
 import { CombatInput } from './game/input/CombatInput.ts';
@@ -118,6 +136,9 @@ const mapControls = options.shell ? { follow: () => followCamera.follow(spawnYaw
 const removeTeamDuelLink = options.shell ? () => {} : addTeamDuelLink();
 const clock = new FixedStep();
 const input = new DriveInput();
+let fpv: FpvDrone | undefined;
+let infantry: InfantryNpcs | undefined;
+const soldierProfiles = new SoldierProfileCard();
 let studio: Studio | undefined;
 let teamDuel: TeamDuel | undefined;
 let teamDuelHud: TeamDuelHud | undefined;
@@ -150,12 +171,32 @@ let damageTrailTime = 0;
 let damageSoundTime = 0;
 const aim = new AimSystem(scene, followCamera, document.querySelector<HTMLElement>('#aim-bore')!,
   document.querySelector<HTMLElement>('#aim-status')!);
-const combatInput = new CombatInput(canvas, () => (mgMode || !!weapon?.ready) && !followCamera.isOverview && !paused && pointerLock.active && !freeCamera.active,
-  () => !!vehicle && !followCamera.isOverview && !paused && pointerLock.active && !freeCamera.active,
-  (x, y) => { if (paused) return; x *= settings.sensitivity; y *= settings.sensitivity * (settings.invertY ? -1 : 1); if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); }, () => { followCamera.aiming = false; },
+const gunnerSight = new GunnerSight();
+const thermalView = new ThermalView(scene, followCamera.camera);
+const laserRangefinder = new LaserRangefinder();
+let sightMode: SightMode = 'DAY';
+function sightEnabled() {
+  return !!vehicle && !!weapon && !paused && !attract && !resultView && pointerLock.active
+    && !freeCamera.active && !fpv?.active && !mgMode && !followCamera.isOverview && damageHudState.hp > 0;
+}
+function updateGunnerSight() {
+  const enabled = sightEnabled();
+  const active = enabled && combatInput.aiming;
+  if (!active) sightMode = 'DAY';
+  else if (combatInput.consumeThermal()) sightMode = nextSightMode(sightMode);
+  thermalView.setMode(active ? sightMode : 'DAY');
+  const bore = turret?.getMuzzleRay().direction;
+  gunnerSight.update({ active, enabled, mode: sightMode, fov: followCamera.camera.fov,
+    magnification: followCamera.magnification, azimuth: bore ? sightAzimuth(bore.x, bore.z) : '000',
+    reloadRemaining: weapon?.reloadRemaining ?? 0, blocked: aim.marker.classList.contains('blocked') && !aim.marker.hidden,
+    sample: laserRangefinder.sample, now: performance.now() / 1000 });
+}
+const combatInput = new CombatInput(canvas, () => (mgMode || !!weapon?.ready) && !followCamera.isOverview && !paused && pointerLock.active && !freeCamera.active && !fpv?.active,
+  () => !!vehicle && !followCamera.isOverview && !paused && pointerLock.active && !freeCamera.active && !fpv?.active,
+  (x, y) => { if (paused) return; x *= settings.sensitivity; y *= settings.sensitivity * (settings.invertY ? -1 : 1); if (mgMode) machineGun?.look(x, y); else followCamera.look(x, y); }, () => { followCamera.aiming = false; sightMode = 'DAY'; thermalView.setMode('DAY'); },
   notches => { if (!mgMode) { followCamera.aiming = combatInput.aiming; followCamera.zoom(notches); } });
 function selectWeapon(useMG: boolean) {
-  if (!machineGun || !vehicle || freeCamera.active) return;
+  if (!machineGun || !vehicle || freeCamera.active || fpv?.active) return;
   combatInput.clear(); alignDirection = undefined;
   if (followCamera.isOverview || !useMG) mapControls.follow();
   mgMode = useMG;
@@ -172,11 +213,11 @@ const weaponKey = (event: KeyboardEvent) => {
 window.addEventListener('keydown', weaponKey);
 let lastTime = performance.now();
 let paused = shellPaused || document.hidden;
-const keys = bindDriveKeys(window, () => reset(), () => !paused && pointerLock.active && !freeCamera.active);
+const keys = bindDriveKeys(window, () => reset(), () => !paused && pointerLock.active && !freeCamera.active && !fpv?.active);
 const pointerLock = new GamePointerLock(canvas, () => {
   combatInput.clear(); keys.clear(); input.reset(); alignDirection = undefined;
 }, () => !!vehicle && !paused, !mobile);
-const freeCamera = new FreeFlyCamera(scene, canvas, () => !options.shell && !!vehicle && !paused && pointerLock.active, () => {
+const freeCamera = new FreeFlyCamera(scene, canvas, () => !options.shell && !!vehicle && !paused && pointerLock.active && !fpv?.active, () => {
   combatInput.clear(); keys.clear(); input.reset(); alignDirection = undefined;
 });
 const touch = new TouchControls(document.querySelector<HTMLElement>('#touch-controls')!, canvas, {
@@ -188,6 +229,43 @@ const touch = new TouchControls(document.querySelector<HTMLElement>('#touch-cont
     void toggleSound(); },
 });
 const tacticalHud = new TacticalHud(!secondTank, useMG => selectWeapon(useMG));
+const minimap = new Minimap({
+  limit: kulVadisi ? KUL_LIMIT : filmSet ? FILM_LIMIT : TERRAIN_LIMIT,
+  height: mapHeight,
+  jammers: kulVadisi ? KUL_JAMMERS : [],
+  paths: kulVadisi ? KUL_PATHS : filmSet
+    ? [{ points: [{ x: 0, z: RUNWAY.zMin }, { x: 0, z: RUNWAY.zMax }] }]
+    : [{ points: Array.from({ length: 38 }, (_, i) => { const z = -80 + i * 5; return { x: pathCenter(z), z }; }) }],
+  buildings: kulVadisi ? [...KUL_STRUCTURES, ...KUL_FIELD_LANDMARKS, KUL_RAIL_DEPOT] : filmSet ? FILM_BUILDINGS : [],
+}, () => !!vehicle && !paused && !attract && !resultView && !freeCamera.active && !followCamera.isOverview
+  && (!options.shell || document.body.classList.contains('shell-playing')));
+function minimapState(): MinimapState {
+  const tank = vehicle!.node.position, forward = vehicle!.node.getDirection(Vector3.Forward());
+  const contacts: MinimapState['contacts'] = [];
+  const drone = fpv?.active ? { x: fpv.flight.position.x, z: fpv.flight.position.z, yaw: fpv.flight.yaw } : undefined;
+  const canSee = (target: { vehicle: TankVehicle }) => {
+    const from = drone ? fpv!.flight.position : tank.add(new Vector3(0, 1.2, 0));
+    const to = target.vehicle.node.position.add(new Vector3(0, 1.15, 0));
+    if (Vector3.DistanceSquared(from, to) > 180 ** 2 || smokeSupply?.model.blocksSight(from, to)) return false;
+    const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body });
+    return !hit.hasHit || hit.body === target.vehicle.body;
+  };
+  if (teamDuel) for (const [i, member] of teamDuel.members.entries()) {
+    if (member === teamDuel.player || member.damage.hp <= 0) continue;
+    const friend = member.team === kulTeam;
+    const visible = friend || (drone ? canSee(member) : teamDuel.canSee(teamDuel.player, member));
+    if (visible) contacts.push({ id: `team-${i}`, position: member.vehicle.node.position, friend, visible });
+  }
+  const enemies = opponent ? [opponent] : mission?.scouts.map(scout => scout.actor) ?? [];
+  for (const [i, actor] of enemies.entries()) {
+    if (actor.damage.hp > 0 && actor.tank.anchor.isEnabled() && canSee(actor))
+      contacts.push({ id: `enemy-${i}`, position: actor.vehicle.node.position, friend: false, visible: true });
+  }
+  const look = turret?.getMuzzleRay().direction ?? forward;
+  return { tank: { x: tank.x, z: tank.z, yaw: Math.atan2(forward.x, forward.z) },
+    lookYaw: Math.atan2(look.x, look.z), drone, contacts, waypoint: mission?.waypoint };
+}
+
 const smokeInventory = new SmokeInventory(() => useSmoke(), () => collectSmoke());
 function updateMenuSupplyVisibility() {
   if (!options.shell || !smokeSupply) return;
@@ -196,7 +274,7 @@ function updateMenuSupplyVisibility() {
     marker.setEnabled(!attract && !smokeSupply!.supplies[index]?.collected));
 }
 function smokeEnabled() {
-  return !!vehicle && !!smokeSupply && !paused && !freeCamera.active && !followCamera.isOverview && damageHudState.hp > 0;
+  return !!vehicle && !!smokeSupply && !paused && !freeCamera.active && !fpv?.active && !followCamera.isOverview && damageHudState.hp > 0;
 }
 function clearLootPath(to: Vector3) {
   if (!vehicle) return false;
@@ -246,6 +324,7 @@ function hitShake(direction: Vector3, destroyed: boolean) {
   if (!reducedMotion.matches) followCamera.impulse(direction, destroyed ? DESTROYED_SHAKE : HIT_SHAKE);
 }
 function teamImpact(event: TeamImpact) {
+  if (fpv?.intercept(event.hit)) return;
   if (laneDrones?.hit(event.hit, event.shooter.team, 25)) return;
   const { hit, victim, applied, module, disabled, destroyed, playerShot } = event;
   if (victim) combatEffects!.armorImpact(hit.point, hit.normal, applied);
@@ -268,6 +347,8 @@ function teamImpact(event: TeamImpact) {
   }
 }
 function reset() {
+  if (fpv?.active) return;
+  minimap.reset();
   studio?.gameReset();
   mission?.recover();
   laneDrones?.reset();
@@ -281,7 +362,7 @@ function reset() {
   vehicleAudio?.reset(); combatAudio?.reset(); turret?.reset(); weapon?.reset(); projectiles?.reset(); combatEffects?.reset();
   machineGun?.reset(); mgProjectiles?.reset(); selectWeapon(false);
   combatInput.clear(); lastCombatResult = ''; combatResultTime = 0;
-  aim.reset(); mapControls.follow();
+  aim.reset(); laserRangefinder.reset(); sightMode = 'DAY'; thermalView.setMode('DAY'); mapControls.follow();
   lastTime = performance.now();
 }
 const visibility = () => {
@@ -347,7 +428,7 @@ window.addEventListener('keydown', unlockOnGesture);
 const resize = () => { if (studio?.rendering) return; if (!options.shell) scaleMobile(); engine.resize(); };
 window.addEventListener('resize', resize);
 let disposed = false;
-let ground: ReturnType<typeof createTestGround> | Awaited<ReturnType<typeof createKulVadisi>> | ReturnType<typeof createFilmSet> | undefined;
+let ground: ReturnType<typeof createTestGround> | Awaited<ReturnType<typeof createKulVadisi>> | Awaited<ReturnType<typeof createFilmSet>> | undefined;
 let tank: Awaited<ReturnType<typeof loadTankModel>> | undefined;
 
 async function start() {
@@ -357,13 +438,14 @@ async function start() {
   scene.getPhysicsEngine()!.setTimeStep(1 / 60);
   // Only FixedStep advances this world, never the render loop.
   scene.physicsEnabled = false;
-  ground = kulVadisi ? await createKulVadisi(scene, kulTeam) : filmSet ? createFilmSet(scene, filmSpot) : createTestGround(scene);
+  ground = kulVadisi ? await createKulVadisi(scene, kulTeam) : filmSet ? await createFilmSet(scene, filmSpot) : createTestGround(scene);
   if (disposed) { ground.dispose(); return; }
   ground.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh));
   status.textContent = t('tankLoading');
   const playerSpawn = teamDuelMode ? teamSpawn(kulTeam, 0) : ground.spawn;
   tank = await loadTankModel(scene, secondTank ? secondTankUrl : tankUrl, playerSpawn);
   if (disposed) { tank.dispose(); return; }
+  thermalView.register(tank.assets.meshes);
   tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
   const rig = extractTankRig(tank);
   vehicle = new TankVehicle(scene, rig, playerSpawn);
@@ -390,7 +472,7 @@ async function start() {
     combatRange.targets.forEach(target => target.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh)));
   }
   combatEffects = new CombatEffects(scene);
-  smokeSupply = await SmokeSupply.load(scene, smokeSupplyUrl, smokeCapsuleUrl, filmSet ? (ground as ReturnType<typeof createFilmSet>).supplyAnchor : ground.spawn, mapHeight,
+  smokeSupply = await SmokeSupply.load(scene, smokeSupplyUrl, smokeCapsuleUrl, filmSet ? (ground as Awaited<ReturnType<typeof createFilmSet>>).supplyAnchor : ground.spawn, mapHeight,
     kulVadisi && kulTeam === 'B' ? Math.PI : 0);
   if (disposed) { smokeSupply.dispose(); smokeSupply = undefined; return; }
   smokeSupply.launcherPose = () => turretLauncherPose(turret!.yawPivot);
@@ -446,6 +528,19 @@ async function start() {
     for (const bot of teamDuel.bots) bot.actor.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
     teamDuelHud = new TeamDuelHud(teamDuel, reset);
   }
+  {
+    // Three soldiers per garrison; cap the 5v5 preview at nine scenery actors.
+    const otherTeam = kulTeam === 'A' ? 'B' : 'A';
+    const otherSpawn = teamDuelMode ? teamSpawn(otherTeam, 0) :
+      new Vector3(KUL_SPAWNS[otherTeam].x, 0, KUL_SPAWNS[otherTeam].z);
+    const garrisons = [{ position: playerSpawn, yaw: spawnYaw },
+      ...(opponent || kulVadisi ? [{ position: opponent?.vehicle.node.position ?? otherSpawn, yaw: spawnYaw + Math.PI }] : []),
+      ...(teamDuelMode ? [{ position: teamSpawn(kulTeam, 1), yaw: spawnYaw }] : [])];
+    infantry = await InfantryNpcs.load(scene, { rigged: Object.values(infantryRigUrls)[0], fallback: infantryFallbackUrl },
+      garrisons, mapHeight);
+    if (disposed) { infantry.dispose(); infantry = undefined; return; }
+    infantry.npcs.forEach(npc => npc.anchor.getChildMeshes().forEach(mesh => shadows.addShadowCaster(mesh)));
+  }
   if (kulVadisi) {
     laneDrones = new LaneDrones(scene, () => teamDuel?.members ?? [
       { vehicle: vehicle!, damage: damageHudState, team: kulTeam },
@@ -468,6 +563,8 @@ async function start() {
   if (options.shell && !dev) {
     mission = new RookieMission({ scene, player: { tank, vehicle, damage: damageHudState }, range: combatRange!,
       blocksSight: (from, to) => smokeSupply!.model.blocksSight(from, to),
+      lastFlightActive: () => !!fpv?.active,
+      interceptProjectile: hit => fpv?.intercept(hit) ?? false,
       onFinish: score => {
         setSessionPaused(true);
         selectWeapon(false);
@@ -508,6 +605,50 @@ async function start() {
     mission.scouts.forEach(scout => scout.actor.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh)));
     if (missionRequested) mission.start();
   }
+  fpv = new FpvDrone({ scene, canvas,
+    jammers: kulVadisi ? KUL_JAMMERS.map(p => ({ ...p, y: mapHeight(p.x, p.z) + p.y })) : [],
+    ready: () => !!vehicle && !paused && !attract && !resultView && !freeCamera.active && !teamDuel?.finished && !studio,
+    controlsEnabled: () => !paused && pointerLock.active,
+    tankAlive: () => damageHudState.hp > 0,
+    tankPosition: () => vehicle!.node.position,
+    tankYaw: () => { const f = vehicle!.node.getDirection(Vector3.Forward()); return Math.atan2(f.x, f.z); },
+    ground: mapHeight,
+    raycast: (from, to, ownBody) => {
+      const result = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: ownBody, shouldHitTriggers: true });
+      let hit: ProjectileHit | undefined = result.hasHit ? { point: result.hitPointWorld.clone(), normal: result.hitNormalWorld.clone(), body: result.body, distance: result.hitDistance } : undefined;
+      const actors = teamDuel ? teamDuel.members : opponent ? [opponent] : [];
+      for (const actor of actors) {
+        const segment = to.subtract(from), length = segment.lengthSquared();
+        const fraction = length ? Math.max(0, Math.min(1, Vector3.Dot(actor.vehicle.node.position.subtract(from), segment) / length)) : 0;
+        if (Vector3.DistanceSquared(actor.vehicle.node.position, from.add(segment.scale(fraction))) <= 100) hit = pickTankHit(scene, actor, from, to, hit);
+      }
+      return mission ? mission.raycast(from, to, hit) : hit;
+    },
+    onLaunch: () => { mgMode = false; combatInput.clear(); keys.clear(); touch.clear(); input.reset(); alignDirection = undefined; mission?.shot(); pointerLock.enter(); },
+    onImpact: (hit, detonate) => {
+      combatEffects!.destruction(hit.point);
+      if (!audio.muted) combatAudio?.armorHit(true, 0, 0, true);
+      if (!detonate) return;
+      const casualties = infantry?.detonate(hit.point) ?? [];
+      soldierProfiles.queue.enqueue(casualties.map(npc => npc.profile));
+      // First prototype uses the existing 25 HP hit; no real-world warhead simulation.
+      if (mission?.impact(hit, hit.normal.scale(-1), true)) return;
+      mission?.hitTarget(hit);
+      if (laneDrones?.hit(hit, kulTeam, 25)) return;
+      if (teamDuel) { teamDuel.playerImpact(hit); return; }
+      if (opponent && hit.body === opponent.vehicle.body) {
+        const module = tankDamageRegion(opponent, hit.point);
+        const applied = applyDamage(opponent.damage, module);
+        damageHud.outgoing(module, !!module && opponent.damage.modules[module] === 0, opponent.damage.hp === 0, applied);
+      }
+    },
+    onEnd: () => {
+      combatInput.clear(); keys.clear(); touch.clear(); input.reset();
+      if (!resultView) { mapControls.follow(); scene.activeCamera = followCamera.camera; }
+      lastCombatResult = damageHudState.hp > 0 ? 'FPV bağlantısı kesildi' : 'Son uçuş tamamlandı — tank imha edildi'; combatResultTime = 5;
+    },
+    audio: () => audio.muted ? null : audio.graph,
+  });
   status.hidden = true;
   lastTime = performance.now();
   let hudElapsed = 0;
@@ -525,10 +666,17 @@ async function start() {
     gameCamera: () => mgMode ? machineGun!.camera : followCamera.camera, freeCameraActive: () => freeCamera.active,
     reset, frame: dt => frame(dt), startLoop, stopLoop: () => engine.stopRenderLoop() });
   if (options.shell) applySettings(settings);
+  // A single registry includes every actor source, without coupling thermal rendering to AI.
+  if (opponent) thermalView.register(opponent.tank.assets.meshes);
+  for (const bot of teamDuel?.bots ?? []) thermalView.register(bot.actor.tank.assets.meshes);
+  for (const scout of mission?.scouts ?? []) thermalView.register(scout.actor.tank.assets.meshes);
+  for (const npc of infantry?.npcs ?? []) thermalView.register(npc.anchor.getChildMeshes());
   options.onReady?.();
   startLoop();
   function frame(dt: number) {
     if (!vehicle || !visual || !tank) return;
+    minimap.update(performance.now() / 1000, minimapState);
+    updateGunnerSight();
     if (paused && !studio?.rendering) {
       if (resultView) {
         if (!reducedMotion.matches) resultAngle += Math.min(dt, .1) * .035;
@@ -560,16 +708,20 @@ async function start() {
     scene.imageProcessingConfiguration.exposure = (atmosphere.exposure ?? 1) + stormFlash * 0.32;
     ambient.intensity = atmosphere.hemisphere.intensity + stormFlash * 0.4;
     sun.intensity = atmosphere.sun.intensity + stormFlash * 0.25;
-    followCamera.aiming = !mgMode && (combatInput.aiming || touch.aiming);
+    followCamera.aiming = !fpv?.active && !mgMode && (combatInput.aiming || touch.aiming);
     const alpha = clock.advance(dt, step => {
       if (shellPaused) return;
+      if (combatInput.consumeRange() && sightEnabled()) {
+        const ray = turret!.getMuzzleRay();
+        laserRangefinder.measure(scene, vehicle!.body, ray.origin, ray.direction, performance.now() / 1000);
+      }
       mission?.beforeStep(step);
       smokeSupply!.fixedUpdate(step);
-      let command = freeCamera.active || teamDuel?.finished || driveDisabled(damageHudState) ? { throttle: 0, steer: 0, brake: 1 }
+      let command = fpv?.active || freeCamera.active || teamDuel?.finished || driveDisabled(damageHudState) ? { throttle: 0, steer: 0, brake: 1 }
         : input.resolve(observation?.keys() ?? Object.fromEntries(Object.entries(keys.keys).map(([key, value]) => [key, value || touch.keys[key as keyof typeof touch.keys]])) as typeof keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
       let turn = touch.turn;
       let elevation = touch.elevation * step * 15 * Math.PI / 180;
-      const desktopTracking = !mobile && pointerLock.active && !freeCamera.active && !mgMode && !followCamera.isOverview;
+      const desktopTracking = !mobile && pointerLock.active && !freeCamera.active && !fpv?.active && !mgMode && !followCamera.isOverview;
       const viewTarget = desktopTracking ? followCamera.aimTarget(vehicle!) : undefined;
       // Preserve the ray hit distance in Studio’s existing relative aim vector.
       alignDirection = viewTarget ? viewTarget.subtract(turret!.yawPivot.getAbsolutePosition()).scale(1 / 10000) : undefined;
@@ -589,6 +741,7 @@ async function start() {
       opponent?.beforeStep(step, opponent?.damage.hp === 0 || damageHudState.hp === 0 ? undefined : aiState?.drive);
       teamDuel?.beforeStep(step);
       laneDrones?.fixedUpdate(step, teamDuel?.finished);
+      fpv?.fixedUpdate(step);
       scene.getPhysicsEngine()!._step(step);
       vehicle!.afterStep();
       mission?.afterStep(step);
@@ -598,7 +751,7 @@ async function start() {
       // Joint calculations use the current physics pose; render interpolation follows below.
       visual!.syncHull(vehicle!, 1);
       teamDuel?.afterStep(step);
-      if (freeCamera.active || (!mobile && !pointerLock.active && !studio?.rendering)) turret!.fixedUpdate(null, step);
+      if (fpv?.active || freeCamera.active || (!mobile && !pointerLock.active && !studio?.rendering)) turret!.fixedUpdate(null, step);
       else if (alignDirection) {
         turret!.yawPivot.computeWorldMatrix(true);
         turret!.fixedUpdate(turret!.yawPivot.getAbsolutePosition().add(alignDirection.scale(10000)), step);
@@ -607,7 +760,7 @@ async function start() {
       const wasReady = weapon!.ready;
       weapon!.fixedUpdate(step);
       if (!wasReady && weapon!.ready && !audio.muted) combatAudio?.reload();
-      if (fire && !mgMode && damageHudState.hp > 0 && !teamDuel?.finished) {
+      if (!fpv?.active && fire && !mgMode && damageHudState.hp > 0 && !teamDuel?.finished) {
         const shot = weapon!.fire();
         if (shot) {
           mission?.shot();
@@ -638,7 +791,7 @@ async function start() {
           }
         }
       }
-      machineGun?.fixedUpdate(step, damageHudState.hp > 0 && !teamDuel?.finished && mgMode && !followCamera.isOverview && (combatInput.fireHeld || touch.fireHeld), (origin, direction) => {
+      machineGun?.fixedUpdate(step, !fpv?.active && damageHudState.hp > 0 && !teamDuel?.finished && mgMode && !followCamera.isOverview && (combatInput.fireHeld || touch.fireHeld), (origin, direction) => {
         mission?.shot();
         mgProjectiles!.spawn(origin, direction, MG.speed);
         combatEffects!.machineGunFlash(origin, direction);
@@ -692,6 +845,7 @@ async function start() {
         combatResultTime = 4;
       });
       opponentProjectiles?.fixedUpdate(step, (hit, shell) => {
+        if (fpv?.intercept(hit)) return;
         if (laneDrones?.hit(hit, kulTeam === 'A' ? 'B' : 'A', 25)) return;
         if (hit.body !== vehicle!.body) {
           combatEffects!.impact(hit.point, hit.normal, impactSurface(hit.body)); return;
@@ -717,7 +871,7 @@ async function start() {
         lastCombatResult = destroyed ? t('destroyedRetry') : `${t('incomingHit')} · ${damageHudState.hp} / 100`;
         combatResultTime = 4;
       });
-      teamDuel?.finishStep();
+      if (!fpv?.active) teamDuel?.finishStep();
       damageTrailTime += step; damageSoundTime += step;
       if (damageTrailTime >= 0.05) {
         damageTrailTime -= 0.05;
@@ -752,8 +906,10 @@ async function start() {
     combatEffects!.render(alpha);
     if (resultView) followCamera.resultOrbit(vehicle, tank.anchor.position, resultAngle);
     else followCamera.update(vehicle, tank.anchor.position, Math.min(dt, 0.1), turret);
+    updateGunnerSight();
     if (mgMode) machineGun!.updateCamera();
     freeCamera.update(dt);
+    fpv?.render(dt, alpha);
     studio?.update(dt);
     smokeSupply!.render();
     mission?.render(Math.min(dt, .1), alpha);
@@ -784,7 +940,7 @@ async function start() {
       }
     }
     scene.render();
-    if (!freeCamera.active) aim.render(vehicle, mgMode ? machineGun! : turret!);
+    if (!freeCamera.active && !fpv?.active) aim.render(vehicle, mgMode ? machineGun! : turret!);
     else { aim.marker.hidden = true; aim.label.hidden = true; }
     observation?.frame(dt, vehicle);
   }
@@ -805,11 +961,16 @@ function dispose() {
   disposed = true;
   window.removeEventListener('pagehide', dispose);
   engine.stopRenderLoop();
+  gunnerSight.dispose(); thermalView.dispose();
+  fpv?.dispose();
+  infantry?.dispose();
+  soldierProfiles.dispose();
   studio?.dispose();
   window.removeEventListener('resize', resize);
   window.removeEventListener('keydown', weaponKey);
   window.removeEventListener('keydown', smokeKey);
   smokeInventory.dispose(); smokeSupply?.dispose();
+  minimap.dispose();
   tacticalHud.dispose();
   touch.dispose();
   freeCamera.dispose();
@@ -865,7 +1026,7 @@ function applySettings(value: Settings) {
 }
 function setSessionPaused(value: boolean) {
   shellPaused = value; paused = value || document.hidden;
-  keys.clear(); touch.clear(); combatInput.clear(); input.reset(); clock.reset();
+  fpv?.clear(); keys.clear(); touch.clear(); combatInput.clear(); input.reset(); clock.reset();
   lastTime = performance.now();
   if (paused) { combatAudio?.reset(); void audio.suspend(); }
   else { void unlockAudio(); if (soundEnabled) void audio.resume(); }
@@ -874,6 +1035,24 @@ return {
   dispose, applySettings,
   startMission() { missionRequested = true; if (mission?.director.state === 'briefing') mission.start(); },
   ...(import.meta.env.DEV ? { missionTest: {
+    fpv: () => ({ active: fpv?.active, mode: fpv?.flight.mode, position: fpv?.flight.position.asArray(), tankHp: damageHudState.hp, elapsed: fpv?.flight.elapsed }),
+    launchFpv: () => fpv?.launch(),
+    detonateFpvAtInfantry: (index = 0) => {
+      const npc = infantry?.npcs[index];
+      if (!fpv?.active || !npc) return false;
+      // Exercise the terrain collision and shared FPV impact callback in browser checks.
+      fpv.flight.position.copyFrom(npc.position);
+      fpv.flight.previous.copyFrom(npc.position);
+      fpv.flight.velocity.setAll(0);
+      fpv.fixedUpdate(1 / 60);
+      return !fpv.active;
+    },
+    shootFpv: () => {
+      if (!fpv?.active) return false;
+      const hit = scene.getPhysicsEngine()!.raycast(fpv.flight.position.add(new Vector3(0, 0, -5)), fpv.flight.position.add(new Vector3(0, 0, 5)), { shouldHitTriggers: true });
+      return hit.hasHit && fpv.intercept({ point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance });
+    },
+    destroyTankForFpv: () => { damageHudState.hp = 0; damageHud.setState(damageHudState); },
     camera: () => ({ resultView, aiming: followCamera.aiming, active: scene.activeCamera?.name,
       fov: scene.activeCamera?.fov, position: scene.activeCamera?.position.asArray(),
       distance: vehicle && scene.activeCamera ? Vector3.Distance(scene.activeCamera.position, vehicle.node.position) : 0 }),

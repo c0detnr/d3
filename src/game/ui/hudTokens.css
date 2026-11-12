@@ -1,0 +1,27 @@
+@font-face { font-family: Barlow; src: url('./fonts/BarlowCondensed-SemiBold.ttf') format('truetype'); font-weight: 600; font-display: swap; }
+:root {
+  --hud-fg: #eeeae0;
+  --hud-amber: #e6b164;
+  --hud-danger: #f16b61;
+  --hud-friend: #6edbe3;
+  --hud-panel: rgb(10 17 18 / 88%);
+  --hud-line: rgb(238 234 224 / 38%);
+  --hud-font: 'Barlow', sans-serif;
+  --hud-muted: rgb(238 234 224 / 65%);
+  --hud-margin: max(32px, env(safe-area-inset-left), env(safe-area-inset-right));
+  --hud-top: max(22px, env(safe-area-inset-top));
+  --hud-bottom: max(32px, env(safe-area-inset-bottom));
+  --hud-right-base: var(--hud-bottom);
+  --hud-padding: 12px;
+  --hud-gap: 12px;
+  --hud-numerals: tabular-nums;
+}
+
+/* HUD regions share safe areas; right-side supplies reserve the minimap footprint. */
+@media (max-width: 850px), (pointer: coarse) { :root { --hud-margin: max(18px, env(safe-area-inset-left), env(safe-area-inset-right)); --hud-bottom: max(18px, env(safe-area-inset-bottom)); --hud-padding: 8px; --hud-gap: 8px; } }
+@media (pointer: coarse) { :root { --hud-right-base: calc(max(28px, env(safe-area-inset-bottom)) + clamp(112px, 24vh, 156px) + 24px); } }
+@media (pointer: coarse) and (orientation: portrait) { :root { --hud-right-base: 210px; } }
+:is(.hud-vehicle, .hud-weapons, .mission-objective, .mission-radio, .smoke-use, .team-duel-hud)::after {
+  content: ''; position: absolute; inset: -1px; pointer-events: none;
+  background: linear-gradient(var(--hud-fg),var(--hud-fg)) left top/10px 1px, linear-gradient(var(--hud-fg),var(--hud-fg)) left top/1px 10px, linear-gradient(var(--hud-fg),var(--hud-fg)) right top/10px 1px, linear-gradient(var(--hud-fg),var(--hud-fg)) right top/1px 10px, linear-gradient(var(--hud-fg),var(--hud-fg)) left bottom/10px 1px, linear-gradient(var(--hud-fg),var(--hud-fg)) left bottom/1px 10px, linear-gradient(var(--hud-fg),var(--hud-fg)) right bottom/10px 1px, linear-gradient(var(--hud-fg),var(--hud-fg)) right bottom/1px 10px; background-repeat: no-repeat;
+}

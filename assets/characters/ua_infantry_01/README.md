@@ -1,6 +1,6 @@
 # UA Infantry 01
 
-Durum: **v4 (2026-11-07): gövde, kafa ve eller CC0 anatomik taban modele geçirildi.** v2 kumaş kıvrımı normal map'i ve ortam gölgesini, v3 yelek ayrıntılarını ekledi. Kullanıcının görsel kabulü bekleniyor. Bu teslimde iskelet, skinning, animasyon, silah ve oyun entegrasyonu yok. Plan: [INFANTRY_MODEL_PLAN.md](../../../docs/INFANTRY_MODEL_PLAN.md).
+Durum: **v4 (2026-11-07): gövde, kafa ve eller CC0 anatomik taban modele geçirildi.** v2 kumaş kıvrımı normal map'i ve ortam gölgesini, v3 yelek ayrıntılarını ekledi. Kullanıcının görsel kabulü bekleniyor. Statik v4 dosyaları iskeletsizdir. Ayrı v5 rig ve animasyon çıktısı aşağıdaki bölümde; silah ve oyun entegrasyonu yok. Plan: [INFANTRY_MODEL_PLAN.md](../../../docs/INFANTRY_MODEL_PLAN.md).
 
 Modern Ukraynalı piyade. Üzerinde MM-14 esinli piksel kamuflaj üniforma, kılıflı yüksek kesim kask, kulaklık ve mikrofon, balistik gözlük ve zeytin yeşili plaka taşıyıcı var. Plaka taşıyıcıda üçlü şarjör cebi, idari cep, telsiz ve anten, ilk yardım cebi bulunuyor. Ayrıca taktik kemer, kargo cepleri, dizlikler, coyote bot ve beş parmaklı eldiven var. Kimlik işaretleri: sol omuzda bayrak, sağ omuzda kalkan üzerinde tryzub, göğüste küçük bayrak, kol ve dizlerin üstünde sarı tanıma bandı.
 
@@ -106,7 +106,27 @@ Oyun içi kontrol: GLB, geliştirme sunucusunda geçici bir kodla IRON DUST 02'n
 ## Açık konular
 
 - Kullanıcının görsel kabulü.
-- Sıradaki adımlar: iskelet ve skinning, animasyonlar, silah, TPS kontrolcüsü.
+- Sıradaki adımlar: v5 görsel kabulü, silah, TPS kontrolcüsü ve oyun entegrasyonu.
 - Yüz taban modelden geldiği için gerçekçi. Ten dokusu (sakal, kaş, dudak) yine betikle üretiliyor ve yakın planda basit kalıyor.
 - v1–v3 önizlemeleri eski skin-modifier gövdeyi gösteriyor.
 - Kamuflaj UV'sinde küp izdüşümü dikişleri yakından fark edilebilir.
+
+## Rig ve animasyon (v5)
+
+Ayrı çıktı: [ua_infantry_01_rigged.glb](ua_infantry_01_rigged.glb). Statik v4 `.blend` ve `.glb` korunur; rig bellekte kurulur. Metre ölçeği, ayak ortasında zemin kökeni, glTF +Z ileri / +Y yukarı ve mevcut sekiz malzeme korunur. Kollar kalkınca açığa çıkan yelek yan kayışları yalnız rigged çıktıda gövdeye daraltılır.
+
+- **33 kemik:** `Root`, `Hips`, `Spine` / `Spine1` / `Spine2`, `Neck`, `Head`; iki taraflı `Clavicle`, `UpperArm`, `Forearm`, `Hand`, `Thigh`, `Shin`, `Foot`; sağ elde temel `Thumb.R` / `Fingers.R` yanında iki eklemli `Index`, `Middle`, `Ring`, `Little`, `GripThumb` zincirleri. Ek parmak kemikleri otomatik ağırlıktan sonra eklenir; diğer kliplerde nötrdür.
+- Gövde otomatik ısı ağırlıklarıyla skinlenir; kafa ekipmanıyla uyum için üst kafa ağırlıkları sabitlenir. Kask/kulaklık/gözlük kafaya, yelek göğse, kemer kalçaya; diğer ekipman bağlı bileşenler halinde ilgili uzva rigid skin ile bağlanır.
+- **30 fps klipler:** `Idle_Alert` 4 sn (121 kare), `Idle_Smoke` 6 sn (181 kare), `Death_Fall` 1,4 sn (43 kare). İki idle klibinin ilk ve son pozu aynıdır. Smoke elini kaldırır, 2,2–3,8 saniyelerde ağzında tutar ve indirir; Death son karede yerde kalır. Death bir prosedürel düşüş animasyonudur; ragdoll değildir.
+- **Smoke tutuşu:** avuç yüze dönük; ön kol dönüşü bilekle paylaştırılır. İşaret/orta hafif bükük, yüzük/serçe kıvrık ve başparmak içerdedir. Sigara yuvası pozlanmış iki parmak yüzeyinin arasından ölçülür; el ağza ulaşırken yalnız filtre ucu ölçülen dudak noktasına gelir. Doğrulama 181 karenin tamamında sigaranın ele göre kaymasını, tutma aralığında dudak temasını; ayrıca bilek sınırlarını ve parmak yakınlığını denetler.
+- **`Cigarette`:** sağ ele ağırlıklı, 8 cm beyaz sigara ve turuncu emissive uç; iki yeni malzeme. GLB görünürlük animasyonu içermez: oyun yalnız `Idle_Smoke` oynarken bu düğümü göstermelidir. Oyun koduna entegrasyon yapılmadı.
+
+Depo kökünde, Blender 5.2.2 ile:
+
+```bash
+blender -b --factory-startup --python scripts/blender/rig_ua_infantry_01.py
+```
+
+Betik GLB'yi yeniden import eder; klip adları, kemikler, `Cigarette`, döngü eşleşmesi, hareket, yerde bitiş, 3 MB sınırı ve kaynak dosyaların SHA-256 eşitliğini kontrol eder. Sonuç terminale ve [rig_validation.json](rig_validation.json) dosyasına yazılır. Yaklaşık çıktı boyutu 2,54 MB'dir.
+
+Workbench ile her klipten üç kare `previews/rig_<klip>_<kare>.png` olarak ve [sigara yakın planı](previews/rig_smoke_closeup.png) render edilir. Önizleme zemini/kamerası GLB'ye aktarılmaz. Önizlemeler deformasyon kontrolü içindir; Workbench kamuflaj dokularını göstermez. Tarayıcı/oyun oynatma kabulü bu teslimin dışında kalır.

@@ -11,6 +11,7 @@ import type { Language } from '../core/playerSave.ts';
 import { t, type TranslationKey } from '../i18n/index.ts';
 import { translateGameDom } from '../i18n/dom.ts';
 import { ResultScreen, Stars } from './ResultScreen.tsx';
+import { globalLoadingScreen } from './LoadingScreen.ts';
 import './gameShell.css';
 
 type Session = ReturnType<typeof createGameSession>;
@@ -54,18 +55,20 @@ function GameShell() {
   const heading = useRef<HTMLHeadingElement>(null);
   const selected = MISSIONS.find(m => m.id === state.selected) ?? MISSIONS[0];
   function createSession(attract = true, dev?: DevSessionConfig) {
+    if (session.current) globalLoadingScreen?.showMissionTransition();
     session.current?.dispose();
     activeDev.current = dev ? { ...dev } : undefined;
     setReady(false); setFailed(false);
     const status = document.querySelector<HTMLElement>('#status')!;
     status.hidden = false; status.textContent = t('loading');
     session.current = createGameSession({ shell: true, dev: activeDev.current, onReady: () => {
+      globalLoadingScreen?.finish();
       setReady(true);
       const playing = useShellStore.getState().screen === 'playing';
       session.current?.setAttract(!playing && attract);
       session.current?.setPaused(!playing);
       translateGameDom();
-    }, onError: () => setFailed(true), onMissionResult: score => useShellStore.getState().finishMission(score) });
+    }, onError: () => { setFailed(true); globalLoadingScreen?.showError(t('loadError')); }, onMissionResult: score => useShellStore.getState().finishMission(score) });
     session.current.applySettings(useShellStore.getState().settings);
     if (import.meta.env.DEV) (window as unknown as { __missionTest: Session['missionTest'] }).__missionTest = session.current.missionTest;
     session.current.setAttract(attract);

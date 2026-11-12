@@ -1,3 +1,4 @@
+import { createJammers } from './createJammers.ts';
 import { createKulRailYard } from './createKulRailYard.ts';
 import { createKulBattlefield, type fieldSources } from './createKulBattlefield.ts';
 import { createKulAtmosphere } from './createKulAtmosphere.ts';
@@ -11,13 +12,7 @@ import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
 import { buildFacetedTerrain } from './facetedTerrain.ts';
 import { terrainNoise } from './terrain.ts';
 import { createKulMountains } from './createKulMountains.ts';
-
-const factorySources = {
-  emplacement: new URL('../../../assets/environment/concrete_emplacement_01/concrete_emplacement_01.glb', import.meta.url).href,
-  hangar: new URL('../../../assets/environment/maintenance_hangar_01/maintenance_hangar_01.glb', import.meta.url).href,
-  workshop: new URL('../../../assets/environment/maintenance_workshop_01/maintenance_workshop_01.glb', import.meta.url).href,
-  command: new URL('../../../assets/environment/command_center_01/command_center_01.glb', import.meta.url).href,
-};
+import { factorySources } from './environmentSources.ts';
 
 const hex = Color3.FromHexString;
 /** Industrial low-poly palette: few flat tones, picked per facet by zone and slope. */
@@ -49,6 +44,7 @@ function kulFacetShade(x: number, y: number, z: number, up: number, variation: n
 
 /** K1 terrain with ready-made base/factory buildings; no objective/repair logic. */
 export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sources: { hangar: string | Uint8Array; workshop: string | Uint8Array; command: string | Uint8Array; emplacement?: string | Uint8Array } = factorySources, natureSources?: Record<keyof typeof fieldSources, string | Uint8Array>, propSources: Record<keyof typeof fieldPropSources, string | Uint8Array> = fieldPropSources, landmarkSources?: Parameters<typeof createKulLandmarks>[1]) {
+  let jammers: ReturnType<typeof createJammers> | undefined;
   let landmarks: Awaited<ReturnType<typeof createKulLandmarks>> | undefined;
   let railYard: ReturnType<typeof createKulRailYard> | undefined;
   let battlefield: Awaited<ReturnType<typeof createKulBattlefield>> | undefined;
@@ -100,7 +96,7 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
   const ground = {
     spawn: new Vector3(start.x, kulTerrainHeight(start.x, start.z), start.z), terrain, meshes,
     shadowCasters: meshes.filter(m => m.isVisible && m !== terrain && m !== facets && !mountains.meshes.includes(m)) as AbstractMesh[],
-    dispose() { railYard?.dispose(); atmosphere?.dispose(); landmarks?.dispose(); fieldProps?.dispose(); decals?.dispose(); water?.dispose(); battlefield?.dispose(); buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); },
+    dispose() { jammers?.dispose(); railYard?.dispose(); atmosphere?.dispose(); landmarks?.dispose(); fieldProps?.dispose(); decals?.dispose(); water?.dispose(); battlefield?.dispose(); buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); },
   };
   try {
     for (const structure of KUL_STRUCTURES) {
@@ -109,6 +105,8 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
       buildings.push(building);
       ground.shadowCasters.push(...building.shadowCasters);
     }
+    jammers = createJammers(scene, kulTerrainHeight);
+    ground.shadowCasters.push(...jammers.shadowCasters);
     railYard = createKulRailYard(scene);
     ground.shadowCasters.push(...railYard.shadowCasters);
     battlefield = await createKulBattlefield(scene, natureSources, sources.emplacement);

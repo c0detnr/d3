@@ -1,4 +1,5 @@
 import { FreeCamera, Mesh, Ray, Vector3, type Scene } from '@babylonjs/core';
+import { sightMagnification } from '../aim/gunnerSightModel.ts';
 import { ShotCameraMotion } from './ShotCameraMotion.ts';
 import type { TankVehicle } from '../vehicle/TankVehicle.ts';
 import type { TurretController } from '../vehicle/TurretController.ts';
@@ -17,6 +18,7 @@ export class FollowCamera {
   private readonly shotMotion = new ShotCameraMotion();
   private positioned = false;
   aiming = false;
+  get magnification() { return sightMagnification(this.camera.fov); }
   get isOverview() { return this.overviewMode; }
   get direction() { return new Vector3(Math.sin(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), Math.cos(this.yaw) * Math.cos(this.pitch)); }
   readonly scene: Scene;

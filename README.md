@@ -18,6 +18,10 @@ Uygulama geliştirmeye geçildi. Doğal arazi, ileride sıklaşan orman ve bağ�
 
 İlk kabin iç gövdesi ve ana konsol Blender MCP ile üretildi: [kaynak, GLB ve iki önizleme](assets/cockpit/iron_dust_cockpit_01/README.md). 16.732 üçgen; oyun entegrasyonu ve dış tank hacmine montaj doğrulaması açık.
 
+## Oyuncu kontrollü FPV
+
+`V` ile tankın üstünden kalk, kalkıştan önce `B` ile ASSIST / ACRO seç. Uçuş bitene kadar tanka dönülmez; tank imha olsa da son uçuş devam eder. Batarya/süre sınırı yoktur. [Kontroller, göstergeler ve prototip sınırları](docs/FPV_DRONE.md).
+
 ## Hasar geri bildirimi
 
 `map-preview.html?duel=1` kolay mod yerel tank düellosunu açar: diğer tank görüşte yaklaşır, gecikmeli nişan alır ve topuyla karşılık verir. İki taraf 100 canla başlar; top isabeti 25 hasar verir. LAN düellosunda iki oyuncu da gerçek bölgesel hasar alır: metal darbe efektleri ve sesleri, hasar yönü, araç şeması, palet/motor/kule arızası, duman ve imha yangını mevcuttur. `npm run damage:test` bölge ve hasar kurallarını kontrol eder. [Kapsam ve kontroller](docs/DAMAGE_FEEDBACK.md).

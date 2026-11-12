@@ -1,0 +1,37 @@
+@import './hudTokens.css';
+
+.gunner-sight {
+  position: fixed;
+  inset: 0;
+  z-index: 14;
+  pointer-events: none;
+  color: var(--hud-fg);
+  font-family: var(--hud-font);
+  font-variant-numeric: var(--hud-numerals);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 90%);
+  background: radial-gradient(ellipse at center, transparent 40%, rgb(0 0 0 / 42%) 100%);
+}
+.gunner-sight[hidden], .gunner-range[hidden] { display: none; }
+.gunner-sight__frame { position: absolute; inset: 18% 14% 22%; }
+.gunner-sight__block { position: absolute; display: flex; flex-direction: column; gap: 5px; padding: 7px 10px; background: var(--hud-panel); font-size: 14px; line-height: 1.2; letter-spacing: .07em; }
+.gunner-sight__block::before { content: ''; position: absolute; top: -9px; width: 28px; border-top: 1px solid var(--hud-line); }
+.gunner-sight__block strong { font-size: 23px; font-weight: 500; }
+.gunner-sight__optics { top: 0; left: 0; }
+.gunner-sight__ammo { top: 0; right: 0; text-align: right; }
+.gunner-sight__ammo::before { right: 0; }
+.gunner-sight__solution { bottom: 0; left: 0; }
+.gunner-sight__help { position: fixed; top: calc(50% + 130px); bottom: auto; left: 50%; right: auto; transform: translateX(-50%); text-align: center; max-width: 32ch; font-size: 12px; }
+.gunner-sight__help::before { right: 0; }
+.gunner-sight__reticle { position: fixed; top: 0; left: calc(50% - 50vh); width: 100vh; height: 100vh; fill: none; stroke: var(--hud-fg); stroke-width: 1; filter: drop-shadow(0 1px 1px rgb(0 0 0 / 90%)); }
+.gunner-sight__reticle path { vector-effect: non-scaling-stroke; }
+.gunner-sight .is-loading { color: var(--hud-amber); }
+.gunner-sight .is-obstructed { color: var(--hud-danger); }
+.gunner-range { position: fixed; top: calc(50% + 40px); left: 50%; transform: translateX(-50%); z-index: 15; pointer-events: none; color: var(--hud-fg); background: var(--hud-panel); padding: 3px 7px; font: 13px var(--hud-font); font-variant-numeric: var(--hud-numerals); }
+/* Only competing center decorations recede; the projected #aim-bore is preserved. */
+.gunner-sight-active .hud-cross, .gunner-sight-active .hud-range { visibility: hidden; }
+@media (max-width: 850px) {
+  .gunner-sight__frame { inset: 22% 8% 30%; }
+  .gunner-sight__block { font-size: 12px; }
+  .gunner-sight__block strong { font-size: 18px; }
+  .gunner-sight__help { top: calc(50% + 100px); max-width: 28ch; font-size: 10px; }
+}

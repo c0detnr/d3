@@ -26,7 +26,7 @@
     "drive:test": "node --experimental-strip-types scripts/check-driving.ts && node --experimental-strip-types scripts/check-driving.ts 02",
     "damage:test": "node --experimental-strip-types scripts/check-damage.ts",
     "smoke:test": "node --experimental-strip-types scripts/check-smoke.ts",
-    "combat:test": "node --experimental-strip-types scripts/check-combat.ts && node --experimental-strip-types scripts/check-combat-input.ts && node --experimental-strip-types scripts/check-pointer-lock.ts && node --experimental-strip-types scripts/check-camera.ts",
+    "combat:test": "node --experimental-strip-types scripts/check-combat.ts && node --experimental-strip-types scripts/check-combat-input.ts && node --experimental-strip-types scripts/check-pointer-lock.ts && node --experimental-strip-types scripts/check-camera.ts && node --experimental-strip-types scripts/check-ai.ts",
     "mg:test": "node --experimental-strip-types scripts/check-machine-gun.ts && node --experimental-strip-types scripts/check-machine-gun-input.ts",
     "touch:test": "node --experimental-strip-types scripts/check-touch-input.ts",
     "lan:start": "npm run map:build && node --experimental-strip-types scripts/lan-server.ts",
@@ -34,7 +34,8 @@
     "lan:test": "node --experimental-strip-types scripts/check-network-simulation.ts && node --experimental-strip-types scripts/check-lan-server.ts",
     "build:itch": "npm run map:check && vite build --config vite.itch.config.ts",
     "shell:test": "node --experimental-strip-types scripts/check-shell.ts",
-    "mission:test": "node --experimental-strip-types scripts/check-missions.ts"
+    "mission:test": "node --experimental-strip-types scripts/check-missions.ts",
+    "infantry:test": "node --experimental-strip-types scripts/check-infantry.ts"
   },
   "dependencies": {
     "@babylonjs/core": "9.32.0",

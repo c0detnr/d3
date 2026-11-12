@@ -6,9 +6,11 @@ import { buildFacetedTerrain } from './facetedTerrain.ts';
 import { createKulMountains } from './createKulMountains.ts';
 import { seededRandom, terrainNoise } from './terrain.ts';
 import {
-  FILM_LIMIT, FILM_SPAWN, FILM_STEP, PAD, RANGE_TARGETS, RIDGE, RUNWAY, WHOOPS,
+  FILM_BUILDINGS, FILM_LIMIT, FILM_SPAWN, FILM_STEP, PAD, RANGE_TARGETS, RIDGE, RUNWAY, WHOOPS,
   filmSetHeight, padWeight, runwayWeight, whoopsWeight,
 } from './filmSetLayout.ts';
+import { factorySources, landmarkSources } from './environmentSources.ts';
+import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
 
 const hex = Color3.FromHexString;
 const PALETTE = {
@@ -31,8 +33,9 @@ function filmSetShade(x: number, y: number, z: number, up: number, variation: nu
 }
 
 /** Open training ground for studio shots (?map=set). Requires an enabled physics scene. */
-export function createFilmSet(scene: Scene, spot: { x: number; z: number } = FILM_SPAWN) {
+export async function createFilmSet(scene: Scene, spot: { x: number; z: number } = FILM_SPAWN) {
   const meshes: Mesh[] = [], materials: StandardMaterial[] = [], bodies: PhysicsAggregate[] = [];
+  const buildings: Awaited<ReturnType<typeof loadFactoryBuilding>>[] = [];
   const random = seededRandom(51723);
   const material = (id: string, color: string) => {
     const m = new StandardMaterial(id, scene);
@@ -151,12 +154,22 @@ export function createFilmSet(scene: Scene, spot: { x: number; z: number } = FIL
   }
 
   const casters = meshes.filter(m => m.isVisible && m !== terrain && m !== facets && !mountains.meshes.includes(m));
-  return {
+  const ground = {
     spawn: new Vector3(spot.x, filmSetHeight(spot.x, spot.z), spot.z),
     /** Smoke supply crates sit at the depot, out of every lane. */
     supplyAnchor: new Vector3(-60, 0, -205),
     terrain, meshes,
     shadowCasters: casters as AbstractMesh[],
-    dispose() { bodies.forEach(b => b.dispose()); meshes.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); },
+    dispose() { buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.filter(m => !m.isDisposed()).forEach(m => m.dispose()); materials.forEach(m => m.dispose()); },
   };
+  try {
+    const sources = { ...factorySources, ...landmarkSources };
+    for (const structure of FILM_BUILDINGS) {
+      const building = await loadFactoryBuilding(scene, sources[structure.kind], structure, filmSetHeight);
+      buildings.push(building);
+      ground.meshes.push(...building.meshes);
+      ground.shadowCasters.push(...building.shadowCasters);
+    }
+    return ground;
+  } catch (error) { ground.dispose(); throw error; }
 }

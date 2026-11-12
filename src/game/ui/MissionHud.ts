@@ -1,6 +1,7 @@
 import { Matrix, Vector3, type Scene } from '@babylonjs/core';
 import { t, type TranslationKey } from '../i18n/index.ts';
 import type { MissionDirector } from '../mission/MissionDirector.ts';
+import './hudTokens.css';
 import './missionHud.css';
 type Speaker = 'riza' | 'defne' | 'colonel';
 interface RadioLine { speaker: Speaker; text: TranslationKey }
@@ -45,7 +46,7 @@ export class MissionHud {
       this.speaker.textContent = t(this.line.speaker === 'riza' ? 'radioRiza' : this.line.speaker === 'defne' ? 'radioDefne' : 'radioColonel');
       const text = t(this.line.text);
       this.message.dataset.fullText = text;
-      this.message.querySelector('span')!.textContent = text.slice(0, Math.floor(this.age * 42));
+      this.message.querySelector('span')!.textContent = matchMedia('(prefers-reduced-motion: reduce)').matches ? text : text.slice(0, Math.floor(this.age * 42));
       if (this.age >= text.length / 42 + 3) this.line = undefined;
     }
     const camera = scene.activeCamera;
@@ -62,7 +63,7 @@ export class MissionHud {
       this.marker.dataset.labelLeft = String(w / 2 + dx > w - 220);
       this.marker.style.left = `${w / 2 + dx}px`; this.marker.style.top = `${h / 2 + dy}px`;
       this.marker.querySelector('svg')!.style.transform = `rotate(${edge ? Math.atan2(dy, dx) * 180 / Math.PI + 90 : 180}deg)`;
-      this.marker.querySelector('span')!.textContent = `${Math.round(Vector3.Distance(target, player))} m`;
+      this.marker.querySelector('span')!.textContent = `${Math.round(Vector3.Distance(target, player))} ${t('hudMetres')}`;
     }
   }
   dispose() { this.queue.length = 0; this.root.remove(); }

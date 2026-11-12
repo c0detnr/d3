@@ -21,6 +21,16 @@ export const PAD = { x: 0, z: 192, radius: 30 };
 export const RANGE_TARGETS = [{ x: 112, z: 186 }, { x: 142, z: 168 }, { x: 166, z: 204 }];
 export const RANGE_BERM = { x: 190, zMin: 140, zMax: 235, height: 6 };
 
+/** GLB footprints in metres; yaw in radians. Kept outside the camera lanes. */
+export const FILM_BUILDINGS = [
+  { id: 'film-hangar', kind: 'hangar', x: -70, z: -150, yaw: 0, width: 39.32, depth: 23.43, height: 11.74 },
+  { id: 'film-workshop', kind: 'workshop', x: 82, z: -115, yaw: Math.PI / 2, width: 23, depth: 13.6, height: 6.71 },
+  { id: 'film-command', kind: 'command', x: -90, z: 205, yaw: 0.35, width: 29, depth: 23.05, height: 14.55 },
+  { id: 'film-ruin', kind: 'ruin', x: -100, z: -25, yaw: -0.4, width: 11.62, depth: 8.75, height: 6.09 },
+  { id: 'film-wreck', kind: 'wreck', x: 28, z: 110, yaw: 0.9, width: 7.35, depth: 3.72, height: 2.51 },
+  { id: 'film-emplacement', kind: 'emplacement', x: 40, z: 215, yaw: -Math.PI / 2, width: 8.4, depth: 3.5, height: 2.672 },
+] as const;
+
 const band = (distance: number, inner: number, fade: number) => 1 - smooth((distance - inner) / fade);
 
 export function runwayWeight(x: number, z: number) {

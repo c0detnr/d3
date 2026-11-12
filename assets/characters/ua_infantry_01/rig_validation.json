@@ -1,0 +1,114 @@
+{
+  "blender": "5.2.2 LTS",
+  "glb_bytes": 2543252,
+  "clips": [
+    "Idle_Alert",
+    "Idle_Smoke",
+    "Death_Fall"
+  ],
+  "fps": 30,
+  "durations_seconds": {
+    "Idle_Alert": 4.0,
+    "Idle_Smoke": 6.0,
+    "Death_Fall": 1.4
+  },
+  "reimport_bones": [
+    "Root",
+    "Hips",
+    "Spine",
+    "Spine1",
+    "Spine2",
+    "Clavicle.L",
+    "UpperArm.L",
+    "Forearm.L",
+    "Hand.L",
+    "Clavicle.R",
+    "UpperArm.R",
+    "Forearm.R",
+    "Hand.R",
+    "Fingers.R",
+    "GripThumb.R",
+    "GripThumbTip.R",
+    "Index.R",
+    "IndexTip.R",
+    "Little.R",
+    "LittleTip.R",
+    "Middle.R",
+    "MiddleTip.R",
+    "Ring.R",
+    "RingTip.R",
+    "Thumb.R",
+    "Neck",
+    "Head",
+    "Thigh.L",
+    "Shin.L",
+    "Foot.L",
+    "Thigh.R",
+    "Shin.R",
+    "Foot.R"
+  ],
+  "reimport_cigarette": true,
+  "reimport_playback": {
+    "Death_Fall": {
+      "last_frame_z_bounds_m": [
+        0.004000067710876465,
+        0.48168104887008667
+      ]
+    },
+    "Idle_Smoke": {
+      "loop_matrix_error": 0.0,
+      "sample_motion_m": 0.7589325307412962,
+      "cigarette_hand_slip_m": 5.692384979291718e-07,
+      "hold_filter_lip_max_gap_m": 8.251880651305289e-07,
+      "grip_samples": [
+        {
+          "frame": 1,
+          "finger_surface_distance_m": [
+            0.004035197501527553,
+            0.004035670244246298
+          ],
+          "filter_lip_distance_m": 0.7970951296150068
+        },
+        {
+          "frame": 76,
+          "finger_surface_distance_m": [
+            0.00403511380335027,
+            0.004035664997487766
+          ],
+          "filter_lip_distance_m": 2.711092651997296e-07
+        },
+        {
+          "frame": 91,
+          "finger_surface_distance_m": [
+            0.004035224358110751,
+            0.004035595133958909
+          ],
+          "filter_lip_distance_m": 2.7957677010181474e-07
+        },
+        {
+          "frame": 151,
+          "finger_surface_distance_m": [
+            0.0040350060454656615,
+            0.00403570765097204
+          ],
+          "filter_lip_distance_m": 0.7438135905875584
+        },
+        {
+          "frame": 181,
+          "finger_surface_distance_m": [
+            0.004035197501527553,
+            0.004035670244246298
+          ],
+          "filter_lip_distance_m": 0.7970951296150068
+        }
+      ],
+      "wrist_max_twist_degrees": 16.744683448433573,
+      "wrist_max_bend_degrees": 39.55195891738636
+    },
+    "Idle_Alert": {
+      "loop_matrix_error": 0.0,
+      "sample_motion_m": 0.007214606056198326
+    }
+  },
+  "source_files_unchanged": true
+}

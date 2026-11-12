@@ -5,7 +5,7 @@ import { kulTerrainHeight, type KulStructure } from './kulVadisiLayout.ts';
 registerBuiltInLoaders();
 
 /** Preserve metre scale and the glTF handedness root; only recenter the footprint. */
-export async function loadFactoryBuilding(scene: Scene, source: string | Uint8Array, structure: KulStructure) {
+export async function loadFactoryBuilding(scene: Scene, source: string | Uint8Array, structure: Omit<KulStructure, 'kind'> & { kind: KulStructure['kind'] | 'ruin' | 'wreck' }, groundHeight = kulTerrainHeight) {
   const assets = await LoadAssetContainerAsync(source, scene, { pluginExtension: '.glb' });
   if (scene.isDisposed) { assets.dispose(); throw new Error('Building loaded after scene disposal.'); }
   const anchor = new TransformNode(structure.id, scene);
@@ -25,10 +25,20 @@ export async function loadFactoryBuilding(scene: Scene, source: string | Uint8Ar
     const minZ = Math.min(...visible.map(m => m.getBoundingInfo().boundingBox.minimumWorld.z));
     const maxZ = Math.max(...visible.map(m => m.getBoundingInfo().boundingBox.maximumWorld.z));
     const minY = Math.min(...visible.map(m => m.getBoundingInfo().boundingBox.minimumWorld.y));
-    anchor.position.set(structure.x - (minX + maxX) / 2, kulTerrainHeight(structure.x, structure.z) - minY, structure.z - (minZ + maxZ) / 2);
+    // Preserve Kül Vadisi's graded placements; custom terrain uses the lowest footprint sample.
+    let baseY = groundHeight(structure.x, structure.z);
+    if (groundHeight !== kulTerrainHeight) {
+      const cos = Math.cos(structure.yaw ?? 0), sin = Math.sin(structure.yaw ?? 0);
+      const nx = Math.ceil(structure.width), nz = Math.ceil(structure.depth);
+      for (let ix = 0; ix <= nx; ix++) for (let iz = 0; iz <= nz; iz++) {
+        const dx = (ix / nx - 0.5) * structure.width, dz = (iz / nz - 0.5) * structure.depth;
+        baseY = Math.min(baseY, groundHeight(structure.x + dx * cos + dz * sin, structure.z - dx * sin + dz * cos));
+      }
+    }
+    anchor.position.set(structure.x - (minX + maxX) / 2, baseY - minY, structure.z - (minZ + maxZ) / 2);
     for (const mesh of meshes) {
       const collisionOnly = !!mesh.metadata?.gltf?.extras?.collision_only;
-      mesh.metadata = { ...mesh.metadata, structure: structure.id, kind: structure.kind, hardCover: true, surface: structure.kind === 'hangar' ? 'metal' : 'concrete' };
+      mesh.metadata = { ...mesh.metadata, structure: structure.id, kind: structure.kind, hardCover: true, surface: structure.kind === 'hangar' || structure.kind === 'wreck' ? 'metal' : 'concrete' };
       mesh.isVisible = !collisionOnly; mesh.isPickable = !collisionOnly; mesh.receiveShadows = !collisionOnly;
       mesh.computeWorldMatrix(true);
       if (collisionOnly) bodies.push(new PhysicsAggregate(mesh, PhysicsShapeType.MESH, { mass: 0, friction: 0.85, restitution: 0 }, scene));

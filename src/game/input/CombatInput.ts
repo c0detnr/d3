@@ -4,6 +4,8 @@ export class CombatInput {
   get fireHeld() { return this.left && this.canAim(); }
   private left = false;
   private pending = false;
+  private pendingThermal = false;
+  private pendingRange = false;
   private pointerId: number | undefined;
   private readonly canvas: HTMLCanvasElement;
   private readonly canFire: () => boolean;
@@ -60,6 +62,10 @@ export class CombatInput {
   };
   private key = (e: KeyboardEvent) => {
     if (e.code === 'Escape') { this.clear(); return; }
+    if (!this.canAim() || e.repeat || e.ctrlKey || e.altKey || e.metaKey
+      || (e.target as HTMLElement)?.closest?.('input, textarea, select, button, [contenteditable="true"]')) return;
+    if (e.code === 'KeyT' && this.aiming) { e.preventDefault(); this.pendingThermal = true; }
+    if (e.code === 'KeyL') { e.preventDefault(); this.pendingRange = true; }
   };
   private wheel = (e: WheelEvent) => {
     e.preventDefault();
@@ -71,10 +77,12 @@ export class CombatInput {
   private captureLost = () => { if (this.pointerId !== undefined) this.clear(); };
   private visibility = () => { if (document.hidden) this.clear(); };
   private context = (e: Event) => e.preventDefault();
+  consumeThermal() { const pending = this.pendingThermal; this.pendingThermal = false; return pending; }
+  consumeRange() { const pending = this.pendingRange; this.pendingRange = false; return pending; }
   consumeFire() { const fire = this.pending; this.pending = false; return fire; }
   clear = () => {
     if (this.aiming) this.released();
-    this.aiming = false; this.left = false; this.pending = false;
+    this.aiming = false; this.left = false; this.pending = false; this.pendingThermal = false; this.pendingRange = false;
     const id = this.pointerId; this.pointerId = undefined;
     if (id !== undefined && this.canvas.hasPointerCapture?.(id)) this.canvas.releasePointerCapture(id);
   };
