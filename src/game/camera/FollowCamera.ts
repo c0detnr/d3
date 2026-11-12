@@ -5,11 +5,11 @@ import type { TurretController } from '../vehicle/TurretController.ts';
 
 /** Camera tuning in metres, radians and seconds; mouse aim stays independent; touch aim follows the real bore. */
 export const AIM_CAMERA = Object.freeze({ right: 2.6, back: 4.6, height: 1.1,
-  transitionRate: 9, clearance: 0.4, sensitivity: 0.002 });
+  viewDrop: 0.12, transitionRate: 9, clearance: 0.4, sensitivity: 0.002 });
 export class FollowCamera {
   readonly camera: FreeCamera;
   private yaw = 0;
-  private pitch = -0.09;
+  private pitch = 0;
   private desiredRadius = 15;
   private aimFov = 0.5;
   private overviewMode = false;
@@ -24,6 +24,7 @@ export class FollowCamera {
   private readonly manualAim: boolean;
   constructor(scene: Scene, canvas: HTMLCanvasElement, manualAim = false) {
     this.manualAim = manualAim;
+    this.pitch = manualAim ? -0.09 : 0;
     this.scene = scene; this.canvas = canvas;
     this.camera = new FreeCamera('tank-follow', Vector3.Zero(), scene);
     this.camera.minZ = 0.15; this.camera.fov = 0.8; this.camera.inputs.clear();
@@ -44,7 +45,7 @@ export class FollowCamera {
     const hit = this.scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle.body });
     return hit.hasHit ? hit.hitPointWorld.clone() : to;
   }
-  follow(yaw = 0) { this.overviewMode = false; this.yaw = yaw; this.pitch = -0.09; this.aiming = false; this.blend = 0; this.shotMotion.reset(); this.desiredRadius = 15; this.aimFov = 0.5; this.positioned = false; }
+  follow(yaw = 0) { this.overviewMode = false; this.yaw = yaw; this.pitch = this.manualAim ? -0.09 : 0; this.aiming = false; this.blend = 0; this.shotMotion.reset(); this.desiredRadius = 15; this.aimFov = 0.5; this.positioned = false; }
   overview() { this.overviewMode = true; this.aiming = false; this.camera.position.set(0, 120, -130); this.camera.setTarget(Vector3.Zero()); }
   /** Results never interpolate out of a gunner camera or squeeze the boom inside the hull. */
   resultOrbit(vehicle: TankVehicle, visualPosition: Vector3, angle: number) {
@@ -101,9 +102,12 @@ export class FollowCamera {
     if (this.overviewMode) return;
     this.blend += ((this.aiming ? 1 : 0) - this.blend) * (1 - Math.exp(-dt * AIM_CAMERA.transitionRate));
     const freeDirection = this.direction;
+    // Lower the desktop view without lowering the aim ray; fade out in shoulder view.
+    const viewPitch = this.pitch - AIM_CAMERA.viewDrop * (1 - this.blend);
+    const viewDirection = this.manualAim ? freeDirection : new Vector3(Math.sin(this.yaw) * Math.cos(viewPitch), Math.sin(viewPitch), Math.cos(this.yaw) * Math.cos(viewPitch));
     const bore = turret?.getMuzzleRay().direction;
     // Mouse intent remains independent of turret lag, including in gunner view.
-    let direction = freeDirection;
+    let direction = viewDirection;
     if (this.manualAim && bore) {
       const aimYaw = Math.atan2(bore.x, bore.z);
       const yaw = this.yaw + Math.atan2(Math.sin(aimYaw - this.yaw), Math.cos(aimYaw - this.yaw)) * this.blend;
@@ -112,7 +116,7 @@ export class FollowCamera {
     }
     if (!this.manualAim) this.camera.fov = 0.8 + (this.aimFov - 0.8) * this.blend;
     const anchor = visualPosition.add(new Vector3(0, 2.7, 0));
-    const normal = anchor.subtract(freeDirection.scale(this.desiredRadius));
+    const normal = anchor.subtract(viewDirection.scale(this.desiredRadius));
     let close = normal;
     if (turret) {
       turret.yawPivot.computeWorldMatrix(true);

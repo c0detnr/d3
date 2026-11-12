@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import HavokPhysics from '@babylonjs/havok';
 import { HavokPlugin, MeshBuilder, NullEngine, PhysicsAggregate, PhysicsShapeType, Scene, Vector3 } from '@babylonjs/core';
-import { FollowCamera } from '../src/game/camera/FollowCamera.ts';
+import { AIM_CAMERA, FollowCamera } from '../src/game/camera/FollowCamera.ts';
 import { loadTankModel } from '../src/game/vehicle/loadTankModel.ts';
 import { extractTankRig } from '../src/game/vehicle/tankRig.ts';
 import { TankVehicle } from '../src/game/vehicle/TankVehicle.ts';
@@ -21,6 +21,15 @@ try {
     const camera = new FollowCamera(scene, canvas);
     const update = () => camera.update(vehicle, tank.anchor.position, 1 / 60, turret);
     update(); const far = camera.camera.position.clone(), intent = camera.direction.clone();
+    assert.equal(intent.y, 0, 'desktop starts with horizontal aim');
+    assert.ok(Math.abs(camera.camera.getForwardRay().direction.y + Math.sin(AIM_CAMERA.viewDrop)) < 1e-6,
+      'normal view looks below the independent horizontal aim');
+    const horizontalTarget = camera.aimTarget(vehicle);
+    assert.ok(Math.abs(horizontalTarget.y - far.y) < 1e-6, 'aim ray stays horizontal');
+    assert.ok(far.y > vehicle.node.position.y + vehicle.rig.size.y / 2, 'horizontal aim clears the hull');
+    for (let i = 0; i < 720; i++) turret.fixedUpdate(horizontalTarget, 1 / 60);
+    assert.ok(Math.abs(turret.angles.elevation) < 0.5 * Math.PI / 180, 'horizontal camera aim leaves the gun within half a degree of level');
+    turret.reset();
     camera.aiming = true;
     for (let i = 0; i < 180; i++) update();
     assert.ok(camera.camera.position.x > 2.5, 'close camera is to the real +Z bore right');
@@ -58,6 +67,9 @@ try {
     aimObstacle.dispose(); aimWall.dispose();
     assert.ok(Math.abs(Vector3.Distance(camera.camera.position, camera.aimTarget(vehicle)) - 1000) < 1e-6, 'empty view uses a distant target and ignores own hull');
     const touchCamera = new FollowCamera(scene, canvas, true);
+    touchCamera.update(vehicle, tank.anchor.position, 1 / 60, turret);
+    assert.ok(Vector3.Dot(touchCamera.camera.getForwardRay().direction, touchCamera.direction) > 0.99999,
+      'touch normal view keeps its original direction without desktop drop');
     touchCamera.aiming = true;
     for (let i = 0; i < 180; i++) touchCamera.update(vehicle, tank.anchor.position, 1 / 60, turret);
     assert.ok(Vector3.Dot(touchCamera.camera.getForwardRay().direction, turret.getMuzzleRay().direction) > 0.9999, 'touch gunner view still follows the manually aimed bore');
