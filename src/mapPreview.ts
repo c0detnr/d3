@@ -9,8 +9,8 @@ import { KUL_LIMIT, KUL_PATHS, KUL_SPAWNS, KUL_STRUCTURES } from './game/world/k
 import { KUL_FIELD_LANDMARKS } from './game/world/kulLandmarkLayout.ts';
 import { KUL_RAIL_DEPOT } from './game/world/kulRailYardLayout.ts';
 import { TERRAIN_LIMIT, pathCenter } from './game/world/terrain.ts';
-import { FILM_LIMIT, FILM_BUILDINGS, RUNWAY } from './game/world/filmSetLayout.ts';
-import { FpvDrone } from './game/drone/FpvDrone.ts';
+import { AIRFIELD, AIRFIELD_HANGARS, FILM_LIMIT, FILM_BUILDINGS, FILM_ROADS, FUEL_DEPOT, RUNWAY, VILLAGE_BUILDINGS } from './game/world/filmSetLayout.ts';
+import { FpvDrone, type FpvTarget } from './game/drone/FpvDrone.ts';
 import { TankJammer } from './game/vehicle/TankJammer.ts';
 import { InfantryNpcs } from './game/infantry/InfantryNpcs.ts';
 import { SoldierProfileCard } from './game/ui/SoldierProfileCard.ts';
@@ -236,21 +236,25 @@ const minimap = new Minimap({
   height: mapHeight,
   jammers: kulVadisi ? KUL_JAMMERS : [],
   paths: kulVadisi ? KUL_PATHS : filmSet
-    ? [{ points: [{ x: 0, z: RUNWAY.zMin }, { x: 0, z: RUNWAY.zMax }] }]
+    ? [...[RUNWAY, AIRFIELD.runway, AIRFIELD.taxiway].map(r => ({ points: [{ x: 'x' in r ? r.x : 0, z: r.zMin }, { x: 'x' in r ? r.x : 0, z: r.zMax }] })), ...FILM_ROADS]
     : [{ points: Array.from({ length: 38 }, (_, i) => { const z = -80 + i * 5; return { x: pathCenter(z), z }; }) }],
-  buildings: kulVadisi ? [...KUL_STRUCTURES, ...KUL_FIELD_LANDMARKS, KUL_RAIL_DEPOT] : filmSet ? FILM_BUILDINGS : [],
+  buildings: kulVadisi ? [...KUL_STRUCTURES, ...KUL_FIELD_LANDMARKS, KUL_RAIL_DEPOT] : filmSet ? [...FILM_BUILDINGS, ...AIRFIELD_HANGARS.map(h => ({ x: h.x - h.length / 2, z: h.z, width: h.length, depth: h.width })),
+    ...VILLAGE_BUILDINGS, ...FUEL_DEPOT.tanks.map(t => ({ ...t, width: FUEL_DEPOT.tankDiameter, depth: FUEL_DEPOT.tankDiameter }))] : [],
 }, () => !!vehicle && !paused && !attract && !resultView && !freeCamera.active && !followCamera.isOverview
   && (!options.shell || document.body.classList.contains('shell-playing')));
+function checkTargetSight(from: Vector3, target: { vehicle: TankVehicle }, ignoreBody?: PhysicsBody): boolean {
+  const to = target.vehicle.node.position.add(new Vector3(0, 1.15, 0));
+  if (Vector3.DistanceSquared(from, to) > 180 ** 2 || smokeSupply?.model.blocksSight(from, to)) return false;
+  const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody });
+  return !hit.hasHit || hit.body === target.vehicle.body;
+}
 function minimapState(): MinimapState {
   const tank = vehicle!.node.position, forward = vehicle!.node.getDirection(Vector3.Forward());
   const contacts: MinimapState['contacts'] = [];
   const drone = fpv?.active ? { x: fpv.flight.position.x, z: fpv.flight.position.z, yaw: fpv.flight.yaw } : undefined;
   const canSee = (target: { vehicle: TankVehicle }) => {
     const from = drone ? fpv!.flight.position : tank.add(new Vector3(0, 1.2, 0));
-    const to = target.vehicle.node.position.add(new Vector3(0, 1.15, 0));
-    if (Vector3.DistanceSquared(from, to) > 180 ** 2 || smokeSupply?.model.blocksSight(from, to)) return false;
-    const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body });
-    return !hit.hasHit || hit.body === target.vehicle.body;
+    return checkTargetSight(from, target, vehicle!.body);
   };
   if (teamDuel) for (const [i, member] of teamDuel.members.entries()) {
     if (member === teamDuel.player || member.damage.hp <= 0) continue;

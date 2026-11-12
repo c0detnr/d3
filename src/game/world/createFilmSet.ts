@@ -3,11 +3,13 @@ import {
   type AbstractMesh, type Scene,
 } from '@babylonjs/core';
 import { buildFacetedTerrain } from './facetedTerrain.ts';
+import { createFilmAirfield } from './createFilmAirfield.ts';
+import { createFilmDistricts } from './createFilmDistricts.ts';
 import { createKulMountains } from './createKulMountains.ts';
 import { seededRandom, terrainNoise } from './terrain.ts';
 import {
-  FILM_BUILDINGS, FILM_LIMIT, FILM_SPAWN, FILM_STEP, PAD, RANGE_TARGETS, RIDGE, RUNWAY, WHOOPS,
-  filmSetHeight, padWeight, runwayWeight, whoopsWeight,
+  AIRFIELD, FILM_BUILDINGS, FILM_LIMIT, FILM_SPAWN, FILM_STEP, FUEL_DEPOT, PAD, RANGE_TARGETS, RIDGE, RIVER, RUNWAY, VILLAGE, WHOOPS,
+  airfieldGradeWeight, airfieldPavedWeight, filmSetHeight, padWeight, riverCenterX, riverProfile, roadWeight, runwayWeight, whoopsWeight,
 } from './filmSetLayout.ts';
 import { factorySources, landmarkSources } from './environmentSources.ts';
 import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
@@ -15,7 +17,8 @@ import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
 const hex = Color3.FromHexString;
 const PALETTE = {
   gravel: hex('#A39A82'), rut: hex('#867B63'), dirt: hex('#8C7855'), mud: hex('#6E6150'),
-  concrete: hex('#8F8F86'), concreteDark: hex('#7E7F77'),
+  concrete: hex('#8F8F86'), concreteDark: hex('#7E7F77'), asphalt: hex('#5A5B55'), asphaltDark: hex('#52534D'),
+  shoulder: hex('#9A9068'), road: hex('#5E5D56'), roadDark: hex('#56554F'), silt: hex('#6B6450'), pebbles: hex('#837C6C'),
   grass: hex('#8A8656'), khaki: hex('#9C9064'), olive: hex('#6E7347'), rock: hex('#7E7B72'), rockDark: hex('#68665F'),
 };
 
@@ -23,7 +26,18 @@ function filmSetShade(x: number, y: number, z: number, up: number, variation: nu
   const P = PALETTE;
   const patch = terrainNoise(x / 22 + 5, z / 22 - 3) + (variation - 0.5) * 0.16;
   let color: Color3;
-  if (padWeight(x, z) > 0.55) color = variation < 0.5 ? P.concrete : P.concreteDark;
+  const river = riverProfile(x, z).weight;
+  const inArea = (a: { xMin: number; xMax: number; zMin: number; zMax: number }) => x >= a.xMin && x <= a.xMax && z >= a.zMin && z <= a.zMax;
+  if (river > 0.55) color = y < RIVER.level + 0.2 ? P.silt : P.pebbles;
+  else if (river > 0.05) color = up < 0.84 ? P.rockDark : P.mud;
+  else if (roadWeight(x, z, 'asphalt') > 0.5) color = variation < 0.5 ? P.road : P.roadDark;
+  else if (roadWeight(x, z, 'track') > 0.5) color = patch > 0.5 ? P.rut : P.dirt;
+  else if (inArea(FUEL_DEPOT.area)) color = variation < 0.5 ? P.concrete : P.concreteDark;
+  else if (inArea(VILLAGE.area)) color = patch > 0.58 ? P.dirt : patch > 0.3 ? P.grass : P.olive;
+  else if (airfieldPavedWeight(x, z) > 0.5) {
+    color = x <= AIRFIELD.apron.xMax + 0.5 ? (variation < 0.5 ? P.concrete : P.concreteDark) : (variation < 0.5 ? P.asphalt : P.asphaltDark);
+  } else if (airfieldGradeWeight(x, z) > 0.9) color = patch > 0.5 ? P.shoulder : P.khaki;
+  else if (padWeight(x, z) > 0.55) color = variation < 0.5 ? P.concrete : P.concreteDark;
   else if (runwayWeight(x, z) > 0.55) color = Math.abs(Math.abs(x) - 2.2) < 0.7 ? P.rut : P.gravel;
   else if (whoopsWeight(x, z) > 0.5) color = patch > 0.55 ? P.mud : P.dirt;
   else if (up < 0.84) color = variation < 0.5 ? P.rock : P.rockDark;
@@ -136,11 +150,17 @@ export async function createFilmSet(scene: Scene, spot: { x: number; z: number }
   trunk.bakeCurrentTransformIntoVertices(); crown.bakeCurrentTransformIntoVertices();
   meshes.push(trunk, crown);
   const matrices: number[] = [];
-  const clusters = [[-110, -150], [-130, 60], [-95, 150], [105, -170], [130, 40], [95, 100], [-150, -40], [160, -90]];
+  const clusters = [[-110, -150], [-130, 60], [-95, 150], [105, -170], [130, 40], [95, 100], [-150, -40], [160, -90],
+    // River banks, village outskirts and a windbreak behind the fuel depot.
+    ...[-300, -200, -30, 140, 300].flatMap(z => [[riverCenterX(z) - 34, z], [riverCenterX(z) + 30, z + 40]]),
+    [-370, -30], [-250, 175], [-372, 150], [20, 355], [-60, 330]];
   for (const [cx, cz] of clusters) for (let i = 0; i < 14; i++) {
     const x = cx + (random() - 0.5) * 34, z = cz + (random() - 0.5) * 34;
     if (Math.abs(x - RIDGE.x) < RIDGE.halfWidth + 6 && Math.abs(z - RIDGE.z) < 60) continue;
     if (Math.abs(x - WHOOPS.x) < WHOOPS.halfWidth + 10 && z > WHOOPS.zMin - 10 && z < WHOOPS.zMax + 10) continue;
+    if (roadWeight(x, z, undefined, 8) > 0 || riverProfile(x, z).weight > 0) continue;
+    const near = (a: { xMin: number; xMax: number; zMin: number; zMax: number }) => x > a.xMin - 6 && x < a.xMax + 6 && z > a.zMin - 6 && z < a.zMax + 6;
+    if (near(VILLAGE.area) || near(FUEL_DEPOT.area)) continue;
     const size = 0.75 + random() * 0.6;
     Matrix.Compose(new Vector3(size, size * (0.9 + random() * 0.3), size),
       Quaternion.RotationYawPitchRoll(random() * 6.28, 0, 0), new Vector3(x, filmSetHeight(x, z) - 0.1, z)).copyToArray(matrices, matrices.length);
@@ -149,18 +169,21 @@ export async function createFilmSet(scene: Scene, spot: { x: number; z: number }
 
   // Invisible boundary inside the rim; the set cannot be left by accident.
   for (const axis of ['x', 'z'] as const) for (const sign of [-1, 1]) {
-    const wall = MeshBuilder.CreateBox(`film-boundary-${axis}-${sign}`, { width: axis === 'x' ? 3 : 480, depth: axis === 'z' ? 3 : 480, height: 80 }, scene);
+    const wall = MeshBuilder.CreateBox(`film-boundary-${axis}-${sign}`, { width: axis === 'x' ? 3 : FILM_LIMIT * 2, depth: axis === 'z' ? 3 : FILM_LIMIT * 2, height: 80 }, scene);
     wall.position[axis] = sign * (FILM_LIMIT - 6); wall.position.y = 20; wall.isVisible = false; meshes.push(wall); solid(wall);
   }
+
+  const airfield = createFilmAirfield(scene);
+  const districts = createFilmDistricts(scene);
 
   const casters = meshes.filter(m => m.isVisible && m !== terrain && m !== facets && !mountains.meshes.includes(m));
   const ground = {
     spawn: new Vector3(spot.x, filmSetHeight(spot.x, spot.z), spot.z),
     /** Smoke supply crates sit at the depot, out of every lane. */
     supplyAnchor: new Vector3(-60, 0, -205),
-    terrain, meshes,
-    shadowCasters: casters as AbstractMesh[],
-    dispose() { buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.filter(m => !m.isDisposed()).forEach(m => m.dispose()); materials.forEach(m => m.dispose()); },
+    terrain, meshes: [...meshes, ...airfield.meshes, ...districts.meshes],
+    shadowCasters: [...casters, ...airfield.casters, ...districts.casters] as AbstractMesh[],
+    dispose() { airfield.dispose(); districts.dispose(); buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.filter(m => !m.isDisposed()).forEach(m => m.dispose()); materials.forEach(m => m.dispose()); },
   };
   try {
     const sources = { ...factorySources, ...landmarkSources };

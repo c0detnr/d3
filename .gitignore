@@ -43,3 +43,7 @@ Thumbs.db
 
 # İçerik stüdyosu çekimleri ve render çıktıları
 /studio-out/
+
+# Yerel araç yedekleri ve kurulum durumu
+/.c0detnr/backups/
+/.c0detnr/devret-install.json

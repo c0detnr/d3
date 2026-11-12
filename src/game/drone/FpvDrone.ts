@@ -6,6 +6,16 @@ import type { AudioGraph } from '../audio/AudioSystem.ts';
 import { FpvFlight, neutralFlight } from './FpvFlight.ts';
 import { FpvHud } from './FpvHud.ts';
 
+export interface FpvTarget {
+  id: string;
+  name: string;
+  position: Vector3;
+  velocity?: Vector3;
+  distance: number;
+  friend: boolean;
+  visible: boolean;
+}
+
 export interface FpvWorld {
   jammers?: readonly JammerPosition[];
   scene: Scene; canvas: HTMLCanvasElement;
@@ -15,6 +25,7 @@ export interface FpvWorld {
   raycast: (from: Vector3, to: Vector3, ownBody?: PhysicsBody) => ProjectileHit | undefined;
   onLaunch: () => void; onImpact: (hit: ProjectileHit, detonate: boolean) => void; onEnd: () => void;
   audio: () => AudioGraph | null;
+  targets?: () => readonly FpvTarget[];
 }
 
 /** One local drone; shared fixed-step loop owns time, the session owns combat outcomes. */
@@ -133,8 +144,17 @@ export class FpvDrone {
     Quaternion.SlerpToRef(this.flight.previousRotation, this.flight.rotation, alpha, this.camera.rotationQuaternion!);
     this.camera.position.addInPlace(this.camera.getDirection(Vector3.Forward()).scale(.42));
     this.rotors.forEach((r, i) => r.rotation.y += dt * (60 + this.flight.throttle * 180) * (i % 2 ? 1 : -1));
-    this.hud.update(dt, this.flight, this.flight.position.y - this.world.ground(this.flight.position.x, this.flight.position.z),
-      Vector3.Distance(this.flight.position, this.world.tankPosition()), this.world.tankAlive(), this.world.controlsEnabled());
+    this.hud.update(
+      dt,
+      this.flight,
+      this.flight.position.y - this.world.ground(this.flight.position.x, this.flight.position.z),
+      Vector3.Distance(this.flight.position, this.world.tankPosition()),
+      this.world.tankAlive(),
+      this.world.controlsEnabled(),
+      this.camera,
+      this.world.tankPosition(),
+      this.world.targets?.() ?? []
+    );
     const graph = this.world.audio();
     if (graph && !this.oscillator) {
       this.audioContext = graph.context; this.oscillator = graph.context.createOscillator(); this.gain = graph.context.createGain();
