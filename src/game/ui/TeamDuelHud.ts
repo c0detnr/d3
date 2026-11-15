@@ -8,14 +8,17 @@ export class TeamDuelHud {
   readonly element = document.createElement('section');
   private readonly score = document.createElement('strong');
   private readonly message = document.createElement('span');
+  private readonly timer = document.createElement('span');
+  private readonly feed = document.createElement('ol');
   private readonly retry = document.createElement('button');
   private readonly markers: HTMLDivElement[] = [];
   constructor(private readonly duel: TeamDuel, reset: () => void) {
-    this.element.className = 'team-duel-hud'; this.element.setAttribute('aria-label', t('duelTitle'));
+    this.element.className = 'team-duel-hud'; this.element.setAttribute('aria-label', t(duel.rules ? 'teamClash' : 'duelTitle'));
     this.score.innerHTML = '<span data-side="friend"></span> · <span data-side="enemy"></span>';
     this.message.setAttribute('role', 'status'); this.message.setAttribute('aria-live', 'polite');
     this.retry.textContent = t('duelRetry'); this.retry.onclick = reset;
-    this.element.append(this.score, this.message, this.retry); document.body.append(this.element);
+    this.timer.className = 'team-duel-clock'; this.feed.className = 'team-duel-feed';
+    this.element.append(this.score, this.timer, this.message, this.retry); this.element.append(this.feed); document.body.append(this.element);
     for (const bot of duel.bots) {
       const marker = document.createElement('div'); marker.className = 'team-duel-marker';
       marker.dataset.side = bot.member.team === duel.player.team ? 'friend' : 'enemy';
@@ -24,13 +27,25 @@ export class TeamDuelHud {
   }
   update() {
     const duel = this.duel, own = duel.alive(duel.player.team), enemy = duel.alive(duel.player.team === 'A' ? 'B' : 'A');
-    this.score.querySelector('[data-side="friend"]')!.textContent = `${t('friend')} ${own} / 5`;
-    this.score.querySelector('[data-side="enemy"]')!.textContent = `${t('enemy')} ${enemy} / 5`;
+    const rules = duel.rules;
+    this.score.querySelector('[data-side="friend"]')!.textContent = rules ? `A  ${rules.score.A}` : `${t('friend')} ${own} / ${duel.layout.teamSize}`;
+    this.score.querySelector('[data-side="enemy"]')!.textContent = rules ? `${rules.score.B}  B` : `${t('enemy')} ${enemy} / ${duel.layout.teamSize}`;
+    this.timer.textContent = rules ? `${Math.floor(Math.ceil(rules.remaining) / 60)}:${String(Math.ceil(rules.remaining) % 60).padStart(2, '0')} · ${t('teamGoal')}` : '';
+    const player = rules?.members[0];
     const text = duel.result === 'draw' ? t('draw') : duel.finished
       ? duel.result === duel.player.team ? t('victory').toLocaleUpperCase() : t('defeat').toLocaleUpperCase()
-      : duel.player.damage.hp === 0 ? t('teamContinues') : t('duelObjective');
+      : duel.player.damage.hp === 0 ? player ? `${t('teamRespawn')} · ${Math.ceil(player.respawn)} s` : t('teamContinues') : player && player.protection > 0 ? `${t('teamProtection')} · ${Math.ceil(player.protection)} s` : rules ? t('teamClash') : t('duelObjective');
     if (this.message.textContent !== text) this.message.textContent = text;
-    this.retry.hidden = !duel.finished;
+    this.retry.hidden = !duel.finished || !!rules;
+    const entries = duel.feed.filter(entry => rules && rules.elapsed - entry.time < 8);
+    const feedText = entries.map(entry => `${entry.killer} → ${entry.victim}`).join('|');
+    if (this.feed.dataset.entries !== feedText) {
+      this.feed.dataset.entries = feedText;
+      this.feed.replaceChildren(...entries.map(entry => {
+        const row = document.createElement('li'); row.textContent = `${entry.killer} → ${entry.victim}`;
+        row.dataset.side = entry.team === duel.player.team ? 'friend' : 'enemy'; return row;
+      }));
+    }
     const camera = duel.scene.activeCamera;
     if (!camera) return;
     const viewport = camera.viewport.toGlobal(innerWidth, innerHeight);

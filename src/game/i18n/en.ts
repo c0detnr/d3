@@ -1,5 +1,13 @@
 import type { TranslationKey } from './tr.ts';
 export const en: Record<TranslationKey, string> = {
+  teamReplay: 'Play again',
+  teamClash: 'Team Deathmatch',
+  teamKills: 'Kills',
+  teamDeaths: 'Deaths',
+  teamRespawn: 'Respawning',
+  teamProtection: 'Spawn protection',
+  teamGoal: '15 kills · 6 minutes',
+  devMode_3v3: '3v3 · Team Deathmatch',
   hudReady: "RDY",
   hudLoading: "LOAD",
   hudHull: "HULL",
@@ -35,6 +43,8 @@ export const en: Record<TranslationKey, string> = {
   sightControls: 'T · SENSOR / L · LASER / WHEEL · ZOOM',
 
   soldierYears: 'years old', soldierFictional: 'Fictional character.', soldierDismiss: 'Dismiss · Esc',
+  developerMode: 'Developer mode',
+  play: 'Play',
   developer: "Developer",
   devHint: "Try driving or duelling in your chosen scene without starting a mission.",
   devMap: "Map",

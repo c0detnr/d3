@@ -150,10 +150,7 @@ export class FpvDrone {
       this.flight.position.y - this.world.ground(this.flight.position.x, this.flight.position.z),
       Vector3.Distance(this.flight.position, this.world.tankPosition()),
       this.world.tankAlive(),
-      this.world.controlsEnabled(),
-      this.camera,
-      this.world.tankPosition(),
-      this.world.targets?.() ?? []
+      this.world.controlsEnabled()
     );
     const graph = this.world.audio();
     if (graph && !this.oscillator) {

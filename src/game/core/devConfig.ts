@@ -5,11 +5,13 @@ export interface DevSessionConfig {
   map: 'test' | 'kul' | 'set';
   weather: WeatherId;
   tank: '01' | '02';
-  mode: 'free' | 'duel' | '5v5';
+  mode: 'free' | 'duel' | '5v5' | '3v3';
   base: 'A' | 'B';
   filmSpot: FilmSpot;
 }
 
 export const DEFAULT_DEV_CONFIG: DevSessionConfig = {
-  map: 'test', weather: 'storm', tank: '01', mode: 'free', base: 'A', filmSpot: 'runway',
+  map: 'set', weather: 'storm', tank: '01', mode: 'free', base: 'A', filmSpot: 'runway',
 };
+
+export const PLAY_CONFIG: DevSessionConfig = { ...DEFAULT_DEV_CONFIG, mode: '3v3', filmSpot: 'runway' };

@@ -35,7 +35,8 @@
     "build:itch": "npm run map:check && vite build --config vite.itch.config.ts",
     "shell:test": "node --experimental-strip-types scripts/check-shell.ts",
     "mission:test": "node --experimental-strip-types scripts/check-missions.ts",
-    "infantry:test": "node --experimental-strip-types scripts/check-infantry.ts"
+    "infantry:test": "node --experimental-strip-types scripts/check-infantry.ts",
+    "team:test": "node --experimental-strip-types scripts/check-team-match.ts"
   },
   "dependencies": {
     "@babylonjs/core": "9.32.0",

@@ -1,4 +1,12 @@
 export const tr = {
+  teamReplay: 'Tekrar oyna',
+  teamClash: 'Takım Çatışması',
+  teamKills: 'İmha',
+  teamDeaths: 'Ölüm',
+  teamRespawn: 'Yeniden doğma',
+  teamProtection: 'Doğma koruması',
+  teamGoal: '15 imha · 6 dakika',
+  devMode_3v3: '3v3 · Takım Çatışması',
   hudReady: "HZR",
   hudLoading: "DLM",
   hudHull: "GÖV",
@@ -34,6 +42,8 @@ export const tr = {
   sightControls: 'T · GÖRÜNTÜ MODU / L · LAZER / TEKERLEK · ZOOM',
 
   soldierYears: 'yaşında', soldierFictional: 'Kurgusal karakter.', soldierDismiss: 'Kapat · Esc',
+  developerMode: 'Geliştirici modu',
+  play: 'Oyna',
   developer: "Geliştirici",
   devHint: "Görev başlatmadan seçtiğin sahnede sürüş veya düello dene.",
   devMap: "Harita",

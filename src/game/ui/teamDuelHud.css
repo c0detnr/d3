@@ -10,3 +10,10 @@
 
 .team-duel-hud [data-side="friend"] { color: var(--hud-friend); }
 .team-duel-hud [data-side="enemy"] { color: var(--hud-danger); }
+
+.team-duel-clock { color: var(--hud-fg); font-size: 14px; font-variant-numeric: tabular-nums; }
+.team-duel-feed { position: fixed; top: 0; left: calc(100% + 24px); width: 170px; margin: 0; padding: 0; list-style: none; text-align: left; }
+.team-duel-feed li { margin-bottom: 6px; padding: 6px 10px; background: var(--hud-panel); }
+.shell-menu .team-duel-hud, .shell-menu .team-duel-marker { display: none; }
+.team-result-score { color: var(--hud-fg); font: 600 36px/1.2 var(--hud-font); font-variant-numeric: tabular-nums; }
+@media (max-width: 850px) { .team-duel-feed { position: static; width: auto; font-size: 10px; } }

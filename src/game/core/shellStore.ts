@@ -18,12 +18,15 @@ interface ShellState {
 export const useShellStore = create<ShellState>((set, get) => ({
   devConfig: { ...DEFAULT_DEV_CONFIG },
   screen: 'home', returnTo: 'home', selected: 'rookie', settings: initial.settings, progress: initial.missions, storageAvailable: true,
-  navigate: screen => set({ screen }),
+  navigate: screen => set({ screen: !get().settings.devMode && ['developer', 'missions', 'briefing'].includes(screen) ? 'home' : screen }),
   updateSettings: patch => {
     const settings = { ...get().settings, ...patch };
     setLanguage(settings.language);
     const storageAvailable = writeSave({ version: 1, settings, missions: get().progress });
-    set({ settings, storageAvailable });
+    set({ settings, storageAvailable, ...(!settings.devMode ? {
+      ...(['developer', 'missions', 'briefing', 'result'].includes(get().screen) ? { screen: 'home' as const } : {}),
+      ...(['developer', 'missions', 'briefing', 'result'].includes(get().returnTo) ? { returnTo: 'home' as const } : {}),
+    } : {}) });
   },
   finishMission: result => {
     if (!MISSIONS.some(m => m.id === result.missionId && m.playable)) return;

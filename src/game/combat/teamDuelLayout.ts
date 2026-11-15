@@ -24,3 +24,13 @@ export function teamRoute(team: DuelTeam, slot: number) {
 export function duelOutcome(a: number, b: number): DuelTeam | 'draw' | undefined {
   return a === 0 && b === 0 ? 'draw' : a === 0 ? 'B' : b === 0 ? 'A' : undefined;
 }
+
+export interface TeamPoint { x: number; y: number; z: number }
+export interface TeamDuelLayout {
+  teamSize: number;
+  respawn: boolean;
+  spawn: (team: DuelTeam, slot: number) => TeamPoint;
+  yaw: (team: DuelTeam) => number;
+  route: (team: DuelTeam, slot: number) => TeamPoint[];
+}
+export const KUL_TEAM_LAYOUT: TeamDuelLayout = { teamSize: 5, respawn: false, spawn: teamSpawn, yaw: teamYaw, route: teamRoute };

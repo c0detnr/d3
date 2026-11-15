@@ -2,7 +2,7 @@ import { GunnerSight } from './game/ui/GunnerSight.ts';
 import { ThermalView } from './game/effects/ThermalView.ts';
 import { LaserRangefinder } from './game/aim/LaserRangefinder.ts';
 import { nextSightMode, sightAzimuth, type SightMode } from './game/aim/gunnerSightModel.ts';
-import type { DevSessionConfig } from './game/core/devConfig.ts';
+import { PLAY_CONFIG, type DevSessionConfig } from './game/core/devConfig.ts';
 import { KUL_JAMMERS } from './game/world/jammerLayout.ts';
 import { Minimap, type MinimapState } from './game/ui/Minimap.ts';
 import { KUL_LIMIT, KUL_PATHS, KUL_SPAWNS, KUL_STRUCTURES } from './game/world/kulVadisiLayout.ts';
@@ -30,7 +30,8 @@ import { pickTankHit, tankDamageRegion, tankHitFacing } from './game/combat/tank
 import { IRON_DUST_01_AMMO } from './game/combat/WeaponDefinition.ts';
 import { DuelTank } from './game/combat/DuelTank.ts';
 import { TeamDuel, type TeamImpact } from './game/combat/TeamDuel.ts';
-import { teamSpawn } from './game/combat/teamDuelLayout.ts';
+import { FILM_TEAM_LAYOUT } from './game/combat/filmTeamLayout.ts';
+import { KUL_TEAM_LAYOUT } from './game/combat/teamDuelLayout.ts';
 import { TeamDuelHud, addTeamDuelLink } from './game/ui/TeamDuelHud.ts';
 import { EasyDuelAI } from './game/combat/EasyDuelAI.ts';
 import { terrainHeight } from './game/world/terrain.ts';
@@ -50,7 +51,7 @@ import { MachineGun, MG } from './game/combat/MachineGun.ts';
 import mgUrl from '../assets/weapons/iron_dust_mg_02/iron_dust_mg_02.glb?url';
 import { MovementEffects } from './game/effects/MovementEffects.ts';
 import { Color3, DirectionalLight, Engine, HemisphericLight,
-  HavokPlugin, Scene, Vector3 } from '@babylonjs/core';
+  HavokPlugin, Scene, Vector3, type PhysicsBody } from '@babylonjs/core';
 import HavokPhysics from '@babylonjs/havok';
 import wasmUrl from '@babylonjs/havok/lib/esm/HavokPhysics.wasm?url';
 import { createTestGround } from './game/world/createTestGround';
@@ -89,13 +90,15 @@ import { readSave, type Settings } from './game/core/playerSave.ts';
 
 export interface GameSessionOptions {
   shell?: boolean;
+  settings?: Settings;
   dev?: DevSessionConfig;
   onReady?: () => void;
   onError?: () => void;
+  onTeamResult?: (result: { outcome: 'A' | 'B' | 'draw'; score: { A: number; B: number }; kills: number; deaths: number; seconds: number }) => void;
   onMissionResult?: (score: MissionScore) => void;
 }
 export function createGameSession(options: GameSessionOptions = {}) {
-let settings = readSave().settings;
+let settings = options.settings ?? readSave().settings;
 let shellPaused = !!options.shell;
 let attract = !!options.shell;
 let attractAngle = 0;
@@ -105,13 +108,15 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const HIT_SHAKE = 5, DESTROYED_SHAKE = 9; // camera shake relative to a cannon shot
 const HIT_IMPULSE_SCALE = 0.6; // incoming shell momentum relative to the cannon recoil impulse
 
-const dev = options.dev;
-const teamDuelMode = dev ? dev.map === 'kul' && dev.mode === '5v5' : !options.shell && new URLSearchParams(location.search).get('duel') === '5v5';
-const kulVadisi = dev ? dev.map === 'kul' : !options.shell && (teamDuelMode || new URLSearchParams(location.search).get('map') === 'kul');
-const kulTeam = dev ? dev.base : new URLSearchParams(location.search).get('base') === 'B' ? 'B' : 'A';
+const dev = settings.devMode ? options.dev : PLAY_CONFIG;
+const teamDuelMode = dev ? (dev.map === 'kul' && dev.mode === '5v5' || dev.map === 'set' && dev.mode === '3v3') : !options.shell && ['5v5', '3v3'].includes(new URLSearchParams(location.search).get('duel') ?? '');
+const kulVadisi = dev ? dev.map === 'kul' : !options.shell && (new URLSearchParams(location.search).get('duel') === '5v5' || new URLSearchParams(location.search).get('map') === 'kul');
+const kulTeam = dev ? dev.mode === '3v3' ? 'A' : dev.base : new URLSearchParams(location.search).get('base') === 'B' ? 'B' : 'A';
 const filmSet = dev ? dev.map === 'set' : !options.shell && !kulVadisi && new URLSearchParams(location.search).get('map') === 'set';
 const filmSpot = FILM_SPOTS[dev ? dev.filmSpot : filmSpotFromSearch(location.search)];
-const spawnYaw = kulVadisi && kulTeam === 'B' ? Math.PI : filmSet ? filmSpot.yaw : 0;
+const teamLayout = filmSet ? FILM_TEAM_LAYOUT : KUL_TEAM_LAYOUT;
+const layoutSpawn = (team: 'A' | 'B', slot: number) => { const p = teamLayout.spawn(team, slot); return new Vector3(p.x, p.y, p.z); };
+const spawnYaw = teamDuelMode ? teamLayout.yaw(kulTeam) : kulVadisi && kulTeam === 'B' ? Math.PI : filmSet ? filmSpot.yaw : 0;
 const mapHeight = kulVadisi ? kulTerrainHeight : filmSet ? filmSetHeight : terrainHeight;
 const twoTankTest = dev ? dev.mode === 'duel' : !options.shell && !teamDuelMode && new URLSearchParams(location.search).has('duel');
 const secondTank = dev ? dev.tank === '02' : !options.shell && new URLSearchParams(location.search).get('tank') === '02';
@@ -133,8 +138,8 @@ const atmosphere = kulVadisi || filmSet ? KUL_WEATHER[dev ? dev.weather : weathe
 const sky = createChaoticSky(scene, kulVadisi || filmSet ? 2800 : 1800, atmosphere);
 const followCamera = new FollowCamera(scene, canvas, mobile);
 followCamera.camera.maxZ = 1600;
-const mapControls = options.shell ? { follow: () => followCamera.follow(spawnYaw), dispose() {} } : addMapControls(followCamera, kulVadisi, spawnYaw);
-const removeTeamDuelLink = options.shell ? () => {} : addTeamDuelLink();
+const mapControls = options.shell || !settings.devMode ? { follow: () => followCamera.follow(spawnYaw), dispose() {} } : addMapControls(followCamera, kulVadisi, spawnYaw);
+const removeTeamDuelLink = options.shell || !settings.devMode ? () => {} : addTeamDuelLink();
 const clock = new FixedStep();
 const input = new DriveInput();
 let fpv: FpvDrone | undefined;
@@ -354,6 +359,7 @@ function teamImpact(event: TeamImpact) {
   }
 }
 function reset() {
+  if (teamDuel?.rules) return;
   if (fpv?.active) return;
   minimap.reset();
   studio?.gameReset();
@@ -448,7 +454,7 @@ async function start() {
   if (disposed) { ground.dispose(); return; }
   ground.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh));
   status.textContent = t('tankLoading');
-  const playerSpawn = teamDuelMode ? teamSpawn(kulTeam, 0) : ground.spawn;
+  const playerSpawn = teamDuelMode ? layoutSpawn(kulTeam, 0) : ground.spawn;
   tank = await loadTankModel(scene, secondTank ? secondTankUrl : tankUrl, playerSpawn);
   if (disposed) { tank.dispose(); return; }
   thermalView.register(tank.assets.meshes);
@@ -523,7 +529,13 @@ async function start() {
   }
   if (teamDuelMode) {
     status.textContent = t('teamsLoading');
-    teamDuel = new TeamDuel(scene, { tank, vehicle, damage: damageHudState, team: kulTeam });
+    teamDuel = new TeamDuel(scene, { tank, vehicle, damage: damageHudState, team: kulTeam }, teamLayout);
+    teamDuel.onRespawn = () => {
+      keys.clear(); touch.clear(); combatInput.clear(); input.reset();
+      visual?.reset(); movementEffects?.reset(); turret?.reset(); weapon?.reset();
+      projectiles?.reset(); mgProjectiles?.reset(); machineGun?.reset(); selectWeapon(false);
+      damageHud.reset(); damageHud.setState(damageHudState); combatEffects?.reset();
+    };
     teamDuel.blocksSight = (from, to) => smokeSupply!.model.blocksSight(from, to);
     teamDuel.onImpact = teamImpact;
     teamDuel.onShot = (origin, direction) => {
@@ -538,11 +550,11 @@ async function start() {
   {
     // Three soldiers per garrison; cap the 5v5 preview at nine scenery actors.
     const otherTeam = kulTeam === 'A' ? 'B' : 'A';
-    const otherSpawn = teamDuelMode ? teamSpawn(otherTeam, 0) :
+    const otherSpawn = teamDuelMode ? layoutSpawn(otherTeam, 0) :
       new Vector3(KUL_SPAWNS[otherTeam].x, 0, KUL_SPAWNS[otherTeam].z);
     const garrisons = [{ position: playerSpawn, yaw: spawnYaw },
       ...(opponent || kulVadisi ? [{ position: opponent?.vehicle.node.position ?? otherSpawn, yaw: spawnYaw + Math.PI }] : []),
-      ...(teamDuelMode ? [{ position: teamSpawn(kulTeam, 1), yaw: spawnYaw }] : [])];
+      ...(teamDuelMode ? [{ position: layoutSpawn(kulTeam, 1), yaw: spawnYaw }] : [])];
     infantry = await InfantryNpcs.load(scene, { rigged: Object.values(infantryRigUrls)[0], fallback: infantryFallbackUrl },
       garrisons, mapHeight);
     if (disposed) { infantry.dispose(); infantry = undefined; return; }
@@ -881,7 +893,15 @@ async function start() {
         lastCombatResult = destroyed ? t('destroyedRetry') : `${t('incomingHit')} · ${damageHudState.hp} / 100`;
         combatResultTime = 4;
       });
-      if (!fpv?.active) teamDuel?.finishStep();
+      teamDuel?.finishStep();
+      if (teamDuel?.rules && teamDuel.finished && !resultView) {
+        resultView = true; resultAngle = .7;
+        const rules = teamDuel.rules;
+        selectWeapon(false); followCamera.follow(); scene.activeCamera = followCamera.camera;
+        setSessionPaused(true);
+        options.onTeamResult?.({ outcome: teamDuel.result!, score: { ...rules.score },
+          kills: rules.members[0].kills, deaths: rules.members[0].deaths, seconds: rules.elapsed });
+      }
       damageTrailTime += step; damageSoundTime += step;
       if (damageTrailTime >= 0.05) {
         damageTrailTime -= 0.05;
@@ -1046,6 +1066,17 @@ return {
   dispose, applySettings,
   startMission() { missionRequested = true; if (mission?.director.state === 'briefing') mission.start(); },
   ...(import.meta.env.DEV ? { missionTest: {
+    team: () => teamDuel?.rules ? { score: teamDuel.rules.score, elapsed: teamDuel.rules.elapsed, result: teamDuel.result,
+      members: teamDuel.members.map((m, i) => ({ hp: m.damage.hp, ...teamDuel!.rules!.members[i] })) } : undefined,
+    teamHit: (victim = 0, shooter = 3) => {
+      if (!teamDuel) return;
+      const member = teamDuel.members[victim];
+      const hit = { body: member.vehicle.body, point: member.vehicle.node.position.clone(), normal: Vector3.Up(), distance: 0 };
+      // Shared impact path, including damage, spawn protection, score and kill feed.
+      for (let i = 0; i < 12; i++) teamDuel['impact'](teamDuel.members[shooter], hit);
+    },
+    teamExpire: () => { if (teamDuel?.rules) teamDuel.rules.elapsed = 360 - 1 / 60; },
+    fps: () => ({ fps: engine.getFps(), renderer: engine.getGlInfo(), width: canvas.width, height: canvas.height, quality: settings.quality }),
     fpv: () => ({ active: fpv?.active, mode: fpv?.flight.mode, position: fpv?.flight.position.asArray(), tankHp: damageHudState.hp, elapsed: fpv?.flight.elapsed }),
     launchFpv: () => fpv?.launch(),
     detonateFpvAtInfantry: (index = 0) => {

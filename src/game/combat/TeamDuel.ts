@@ -5,7 +5,9 @@ import { applyDamage, freshDamage, type DamageModule, type DamageState } from '.
 import { ProjectileSystem, type ProjectileHit } from './ProjectileSystem.ts';
 import { pickTankHit, tankDamageRegion, tankHitFacing } from './tankHit.ts';
 import { IRON_DUST_01_WEAPON } from './WeaponDefinition.ts';
-import { duelOutcome, teamRoute, teamSpawn, teamYaw, type DuelTeam } from './teamDuelLayout.ts';
+import { duelOutcome, KUL_TEAM_LAYOUT, type TeamDuelLayout, type DuelTeam } from './teamDuelLayout.ts';
+
+import { TeamMatchRules } from './teamMatchRules.ts';
 
 export interface DuelParticipant {
   tank: DuelTank['tank']; vehicle: DuelTank['vehicle']; damage: DamageState; team: DuelTeam;
@@ -20,34 +22,51 @@ interface Bot {
   state?: ReturnType<EasyDuelAI['update']>; delay: number;
 }
 
-/** Owns nine bots; the caller advances the shared physics world exactly once per step. */
+/** Owns the layout’s bots; the caller advances the shared physics world exactly once per step. */
 export class TeamDuel {
   readonly scene: Scene;
   readonly player: DuelParticipant;
+  readonly layout: TeamDuelLayout;
   readonly bots: Bot[] = [];
   result?: DuelTeam | 'draw';
   onImpact?: (impact: TeamImpact) => void;
   onShot?: (origin: Vector3, direction: Vector3) => void;
   blocksSight: (from: Vector3, to: Vector3) => boolean = () => false;
+  rules?: TeamMatchRules;
+  readonly feed: { killer: string; victim: string; team: DuelTeam; time: number }[] = [];
+  onRespawn?: () => void;
   private perception = 0;
   private disposed = false;
-  constructor(scene: Scene, player: DuelParticipant) { this.scene = scene; this.player = player; }
+  constructor(scene: Scene, player: DuelParticipant, layout: TeamDuelLayout = KUL_TEAM_LAYOUT) { this.scene = scene; this.player = player; this.layout = layout; }
+  name(member: DuelParticipant) { return member === this.player ? `${member.team} · 01` : `${member.team} · ${String(this.bots.find(b => b.member === member)!.slot + 1).padStart(2, '0')}`; }
+  private spawnPoint(team: DuelTeam, slot: number) { const p = this.layout.spawn(team, slot); return new Vector3(p.x, p.y, p.z); }
+  private makeRules() { this.rules = this.layout.respawn ? new TeamMatchRules(this.members.map(m => m.team)) : undefined; }
+  private respawn(index: number) {
+    const member = this.members[index], bot = this.bots.find(b => b.member === member);
+    if (bot) {
+      bot.actor.reset(); bot.member.damage = bot.actor.damage;
+      bot.ai.reset(); bot.shells.reset(); bot.target = undefined; bot.state = undefined; bot.waypoint = 0; bot.delay = bot.slot * .6;
+    } else { Object.assign(member.damage, freshDamage()); this.onRespawn?.(); }
+    const at = this.layout.spawn(member.team, bot?.slot ?? 0);
+    member.vehicle.reset(new Vector3(at.x, at.y, at.z), this.layout.yaw(member.team));
+  }
   get members() { return [this.player, ...this.bots.map(bot => bot.member)]; }
   get finished() { return this.result !== undefined; }
   alive(team: DuelTeam) { return this.members.filter(member => member.team === team && member.damage.hp > 0).length; }
 
   async load(source: string | Uint8Array) {
     try {
-      for (const team of ['A', 'B'] as const) for (let slot = 0; slot < 5; slot++) {
+      for (const team of ['A', 'B'] as const) for (let slot = 0; slot < this.layout.teamSize; slot++) {
         if (team === this.player.team && slot === 0) continue;
-        const actor = await DuelTank.load(this.scene, source, teamSpawn(team, slot));
+        const actor = await DuelTank.load(this.scene, source, this.spawnPoint(team, slot));
         if (this.disposed) { actor.dispose(); return; }
-        actor.vehicle.reset(actor.vehicle.spawn, teamYaw(team)); actor.render(1);
+        actor.vehicle.reset(actor.vehicle.spawn, this.layout.yaw(team)); actor.render(1);
         const member: DuelParticipant = { tank: actor.tank, vehicle: actor.vehicle, damage: actor.damage, team };
         const shells = new ProjectileSystem(this.scene, (from, to) => this.raycast(actor.vehicle.body, from, to), 3);
-        this.bots.push({ actor, member, shells, ai: new EasyDuelAI(), route: teamRoute(team, slot),
+        this.bots.push({ actor, member, shells, ai: new EasyDuelAI(), route: this.layout.route(team, slot).map(p => new Vector3(p.x, p.y, p.z)),
           waypoint: 0, slot, delay: slot * 1.8 });
       }
+      this.makeRules();
     } catch (error) { this.dispose(); throw error; }
   }
 
@@ -75,6 +94,10 @@ export class TeamDuel {
   }
 
   beforeStep(dt: number) {
+    if (this.rules) {
+      for (const index of this.rules.advance(dt)) this.respawn(index);
+      this.result = this.rules.result;
+    }
     this.perception -= dt;
     const sense = this.perception <= 0;
     if (sense) this.perception = .2;
@@ -148,21 +171,26 @@ export class TeamDuel {
     if (this.finished) return;
     const victim = this.members.find(m => m.vehicle.body === hit.body);
     const module = victim ? tankDamageRegion(victim, hit.point) : null;
-    const applied = !!victim && victim.team !== shooter.team && applyDamage(victim.damage, module, tankHitFacing(victim, hit.point));
+    const protectedSpawn = !!victim && (this.rules?.members[this.members.indexOf(victim)].protection ?? 0) > 0;
+    const applied = !!victim && !protectedSpawn && victim.team !== shooter.team && applyDamage(victim.damage, module, tankHitFacing(victim, hit.point));
+    if (applied && victim!.damage.hp === 0 && this.rules?.eliminate(this.members.indexOf(victim!), this.members.indexOf(shooter))) {
+      this.feed.unshift({ killer: this.name(shooter), victim: this.name(victim!), team: shooter.team, time: this.rules.elapsed });
+      this.feed.length = Math.min(4, this.feed.length);
+    }
     this.onImpact?.({ hit, victim, shooter, playerShot: shooter === this.player, module, applied,
       disabled: applied && !!module && victim!.damage.modules[module] === 0,
       destroyed: applied && victim!.damage.hp === 0 });
   }
   finishStep() {
     if (this.finished) return;
-    this.result = duelOutcome(this.alive('A'), this.alive('B'));
+    this.result = this.rules ? this.rules.resolve() : duelOutcome(this.alive('A'), this.alive('B'));
     if (this.finished) for (const bot of this.bots) bot.shells.reset();
   }
   render(alpha: number) { for (const bot of this.bots) { bot.actor.render(alpha); bot.shells.render(alpha); } }
   reset() {
-    this.result = undefined; this.perception = 0;
+    this.result = undefined; this.perception = 0; this.feed.length = 0; this.makeRules();
     for (const bot of this.bots) {
-      bot.actor.reset(); bot.actor.vehicle.reset(bot.actor.vehicle.spawn, teamYaw(bot.member.team));
+      bot.actor.reset(); bot.actor.vehicle.reset(bot.actor.vehicle.spawn, this.layout.yaw(bot.member.team));
       bot.actor.render(1); bot.member.damage = bot.actor.damage; bot.ai.reset(); bot.shells.reset();
       bot.target = undefined; bot.state = undefined; bot.waypoint = 0; bot.delay = bot.slot * 1.8;
     }
