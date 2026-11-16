@@ -21,6 +21,9 @@
 
 .team-duel-clock { display: inline-flex; align-items: center; gap: 6px; color: var(--hud-fg); font-size: 16px; font-variant-numeric: tabular-nums; }
 .team-duel-clock:empty { display: none; }
+.team-duel-weather { display: inline-flex; align-items: center; gap: 6px; color: var(--hud-muted); font-size: 12px; }
+.team-duel-weather .hud-icon { width: 16px; height: 16px; color: var(--hud-fg); }
+.team-duel-weather[hidden] { display: none; }
 .team-duel-feed { position: fixed; top: 0; left: calc(100% + 24px); width: 170px; margin: 0; padding: 0; list-style: none; text-align: left; }
 .team-duel-feed li { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; padding: 6px 10px; background: var(--hud-panel); border-left: 2px solid currentColor; font-size: 12px; }
 .team-duel-feed li[data-side='friend'] { color: var(--hud-friend); } .team-duel-feed li[data-side='enemy'] { color: var(--hud-danger); }

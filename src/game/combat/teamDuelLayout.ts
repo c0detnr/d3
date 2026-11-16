@@ -33,5 +33,9 @@ export interface TeamDuelLayout {
   spawn: (team: DuelTeam, slot: number) => TeamPoint;
   yaw: (team: DuelTeam) => number;
   route: (team: DuelTeam, slot: number) => TeamPoint[];
+  /** Optional verified random-spawn pool per team (own half); without it `spawn` slots are fixed. */
+  spawnPool?: (team: DuelTeam) => readonly TeamPoint[];
+  /** Facing target for a spawn when no enemy is alive. */
+  center?: TeamPoint;
 }
 export const KUL_TEAM_LAYOUT: TeamDuelLayout = { teamSize: 5, respawn: false, spawn: teamSpawn, yaw: teamYaw, route: teamRoute };

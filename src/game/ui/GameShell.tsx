@@ -1,5 +1,5 @@
 import { PLAY_CONFIG, type DevSessionConfig } from '../core/devConfig.ts';
-import { WEATHER_IDS } from '../world/atmosphereSettings.ts';
+import { MENU_WEATHER_IDS, WEATHER_IDS, randomWeather, type WeatherId } from '../world/atmosphereSettings.ts';
 import { FILM_SPOTS, type FilmSpot } from '../world/filmSetLayout.ts';
 import { gameMarkup } from './gameMarkup.ts';
 import { icon, keyBadge } from './icons.ts';
@@ -19,6 +19,10 @@ import tank01Preview from '../../../assets/tanks/iron_dust_01/previews/three_qua
 import tank02Preview from '../../../assets/tanks/iron_dust_02/previews/three_quarter.png';
 
 type Session = ReturnType<typeof createGameSession>;
+/** DEV-only `?weather=<id>` pins the release-mode weather (screenshots, checks). */
+const forcedWeather = import.meta.env.DEV ? WEATHER_IDS.find(id => id === new URLSearchParams(location.search).get('weather')) : undefined;
+/** Release mode draws a fresh weather for every match (including replays); the menu uses calm presets. */
+const matchWeather = (menu = false): WeatherId => forcedWeather ?? randomWeather(Math.random, menu ? MENU_WEATHER_IDS : WEATHER_IDS);
 const controlKeys: TranslationKey[] = ['driveControl', 'aimControl', 'zoomControl', 'gunnerControl', 'fireControl', 'weaponControl', 'brakeControl', 'smokeControl', 'collectControl', 'recoverControl', 'pauseControl'];
 function LanguageSwitch({ language, onChange }: { language: Language; onChange: (language: Language) => void }) {
   return <div className="language-switch" role="group" aria-label={t('language')}>
@@ -94,11 +98,11 @@ function GameShell() {
     if (session.current) globalLoadingScreen?.showMissionTransition();
     session.current?.dispose();
     const currentSettings = useShellStore.getState().settings;
-    activeDev.current = currentSettings.devMode ? (dev ? { ...dev } : undefined) : { ...PLAY_CONFIG, tank: currentSettings.tank };
+    activeDev.current = currentSettings.devMode ? (dev ? { ...dev } : undefined) : { ...PLAY_CONFIG, tank: currentSettings.tank, weather: matchWeather() };
     setReady(false); setFailed(false); setTeamResult(undefined);
     const status = document.querySelector<HTMLElement>('#status')!;
     status.hidden = false; status.textContent = t('loading');
-    session.current = createGameSession({ shell: true, onDefaultQuality: quality => useShellStore.getState().updateSettings({ quality }), settings: currentSettings, dev: attract ? { ...PLAY_CONFIG, mode: 'free', tank: '02', filmSpot: 'airfield' } : activeDev.current, onReady: () => {
+    session.current = createGameSession({ shell: true, onDefaultQuality: quality => useShellStore.getState().updateSettings({ quality }), settings: currentSettings, dev: attract ? { ...PLAY_CONFIG, mode: 'free', tank: '02', filmSpot: 'airfield', weather: matchWeather(true) } : activeDev.current, onReady: () => {
       globalLoadingScreen?.finish();
       setReady(true);
       const playing = useShellStore.getState().screen === 'playing';

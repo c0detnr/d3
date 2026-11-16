@@ -160,6 +160,7 @@ for (let cycle = 0; cycle < 3; cycle++) {
   combat.dispose(); combat.shot(); assert.equal(combat.activeVoices, 0);
 }
 const vehicleAudio = new VehicleAudio(graph.context, graph.output, IRON_DUST_AUDIO);
+vehicleAudio.setWeather({ wind: 1.9, rain: 1 });
 for (let index = 0; index < 90; index++) vehicleAudio.update(snapshot(10, 10, 10, 50000), 1 / 60);
 vehicleAudio.reset();
 vehicleAudio.dispose();

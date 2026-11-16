@@ -5,8 +5,8 @@ import type { DriveCommand } from '../input/DriveInput.ts';
 import { SHOTS, StudioCamera, type ShotName, type ShotTarget } from './StudioCamera.ts';
 import './studio.css';
 
-/** Reels output in pixels; physics still runs at 60 steps per simulated second. */
-const WIDTH = 1080, HEIGHT = 1920, STEP_RATE = 60, MAX_TAKE_SECONDS = 180;
+/** Physics still runs at 60 steps per simulated second. */
+const STEP_RATE = 60, MAX_TAKE_SECONDS = 180;
 const API = '/studio-api';
 
 export interface StepInput { command: DriveCommand; turn: number; elevation: number; align: Vector3 | undefined; fire: boolean }
@@ -24,10 +24,13 @@ export interface StudioHooks {
 
 /**
  * Content studio: records a live take as per-step inputs, then replays it offline
- * frame by frame at 1080×1920 and pipes raw frames to ffmpeg through the dev server.
+ * frame by frame and pipes raw frames to ffmpeg through the dev server.
  */
 export class Studio {
   readonly camera: StudioCamera;
+  private readonly landscape = new URLSearchParams(location.search).get('aspect') === '16x9';
+  private readonly width = this.landscape ? 1920 : 1080;
+  private readonly height = this.landscape ? 1080 : 1920;
   private mode: 'idle' | 'recording' | 'rendering' = 'idle';
   private take: Take | undefined;
   private stepIndex = 0;
@@ -49,7 +52,8 @@ export class Studio {
     this.hooks = hooks;
     this.camera = new StudioCamera(hooks.scene, hooks.target, hooks.ground, hooks.maxZ);
     document.body.classList.add('studio');
-    // The 9:16 layout shrinks the canvas without a window resize event.
+    document.body.classList.toggle('studio-landscape', this.landscape);
+    // The preview layout resizes the canvas without a window resize event.
     hooks.engine.resize();
     this.buildPanel();
     const options = { signal: this.listeners.signal };
@@ -178,12 +182,12 @@ export class Studio {
     const shotMode = (this.ui.shot as HTMLSelectElement).value as ShotName | 'cuts';
     const label = [shotMode === 'cuts' ? 'kurgu' : shotMode, `${fps}fps`, ...(slow > 1 ? [`slow${slow}x`] : [])].join('-');
     const started = await fetch(`${API}/renders`, { method: 'POST', body: JSON.stringify({
-      take: take.id, width: WIDTH, height: HEIGHT, supersample, fps, audio: slow === 1, label }) });
+      take: take.id, width: this.width, height: this.height, supersample, fps, audio: slow === 1, label }) });
     if (!started.ok) { this.setStatus(`Render başlatılamadı: ${await started.text()}`, 'error'); return; }
     const { id } = await started.json() as { id: string };
 
     const { engine, audio } = this.hooks;
-    const [w, h] = [WIDTH * supersample, HEIGHT * supersample];
+    const [w, h] = [this.width * supersample, this.height * supersample];
     const frameDt = 1 / (fps * slow);
     const total = Math.ceil(take.steps.length / STEP_RATE * fps * slow);
     const previousShot = this.camera.shot, previousFov = this.camera.fov;
@@ -257,17 +261,18 @@ export class Studio {
 
   private buildPanel() {
     this.safe.className = 'studio-safe';
+    this.safe.hidden = this.landscape;
     this.safe.innerHTML = '<i class="top"></i><i class="bottom"></i><i class="side"></i>';
     this.progress.className = 'studio-progress'; this.progress.hidden = true;
     const shots = (Object.keys(SHOTS) as ShotName[]);
     this.panel.className = 'studio-ui';
     this.panel.innerHTML = `
-      <h2>STÜDYO · 9:16</h2>
+      <h2>STÜDYO · ${this.landscape ? '16:9' : '9:16'}</h2>
       <p class="studio-status" data-ui="status" role="status">Tanka tıkla ve sür. K ile çekime başla.</p>
       <section><h3>Kamera <span data-ui="fov"></span></h3>
         <div class="studio-shots">${shots.map(shot => `<button type="button" data-shot="${shot}"><kbd>${SHOTS[shot].key}</kbd>${SHOTS[shot].label}</button>`).join('')}</div>
         <label><input type="checkbox" data-ui="handheld" checked> El kamerası salınımı</label>
-        <label><input type="checkbox" data-ui="safezone" checked> Reels güvenli alanı</label>
+        <label ${this.landscape ? 'hidden' : ''}><input type="checkbox" data-ui="safezone" ${this.landscape ? 'disabled' : 'checked'}> Reels güvenli alanı</label>
       </section>
       <section><h3>Çekim</h3><button type="button" class="studio-primary" data-ui="record">Çekime başla (K)</button></section>
       <section><h3>Render</h3>
@@ -298,7 +303,7 @@ export class Studio {
     this.listeners.abort();
     this.recorder?.media.stop(); this.recorder?.release();
     this.panel.remove(); this.safe.remove(); this.progress.remove();
-    document.body.classList.remove('studio');
+    document.body.classList.remove('studio', 'studio-landscape');
     this.camera.dispose();
   }
 }

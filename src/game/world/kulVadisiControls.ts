@@ -6,7 +6,7 @@ import { KUL_PATHS, KUL_STRUCTURES, KUL_SPAWNS } from './kulVadisiLayout.ts';
 import { WEATHER_IDS, WEATHER_LABELS, weatherFromSearch } from './atmosphereSettings.ts';
 import './kulVadisiControls.css';
 
-export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw = 0) {
+export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw: number | (() => number) = 0) {
   const panel = document.createElement('details'); panel.className = 'mission-menu';
   const summary = document.createElement('summary');
   const mapId = active ? 'kul' : new URLSearchParams(location.search).get('map') === 'set' ? 'set' : 'test';
@@ -42,7 +42,7 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
   }, { signal: listeners.signal });
   const fogDensity = camera.scene.fogDensity;
   const toggle = document.createElement('button'); toggle.textContent = 'Haritaya bak';
-  const follow = () => { camera.follow(spawnYaw); camera.scene.fogDensity = fogDensity; toggle.textContent = 'Haritaya bak'; };
+  const follow = () => { camera.follow(typeof spawnYaw === 'function' ? spawnYaw() : spawnYaw); camera.scene.fogDensity = fogDensity; toggle.textContent = 'Haritaya bak'; };
   const view = () => {
     if (camera.isOverview) follow();
     else {

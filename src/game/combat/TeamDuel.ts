@@ -7,7 +7,8 @@ import { applyDamage, freshDamage, type DamageModule, type DamageState } from '.
 import { ProjectileSystem, type ProjectileHit } from './ProjectileSystem.ts';
 import { pickTankHit, tankDamageRegion, tankHitFacing } from './tankHit.ts';
 import { IRON_DUST_01_WEAPON } from './WeaponDefinition.ts';
-import { duelOutcome, KUL_TEAM_LAYOUT, type TeamDuelLayout, type DuelTeam } from './teamDuelLayout.ts';
+import { duelOutcome, KUL_TEAM_LAYOUT, type TeamDuelLayout, type TeamPoint, type DuelTeam } from './teamDuelLayout.ts';
+import { chooseSpawn, seededRandom, spawnYaw } from './spawnSelection.ts';
 
 import { TeamMatchRules } from './teamMatchRules.ts';
 
@@ -37,7 +38,12 @@ export class TeamDuel {
   rules?: TeamMatchRules;
   readonly feed: { killer: string; victim: string; team: DuelTeam; time: number }[] = [];
   onRespawn?: () => void;
+  /** Player placed by the random spawn pool (match start, reset, respawn); yaw in radians. */
+  onSpawn?: (yaw: number) => void;
+  /** Maximum AI / marker sight distance in metres; weather lowers it. */
+  sightRange = 180;
   navigation?: FilmNavigation;
+  private readonly random: () => number;
   private readonly participants: DuelParticipant[];
   private readonly radio: { point: Vector3; pending: Vector3; due: number; expires: number }[] = [];
   private elapsed = 0;
@@ -51,9 +57,51 @@ export class TeamDuel {
   private readonly sightHit = new PhysicsRaycastResult();
   private perception = 0;
   private disposed = false;
-  constructor(scene: Scene, player: DuelParticipant, layout: TeamDuelLayout = KUL_TEAM_LAYOUT) { this.scene = scene; this.player = player; this.layout = layout; this.participants = [player]; }
+  /** `seed` drives the random spawn pool deterministically; give each match a new one. */
+  constructor(scene: Scene, player: DuelParticipant, layout: TeamDuelLayout = KUL_TEAM_LAYOUT, seed = 1) {
+    this.scene = scene; this.player = player; this.layout = layout; this.participants = [player]; this.random = seededRandom(seed);
+  }
   name(member: DuelParticipant) { return member === this.player ? `${member.team} · 01` : `${member.team} · ${String(this.bots.find(b => b.member === member)!.slot + 1).padStart(2, '0')}`; }
   private spawnPoint(team: DuelTeam, slot: number) { const p = this.layout.spawn(team, slot); return new Vector3(p.x, p.y, p.z); }
+  /** True when an enemy at `threat` would see a tank at `point` (static colliders, terrain, smoke, range). */
+  private exposed(threat: TeamPoint, point: TeamPoint, ignore?: PhysicsBody) {
+    this.rayFrom.set(threat.x, threat.y + 1.2, threat.z); this.rayTo.set(point.x, point.y + 1.2, point.z);
+    const distance = Vector3.Distance(this.rayFrom, this.rayTo);
+    if (distance > this.sightRange || this.blocksSight(this.rayFrom, this.rayTo)) return false;
+    (this.scene.getPhysicsEngine()! as PhysicsEngineV2).raycastToRef(this.rayFrom, this.rayTo, this.sightHit, ignore ? { ignoreBody: ignore } : undefined);
+    return !this.sightHit.hasHit || this.sightHit.hitDistance > distance - 3;
+  }
+  private choose(team: DuelTeam, threats: { point: TeamPoint; body?: PhysicsBody }[], occupied: TeamPoint[]) {
+    const bodies = new Map(threats.map(t => [t.point, t.body]));
+    return chooseSpawn(this.layout.spawnPool!(team), { threats: threats.map(t => t.point), occupied, random: this.random,
+      visible: (threat, point) => this.exposed(threat, point, bodies.get(threat)) });
+  }
+  private facing(at: TeamPoint, threats: readonly TeamPoint[]) {
+    return spawnYaw(at, threats, this.layout.center ?? { x: 0, y: 0, z: 0 });
+  }
+  /** Whole-match placement: shuffled order, each tank avoids enemies already placed; every tank then faces its nearest enemy. */
+  private planMatch() {
+    const entries: { team: DuelTeam; slot: number; at?: TeamPoint; yaw?: number }[] = [];
+    for (const team of ['A', 'B'] as const) for (let slot = 0; slot < this.layout.teamSize; slot++) entries.push({ team, slot });
+    for (let i = entries.length - 1; i > 0; i--) { const j = Math.floor(this.random() * (i + 1)); [entries[i], entries[j]] = [entries[j], entries[i]]; }
+    for (const entry of entries) {
+      const placed = entries.filter(e => e.at);
+      entry.at = this.choose(entry.team, placed.filter(e => e.team !== entry.team).map(e => ({ point: e.at! })), placed.map(e => e.at!));
+    }
+    for (const entry of entries) entry.yaw = this.facing(entry.at!, entries.filter(e => e.team !== entry.team).map(e => e.at!));
+    return (team: DuelTeam, slot: number) => entries.find(e => e.team === team && e.slot === slot)!;
+  }
+  private place(member: DuelParticipant, at: TeamPoint, yaw: number) {
+    member.vehicle.reset(new Vector3(at.x, at.y, at.z), yaw);
+    const bot = this.bots.find(b => b.member === member);
+    if (!bot) { this.onSpawn?.(yaw); return; }
+    bot.actor.render(1);
+    // Join the strategic route at its nearest waypoint instead of driving back to the base.
+    let best = Infinity;
+    bot.route.forEach((p, i) => { const d = (p.x - at.x) ** 2 + (p.z - at.z) ** 2; if (d < best) { best = d; bot.waypoint = i; } });
+  }
+  /** Current spawn of each member, for diagnostics and tests. */
+  get spawnPoints() { return this.members.map(m => m.vehicle.node.position.clone()); }
   private makeRules() { this.rules = this.layout.respawn ? new TeamMatchRules(this.members.map(m => m.team)) : undefined; }
   private respawn(index: number) {
     const member = this.members[index], bot = this.bots.find(b => b.member === member);
@@ -63,9 +111,17 @@ export class TeamDuel {
       bot.context.report = undefined; bot.visible = false; bot.sensorIn = 0;
       bot.actor.reset(); bot.member.damage = bot.actor.damage;
       bot.ai.reset(); bot.context.navigation?.reset(); bot.shells.reset(); bot.target = undefined; bot.state = undefined; bot.waypoint = 0; bot.delay = bot.slot * .6;
-    } else { Object.assign(member.damage, freshDamage()); this.onRespawn?.(); }
-    const at = this.layout.spawn(member.team, bot?.slot ?? 0);
-    member.vehicle.reset(new Vector3(at.x, at.y, at.z), this.layout.yaw(member.team));
+    } else Object.assign(member.damage, freshDamage());
+    if (this.layout.spawnPool) {
+      const others = this.members.filter(m => m !== member);
+      const threats = others.filter(m => m.team !== member.team && m.damage.hp > 0).map(m => ({ point: m.vehicle.node.position, body: m.vehicle.body }));
+      const at = this.choose(member.team, threats, others.map(m => m.vehicle.node.position));
+      this.place(member, at, this.facing(at, threats.map(t => t.point)));
+    } else {
+      const at = this.layout.spawn(member.team, bot?.slot ?? 0);
+      member.vehicle.reset(new Vector3(at.x, at.y, at.z), this.layout.yaw(member.team));
+    }
+    if (!bot) this.onRespawn?.();
   }
   get members() { return this.participants; }
   setDifficulty(level: AIDifficulty) { for (const bot of this.bots) bot.ai.difficulty = level; }
@@ -75,11 +131,13 @@ export class TeamDuel {
   async load(source: string | Uint8Array) {
     try {
       if (this.layout.navigation === 'film') this.navigation = new FilmNavigation(this.scene);
+      const plan = this.layout.spawnPool ? this.planMatch() : undefined;
       for (const team of ['A', 'B'] as const) for (let slot = 0; slot < this.layout.teamSize; slot++) {
         if (team === this.player.team && slot === 0) continue;
-        const actor = await DuelTank.load(this.scene, source, this.spawnPoint(team, slot));
+        const at = plan?.(team, slot).at;
+        const actor = await DuelTank.load(this.scene, source, at ? new Vector3(at.x, at.y, at.z) : this.spawnPoint(team, slot));
         if (this.disposed) { actor.dispose(); return; }
-        actor.vehicle.reset(actor.vehicle.spawn, this.layout.yaw(team)); actor.render(1);
+        actor.vehicle.reset(actor.vehicle.spawn, plan?.(team, slot).yaw ?? this.layout.yaw(team)); actor.render(1);
         const member: DuelParticipant = { tank: actor.tank, vehicle: actor.vehicle, damage: actor.damage, team };
         const shells = new ProjectileSystem(this.scene, (from, to) => this.raycast(actor.vehicle.body, from, to), 3);
         this.participants.push(member);
@@ -89,6 +147,10 @@ export class TeamDuel {
             sensors: this.navigation ? { front: 100, left: 100, right: 100, rear: 100 } : undefined } });
       }
       for (const bot of this.bots) bot.context.allies = this.members.filter(m => m !== bot.member && m.team === bot.member.team);
+      if (plan) {
+        for (const bot of this.bots) { const p = plan(bot.member.team, bot.slot); this.place(bot.member, p.at!, p.yaw!); }
+        const own = plan(this.player.team, 0); this.place(this.player, own.at!, own.yaw!);
+      }
       for (const _member of this.members) this.radio.push({ point: Vector3.Zero(), pending: Vector3.Zero(), due: 0, expires: 0 });
       this.makeRules();
     } catch (error) { this.dispose(); throw error; }
@@ -112,7 +174,7 @@ export class TeamDuel {
   canSee(observer: DuelParticipant, target: DuelParticipant) {
     this.rayFrom.copyFrom(observer.vehicle.node.position); this.rayFrom.y += 1.2;
     this.rayTo.copyFrom(target.vehicle.node.position); this.rayTo.y += 1.15;
-    if (Vector3.DistanceSquared(this.rayFrom, this.rayTo) > 180 ** 2 || this.blocksSight(this.rayFrom, this.rayTo)) return false;
+    if (Vector3.DistanceSquared(this.rayFrom, this.rayTo) > this.sightRange ** 2 || this.blocksSight(this.rayFrom, this.rayTo)) return false;
     (this.scene.getPhysicsEngine()! as PhysicsEngineV2).raycastToRef(this.rayFrom, this.rayTo, this.sightHit, { ignoreBody: observer.vehicle.body });
     return !this.sightHit.hasHit || this.sightHit.body === target.vehicle.body;
   }
@@ -183,7 +245,7 @@ export class TeamDuel {
           const aiming = muzzle ? Math.max(0, Vector3.Dot(this.threatDirection, this.toObserver)) ** 12 : 0;
           let assigned = 0;
           for (const other of this.bots) if (other !== bot && other.member.team === bot.member.team && other.target === m) assigned++;
-          const score = (1 - distance / 180) * 2 + (1 - m.damage.hp / 100) + aiming * 1.5
+          const score = (1 - distance / this.sightRange) * 2 + (1 - m.damage.hp / 100) + aiming * 1.5
             + (m === bot.target ? .25 : 0) - assigned * 1.3;
           if (score > best) { chosen = m; best = score; }
         }
@@ -290,6 +352,11 @@ export class TeamDuel {
       bot.target = undefined; bot.state = undefined; bot.context.report = undefined; bot.visible = false; bot.sensorIn = 0; bot.waypoint = 0; bot.delay = bot.slot * 1.8;
     }
     Object.assign(this.player.damage, freshDamage());
+    if (this.layout.spawnPool) {
+      const plan = this.planMatch();
+      for (const bot of this.bots) { const p = plan(bot.member.team, bot.slot); this.place(bot.member, p.at!, p.yaw!); }
+      const own = plan(this.player.team, 0); this.place(this.player, own.at!, own.yaw!);
+    }
   }
   dispose() {
     this.disposed = true;

@@ -4,6 +4,10 @@ import type { TeamDuel } from '../combat/TeamDuel.ts';
 import './hudTokens.css';
 import './teamDuelHud.css';
 import { icon, keyBadge, srText } from './icons.ts';
+import { WEATHER_ICONS, type WeatherId } from '../world/atmosphereSettings.ts';
+
+/** Seconds the weather name stays next to its icon at match start. */
+const WEATHER_LABEL_SECONDS = 6;
 
 export class TeamDuelHud {
   readonly element = document.createElement('section');
@@ -12,14 +16,16 @@ export class TeamDuelHud {
   private readonly timer = document.createElement('span');
   private readonly feed = document.createElement('ol');
   private readonly retry = document.createElement('button');
+  private readonly weather = document.createElement('span');
   private readonly markers: HTMLDivElement[] = [];
-  constructor(private readonly duel: TeamDuel, reset: () => void) {
+  constructor(private readonly duel: TeamDuel, reset: () => void, private readonly weatherId?: WeatherId) {
     this.element.className = 'team-duel-hud'; this.element.setAttribute('aria-label', t(duel.rules ? 'teamClash' : 'duelTitle'));
     this.score.innerHTML = `<span data-side="friend"></span><i aria-hidden="true">—</i><span data-side="enemy"></span>`;
     this.message.setAttribute('role', 'status'); this.message.setAttribute('aria-live', 'polite');
     this.retry.innerHTML = `${icon('respawn')}${keyBadge('R')}`; this.retry.setAttribute('aria-label', t('duelRetry')); this.retry.title = t('duelRetry'); this.retry.onclick = reset;
     this.timer.className = 'team-duel-clock'; this.feed.className = 'team-duel-feed';
-    this.element.append(this.score, this.timer, this.message, this.retry); this.element.append(this.feed); document.body.append(this.element);
+    this.weather.className = 'team-duel-weather'; this.weather.hidden = !weatherId;
+    this.element.append(this.score, this.timer, this.weather, this.message, this.retry); this.element.append(this.feed); document.body.append(this.element);
     for (const bot of duel.bots) {
       const marker = document.createElement('div'); marker.className = 'team-duel-marker';
       marker.dataset.side = bot.member.team === duel.player.team ? 'friend' : 'enemy';
@@ -36,6 +42,12 @@ export class TeamDuelHud {
     const clock = rules ? `${Math.floor(Math.ceil(rules.remaining) / 60)}:${String(Math.ceil(rules.remaining) % 60).padStart(2, '0')}` : '';
     this.setHtml(this.timer, clock ? `${icon('clock')}<span>${clock}</span>${srText(t('teamGoal'))}` : '');
     this.timer.title = rules ? t('teamGoal') : '';
+    if (this.weatherId) {
+      const label = t(`devWeather_${this.weatherId}`);
+      const intro = !rules || rules.elapsed < WEATHER_LABEL_SECONDS;
+      this.setHtml(this.weather, `${icon(WEATHER_ICONS[this.weatherId], label)}${intro ? `<span>${label}</span>` : ''}`);
+      this.weather.title = label;
+    }
     const player = rules?.members[0];
     const text = duel.result === 'draw' ? t('draw') : duel.finished
       ? duel.result === duel.player.team ? t('victory').toLocaleUpperCase() : t('defeat').toLocaleUpperCase()

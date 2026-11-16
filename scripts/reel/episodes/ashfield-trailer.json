@@ -1,0 +1,26 @@
+{
+  "id": "trailer",
+  "scene": "aspect=16x9&map=set&tank=02&weather=sunset",
+  "shots": [
+    { "id": "t01-storm-drone", "camera": "drone", "scene": "map=kul&weather=storm",
+      "drive": [ { "seconds": 8, "throttle": 0.8 } ] },
+    { "id": "t02-storm-track", "camera": "track", "scene": "map=kul&weather=storm",
+      "drive": [ { "seconds": 6, "throttle": 1 } ] },
+    { "id": "t03-runway-flyby", "camera": "flyby", "scene": "spawn=runway",
+      "drive": [ { "seconds": 8, "throttle": 1 } ] },
+    { "id": "t04-whoops-chase", "camera": "chase", "fov": 1.0, "scene": "spawn=whoops",
+      "drive": [ { "seconds": 8, "throttle": 0.9, "hold": [0, 0, 1] } ] },
+    { "id": "t05-ridge-low", "camera": "low", "scene": "spawn=ridge",
+      "drive": [ { "seconds": 10, "throttle": 1 } ] },
+    { "id": "t06-range-muzzle", "camera": "muzzle", "slow": 2, "scene": "spawn=range",
+      "drive": [ { "seconds": 1.5, "fire": [1.0] }, { "seconds": 2 } ] },
+    { "id": "t07-range-side", "camera": "side", "scene": "spawn=range",
+      "drive": [ { "seconds": 1.2, "fire": [0.8] }, { "seconds": 2.5 } ] },
+    { "id": "t08-team-drone", "camera": "drone", "scene": "duel=3v3",
+      "drive": [ { "seconds": 10, "throttle": 0.8 } ] },
+    { "id": "t09-duel-orbit", "camera": "orbit", "scene": "duel=1",
+      "drive": [ { "seconds": 10, "turn": 0.15 } ] },
+    { "id": "t10-night-crane", "camera": "crane", "scene": "spawn=pad&weather=night",
+      "drive": [ { "seconds": 9, "turn": 0.2 } ] }
+  ]
+}

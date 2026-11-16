@@ -1,4 +1,4 @@
-/* Studio mode: the canvas is a 9:16 preview; game HUD stays out of frame and out of the panel's way. */
+/* Studio mode: game HUD stays out of frame and out of the panel's way. */
 body.studio { background: #0b0c0d; }
 body.studio > :not(#map):not(.studio-ui):not(.studio-safe):not(.studio-progress):not(.game-pointer-prompt):not(#status) { display: none !important; }
 body.studio #map, .studio-safe {
@@ -6,6 +6,9 @@ body.studio #map, .studio-safe {
   width: min(100vw, 56.25vh); height: min(100vh, 177.78vw);
 }
 .studio-safe { pointer-events: none; z-index: 5; }
+body.studio.studio-landscape #map {
+  width: min(100vw, calc(100vh * 16 / 9)); height: min(100vh, calc(100vw * 9 / 16));
+}
 .studio-safe[hidden] { display: none; }
 .studio-safe i { position: absolute; background: repeating-linear-gradient(135deg, #e0483022 0 6px, transparent 6px 12px); border: 1px dashed #e0483088; }
 /* Approximate Reels chrome: top bar, caption/audio strip, right-hand action column. */
@@ -32,6 +35,7 @@ body.studio #map, .studio-safe {
 .studio-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
 .studio-row select { font-size: 11px; padding: 6px 2px; }
 .studio-ui label { display: flex; gap: 6px; align-items: center; }
+.studio-ui label[hidden] { display: none; }
 .studio-ui kbd { font: 10px monospace; opacity: .7; }
 .studio-status { margin: 0; padding: 6px 8px; background: #0b0c0d; word-break: break-all; }
 .studio-status[data-tone="ok"] { color: #8fd18b; }

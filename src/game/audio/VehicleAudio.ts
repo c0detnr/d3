@@ -29,6 +29,9 @@ export class VehicleAudio {
     this.apply(this.model.update(snapshot));
   }
 
+  /** Weather ambience: wind gain factor and rain level (WeatherEffects.audio). */
+  setWeather(weather: { wind: number; rain: number }) { if (!this.disposed) this.ambience.setWeather(weather); }
+
   reset() {
     this.accumulator = 0;
     this.apply(this.model.reset());

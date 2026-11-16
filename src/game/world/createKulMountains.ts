@@ -24,7 +24,8 @@ export function createKulMountains(scene: Scene, limit = 360) {
   const material = new StandardMaterial('kul-mountains', scene);
   material.diffuseColor = Color3.White(); material.specularColor = Color3.Black();
   material.emissiveColor = new Color3(0.08, 0.08, 0.07);
-  material.fogEnabled = false;
+  // Calm weather keeps the baked haze only; fog, rain and night haze swallow the ring like the rest of the world.
+  material.fogEnabled = scene.fogDensity > 0;
   const meshes: Mesh[] = [];
   const scale = limit / 360;
 

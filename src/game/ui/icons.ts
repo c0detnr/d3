@@ -44,6 +44,10 @@ const PATHS = {
   neutral: 'M7 7h10v10H7Z',
   reverse: 'M12 20l7-9h-4V4H9v7H5Z',
   heading: 'M12 3l6 17-6-4-6 4Z',
+  rain: 'M7 15a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 6.5a4.25 4.25 0 0 1 .5 8.5Z M8 18l-1 3 M12 18l-1 3 M16 18l-1 3',
+  fog: 'M8 7a4 4 0 0 1 8 0 M3 10h18 M5 14h15 M3 18h18',
+  sunset: 'M3 18h18 M7 18a5 5 0 0 1 10 0 M12 5v4 M4.5 11.5l2 2 M19.5 11.5l-2 2 M8 21h8',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z',
 } as const;
 
 export type IconName = keyof typeof PATHS;

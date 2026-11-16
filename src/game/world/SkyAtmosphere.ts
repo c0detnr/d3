@@ -154,7 +154,8 @@ export function createChaoticSky(scene: Scene, diameter = 1800, atmosphere: Atmo
 
   scene.clearColor = new Color4(FOG_BASE.r, FOG_BASE.g, FOG_BASE.b, 1);
   scene.fogMode = Scene.FOGMODE_EXP2;
-  scene.fogDensity = 0; // distance fog is disabled on every map; fog colour still drives clear colour and mountain tint
+  // Distance fog stays off unless the weather asks for it (fog, rain, night haze); colour still drives clear colour and mountain tint.
+  scene.fogDensity = atmosphere.weather?.fogDensity ?? 0;
   scene.fogColor = FOG_BASE.clone();
 
   const flashDirection = new Vector3(0, 0.2, 1);
