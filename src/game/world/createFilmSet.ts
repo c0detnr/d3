@@ -1,3 +1,4 @@
+import { optimizeStaticProps } from './optimizeStaticProps.ts';
 import {
   Color3, Matrix, Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, Quaternion, StandardMaterial, Vector3,
   type AbstractMesh, type Scene,
@@ -177,6 +178,7 @@ export async function createFilmSet(scene: Scene, spot: { x: number; z: number }
   const districts = createFilmDistricts(scene);
 
   const casters = meshes.filter(m => m.isVisible && m !== terrain && m !== facets && !mountains.meshes.includes(m));
+  optimizeStaticProps(meshes, casters);
   const ground = {
     spawn: new Vector3(spot.x, filmSetHeight(spot.x, spot.z), spot.z),
     /** Smoke supply crates sit at the depot, out of every lane. */
@@ -190,6 +192,7 @@ export async function createFilmSet(scene: Scene, spot: { x: number; z: number }
     for (const structure of FILM_BUILDINGS) {
       const building = await loadFactoryBuilding(scene, sources[structure.kind], structure, filmSetHeight);
       buildings.push(building);
+      optimizeStaticProps(building.meshes, building.shadowCasters);
       ground.meshes.push(...building.meshes);
       ground.shadowCasters.push(...building.shadowCasters);
     }

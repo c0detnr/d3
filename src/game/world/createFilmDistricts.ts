@@ -1,3 +1,4 @@
+import { optimizeStaticProps } from './optimizeStaticProps.ts';
 import {
   Color3, Matrix, Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, Quaternion, StandardMaterial, Vector3, VertexData,
   type AbstractMesh, type Scene,
@@ -379,6 +380,7 @@ export function createFilmDistricts(scene: Scene) {
   batch('fd-rocks', stoneDark, rocks, 'rock');
   batch('fd-drums', carColors[0], drums, 'cylinder');
 
+  optimizeStaticProps(meshes, casters);
   return {
     meshes, casters,
     dispose() {

@@ -1,3 +1,4 @@
+import { optimizeStaticProps } from './optimizeStaticProps.ts';
 import type { Mesh, Scene } from '@babylonjs/core';
 import { loadFactoryBuilding } from './loadFactoryBuilding.ts';
 import { KUL_FIELD_LANDMARKS } from './kulLandmarkLayout.ts';
@@ -22,6 +23,7 @@ export async function createKulLandmarks(scene: Scene, sources: { ruin: string |
       }
       meshes.push(...part.meshes); shadowCasters.push(...part.shadowCasters);
     }
+    optimizeStaticProps(meshes, shadowCasters);
     return { meshes, shadowCasters, dispose };
   } catch (error) { dispose(); throw error; }
 }

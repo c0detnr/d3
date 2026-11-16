@@ -1,3 +1,4 @@
+import { optimizeStaticProps } from './optimizeStaticProps.ts';
 import { Color3, Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, Quaternion, StandardMaterial, Vector3, type Scene } from '@babylonjs/core';
 import { KUL_RAIL_CRANE, KUL_RAIL_DEPOT, KUL_RAIL_TRACKS, KUL_RAIL_WAGONS, KUL_RAIL_YARD } from './kulRailYardLayout.ts';
 import { kulTerrainHeight } from './kulVadisiLayout.ts';
@@ -136,6 +137,7 @@ export function createKulRailYard(scene: Scene) {
       mesh.metadata = { railYard: true, hardCover: false, surface: 'metal' };
       mesh.isPickable = false; mesh.receiveShadows = true; mesh.freezeWorldMatrix(); meshes.push(mesh);
     }
+    optimizeStaticProps(meshes, []);
     return { meshes, shadowCasters: meshes.filter(m => m.isVisible), dispose };
   } catch (error) { dispose(); throw error; }
 }

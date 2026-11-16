@@ -1,3 +1,4 @@
+import { optimizeStaticProps } from './optimizeStaticProps.ts';
 import { Color3, LoadAssetContainerAsync, Matrix, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, Quaternion, StandardMaterial, TransformNode, Vector3, VertexData, type AssetContainer, type Scene } from '@babylonjs/core';
 import { registerBuiltInLoaders } from '@babylonjs/loaders/dynamic.js';
 import {
@@ -257,6 +258,7 @@ export async function createKulFieldProps(scene: Scene, sources: Record<keyof ty
     });
     setup(merge('field-cables-and-wire', cables), 'cable', false, 'metal', wire);
 
+    optimizeStaticProps(meshes, []);
     return { meshes, shadowCasters: meshes.filter(m => m.isVisible && m.metadata.prop !== 'cable' && m.metadata.prop !== 'barbed-wire'), dispose };
   } catch (error) { dispose(); throw error; }
 }

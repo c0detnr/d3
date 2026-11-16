@@ -1,3 +1,4 @@
+import { optimizeStaticProps } from './optimizeStaticProps.ts';
 import {
   Color3, GlowLayer, Matrix, Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, Quaternion, StandardMaterial, Vector3,
   type AbstractMesh, type Observer, type Scene,
@@ -269,6 +270,7 @@ export function createFilmAirfield(scene: Scene) {
     }
   });
 
+  optimizeStaticProps(meshes, casters, [...lightMeshes, beacon, sock, ...beacon.getChildMeshes(), ...sock.getChildMeshes()]);
   return {
     meshes, casters,
     dispose() {

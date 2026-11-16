@@ -1,3 +1,4 @@
+import { optimizeStaticProps } from './optimizeStaticProps.ts';
 import { inKulRailYard } from './kulRailYardLayout.ts';
 import { Color3, Color4, InstancedMesh, LoadAssetContainerAsync, Mesh, MeshBuilder, PBRMaterial, PhysicsAggregate, PhysicsShapeType, StandardMaterial, TransformNode, Vector3, type AbstractMesh, type AssetContainer, type Scene } from '@babylonjs/core';
 import { registerBuiltInLoaders } from '@babylonjs/loaders/dynamic.js';
@@ -229,7 +230,7 @@ export async function createKulBattlefield(scene: Scene, sources: Record<keyof t
         mark.updateVerticesData('position', positions); mark.position.set(px, 0, z); mark.material = scuff; mark.isPickable = false; meshes.push(mark);
       }
     }
-    meshes.forEach(mesh => mesh.freezeWorldMatrix());
+    optimizeStaticProps(meshes, []);
     return { meshes, shadowCasters: meshes.filter(m => m.isVisible && (m.metadata?.hardCover || m.metadata?.tree)), dispose };
   } catch (error) { dispose(); throw error; }
 }
