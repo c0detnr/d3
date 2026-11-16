@@ -53,6 +53,7 @@ export class CombatEffects {
   private flashPeak = 30;
   constructor(scene: Scene) {
     this.flashLight = new PointLight('cannon-muzzle-light', Vector3.Zero(), scene);
+    this.flashLight.shadowEnabled = false;
     this.flashLight.diffuse = new Color3(1, 0.72, 0.42);
     this.flashLight.range = 22;
     this.flashLight.intensity = 0;

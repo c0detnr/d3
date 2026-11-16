@@ -98,7 +98,7 @@ function GameShell() {
     setReady(false); setFailed(false); setTeamResult(undefined);
     const status = document.querySelector<HTMLElement>('#status')!;
     status.hidden = false; status.textContent = t('loading');
-    session.current = createGameSession({ shell: true, settings: currentSettings, dev: attract ? { ...PLAY_CONFIG, mode: 'free', tank: '02', filmSpot: 'airfield' } : activeDev.current, onReady: () => {
+    session.current = createGameSession({ shell: true, onDefaultQuality: quality => useShellStore.getState().updateSettings({ quality }), settings: currentSettings, dev: attract ? { ...PLAY_CONFIG, mode: 'free', tank: '02', filmSpot: 'airfield' } : activeDev.current, onReady: () => {
       globalLoadingScreen?.finish();
       setReady(true);
       const playing = useShellStore.getState().screen === 'playing';

@@ -1,4 +1,4 @@
-import { Color3, Color4, Effect, PostProcess, RenderTargetTexture, StandardMaterial, Texture,
+import { Color3, Color4, Effect, InstancedMesh, Mesh, PostProcess, RenderTargetTexture, StandardMaterial, Texture,
   type AbstractMesh, type Camera, type Scene } from '@babylonjs/core';
 import type { SightMode } from '../aim/gunnerSightModel.ts';
 
@@ -42,7 +42,10 @@ export class ThermalView {
   }
   private assign(mesh: AbstractMesh) {
     if (this.mask) {
-      this.mask.setMaterialForRendering(mesh, this.hot.has(mesh) ? this.hotMaterial : this.coldMaterial);
+      // Instanced draws use the source mesh's render-pass material.
+      const source = mesh instanceof InstancedMesh ? mesh.sourceMesh : mesh;
+      const hot = this.hot.has(source) || source instanceof Mesh && source.instances.some(instance => this.hot.has(instance));
+      this.mask.setMaterialForRendering(source, hot ? this.hotMaterial : this.coldMaterial);
       this.assigned.add(mesh);
     }
   }

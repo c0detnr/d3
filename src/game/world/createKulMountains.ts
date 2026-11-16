@@ -1,3 +1,4 @@
+import { optimizeStaticProps } from './optimizeStaticProps.ts';
 import { Color3, Mesh, Scene as BabylonScene, StandardMaterial, VertexData, type Scene } from '@babylonjs/core';
 import { KUL_ATMOSPHERE } from './atmosphereSettings.ts';
 import { cellHash } from './facetedTerrain.ts';
@@ -90,5 +91,6 @@ export function createKulMountains(scene: Scene, limit = 360) {
     mesh.checkCollisions = false; mesh.alwaysSelectAsActiveMesh = true; mesh.doNotSyncBoundingInfo = false;
     meshes.push(mesh);
   });
+  optimizeStaticProps(meshes, []);
   return { meshes, material, dispose() { meshes.forEach(m => m.dispose()); material.dispose(); } };
 }

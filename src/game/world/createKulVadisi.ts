@@ -1,3 +1,4 @@
+import { optimizeStaticProps } from './optimizeStaticProps.ts';
 import { createJammers } from './createJammers.ts';
 import { createKulRailYard } from './createKulRailYard.ts';
 import { createKulBattlefield, type fieldSources } from './createKulBattlefield.ts';
@@ -98,11 +99,13 @@ export async function createKulVadisi(scene: Scene, team: 'A' | 'B' = 'A', sourc
     shadowCasters: meshes.filter(m => m.isVisible && m !== terrain && m !== facets && !mountains.meshes.includes(m)) as AbstractMesh[],
     dispose() { jammers?.dispose(); railYard?.dispose(); atmosphere?.dispose(); landmarks?.dispose(); fieldProps?.dispose(); decals?.dispose(); water?.dispose(); battlefield?.dispose(); buildings.forEach(b => b.dispose()); bodies.forEach(b => b.dispose()); meshes.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); },
   };
+  optimizeStaticProps(meshes, ground.shadowCasters);
   try {
     for (const structure of KUL_STRUCTURES) {
       if (structure.kind !== 'hangar' && structure.kind !== 'workshop' && structure.kind !== 'command' && structure.kind !== 'emplacement') continue;
       const building = await loadFactoryBuilding(scene, sources[structure.kind] ?? factorySources.emplacement, structure);
       buildings.push(building);
+      optimizeStaticProps(building.meshes, building.shadowCasters);
       ground.shadowCasters.push(...building.shadowCasters);
     }
     jammers = createJammers(scene, kulTerrainHeight);

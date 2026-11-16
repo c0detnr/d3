@@ -1,3 +1,4 @@
+import { optimizeStaticProps } from './optimizeStaticProps.ts';
 import { Color3, Mesh, MeshBuilder, RawTexture, StandardMaterial, Texture, type Scene } from '@babylonjs/core';
 import { KUL_FIELD_CRATERS } from './kulCraterLayout.ts';
 import { KUL_STEP, kulTerrainHeight } from './kulVadisiLayout.ts';
@@ -74,6 +75,7 @@ export function createKulGroundDecals(scene: Scene) {
   merge('kul-ground-scorch', scorch, burn);
   merge('kul-ground-mud', MUD.map((p, i) => patch(`kul-mud-${i}`, p.x, p.z, p.width, p.depth, p.yaw)), mud);
 
+  optimizeStaticProps(meshes, []);
   return {
     meshes,
     shadowCasters: [] as Mesh[],

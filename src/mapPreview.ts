@@ -1,3 +1,4 @@
+import { freezeSceneMaterials } from './game/world/optimizeStaticProps.ts';
 import { GunnerSight } from './game/ui/GunnerSight.ts';
 import { ThermalView } from './game/effects/ThermalView.ts';
 import { LaserRangefinder } from './game/aim/LaserRangefinder.ts';
@@ -81,15 +82,16 @@ import { IRON_DUST_01_WEAPON, SHOT_FEEDBACK } from './game/combat/WeaponDefiniti
 import { KUL_WEATHER, TEST_GROUND_ATMOSPHERE, weatherFromSearch } from './game/world/atmosphereSettings.ts';
 import { createChaoticSky } from './game/world/SkyAtmosphere.ts';
 import { Studio } from './game/studio/Studio.ts';
-import { createSunShadows } from './game/world/createSunShadows.ts';
+import { addShadowCasters, applySunShadowQuality, createSunShadows } from './game/world/createSunShadows.ts';
 import tankUrl from '../assets/tanks/iron_dust_01/iron_dust_01.glb?url';
 import secondTankUrl from '../assets/tanks/iron_dust_02/iron_dust_02.glb?url';
 
 import { t } from './game/i18n/index.ts';
-import { readSave, type Settings } from './game/core/playerSave.ts';
+import { readSave, hasSavedQuality, defaultQuality, type Quality, type Settings } from './game/core/playerSave.ts';
 
 export interface GameSessionOptions {
   shell?: boolean;
+  onDefaultQuality?: (quality: Quality) => void;
   settings?: Settings;
   dev?: DevSessionConfig;
   onReady?: () => void;
@@ -128,6 +130,11 @@ const status = document.querySelector<HTMLElement>('#status')!;
 const mobile = matchMedia('(pointer: coarse)').matches;
 // Studio reads rendered frames back, so the drawing buffer must survive the frame.
 const engine = new Engine(canvas, !mobile, studioMode ? { preserveDrawingBuffer: true, stencil: true } : undefined);
+if (!hasSavedQuality()) {
+  const quality = defaultQuality(engine.getGlInfo().renderer);
+  settings = { ...settings, quality };
+  options.onDefaultQuality?.(quality);
+}
 const scaleMobile = () => { if (mobile) engine.setHardwareScalingLevel(Math.max(1, innerWidth / 1280, innerHeight / 720)); };
 scaleMobile();
 const scene = new Scene(engine);
@@ -465,13 +472,13 @@ async function start() {
   scene.physicsEnabled = false;
   ground = kulVadisi ? await createKulVadisi(scene, kulTeam) : filmSet ? await createFilmSet(scene, filmSpot) : createTestGround(scene);
   if (disposed) { ground.dispose(); return; }
-  ground.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh));
+  addShadowCasters(shadows, ground.shadowCasters);
   status.textContent = t('tankLoading');
   const playerSpawn = teamDuelMode ? layoutSpawn(kulTeam, 0) : ground.spawn;
   tank = await loadTankModel(scene, secondTank ? secondTankUrl : tankUrl, playerSpawn);
   if (disposed) { tank.dispose(); return; }
   thermalView.register(tank.assets.meshes);
-  tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
+  addShadowCasters(shadows, tank.assets.meshes);
   const rig = extractTankRig(tank);
   vehicle = new TankVehicle(scene, rig, playerSpawn);
   if (spawnYaw) vehicle.reset(playerSpawn, spawnYaw);
@@ -483,7 +490,7 @@ async function start() {
   if (!secondTank) {
     machineGun = await MachineGun.load(scene, mgUrl, turret.yawPivot);
     if (disposed) { machineGun.dispose(); return; }
-    machineGun.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
+    addShadowCasters(shadows, machineGun.assets.meshes);
   }
   mgProjectiles = new ProjectileSystem(scene, (from, to) => {
     if (teamDuel) return teamDuel.raycast(vehicle!.body, from, to);
@@ -495,7 +502,7 @@ async function start() {
   scene.activeCamera = followCamera.camera;
   if (!kulVadisi && !filmSet) {
     combatRange = new ArmorRange(scene, ground.spawn);
-    combatRange.targets.forEach(target => target.shadowCasters.forEach(mesh => shadows.addShadowCaster(mesh)));
+    combatRange.targets.forEach(target => addShadowCasters(shadows, target.shadowCasters));
   }
   combatEffects = new CombatEffects(scene);
   smokeSupply = await SmokeSupply.load(scene, smokeSupplyUrl, smokeCapsuleUrl, filmSet ? (ground as Awaited<ReturnType<typeof createFilmSet>>).supplyAnchor : ground.spawn, mapHeight,
@@ -504,7 +511,7 @@ async function start() {
   smokeSupply.launcherPose = () => turretLauncherPose(turret!.yawPivot);
   updateMenuSupplyVisibility();
   smokeSupply.supplies.forEach(supply => supply.nodes.rootNodes.forEach(node =>
-    node.getChildMeshes().forEach(mesh => shadows.addShadowCaster(mesh))));
+    addShadowCasters(shadows, node.getChildMeshes())));
   projectiles = new ProjectileSystem(scene, (from, to) => {
     if (teamDuel) return teamDuel.raycast(vehicle!.body, from, to);
     const hit = scene.getPhysicsEngine()!.raycast(from, to, { ignoreBody: vehicle!.body, shouldHitTriggers: true });
@@ -537,7 +544,7 @@ async function start() {
     spawn.y = mapHeight(spawn.x, spawn.z);
     opponent = await DuelTank.load(scene, secondTank ? tankUrl : secondTankUrl, spawn);
     if (disposed) { opponent.dispose(); opponent = undefined; return; }
-    opponent.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
+    addShadowCasters(shadows, opponent.tank.assets.meshes);
     opponentAI = new EasyDuelAI();
   }
   if (teamDuelMode) {
@@ -555,7 +562,7 @@ async function start() {
     await teamDuel.load(secondTank ? tankUrl : secondTankUrl);
     teamDuel.setDifficulty(settings.difficulty);
     if (disposed) { teamDuel.dispose(); return; }
-    for (const bot of teamDuel.bots) bot.actor.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
+    for (const bot of teamDuel.bots) addShadowCasters(shadows, bot.actor.tank.assets.meshes);
     teamDuelHud = new TeamDuelHud(teamDuel, reset);
   }
   {
@@ -569,7 +576,13 @@ async function start() {
     infantry = await InfantryNpcs.load(scene, { rigged: Object.values(infantryRigUrls)[0], fallback: infantryFallbackUrl },
       garrisons, mapHeight);
     if (disposed) { infantry.dispose(); infantry = undefined; return; }
-    infantry.npcs.forEach(npc => npc.anchor.getChildMeshes().forEach(mesh => shadows.addShadowCaster(mesh)));
+    infantry.npcs.forEach(npc => {
+      const parts = npc.anchor.getChildMeshes().filter(mesh => mesh.isVisible && mesh.getTotalVertices() > 0);
+      parts.forEach(mesh => mesh.computeWorldMatrix(true));
+      // The torso is below the prop cutoff; keep two largest parts per soldier.
+      parts.sort((a, b) => b.getBoundingInfo().boundingSphere.radiusWorld - a.getBoundingInfo().boundingSphere.radiusWorld);
+      addShadowCasters(shadows, parts.slice(0, 2), 0);
+    });
   }
   if (kulVadisi) {
     laneDrones = new LaneDrones(scene, () => teamDuel?.members ?? [
@@ -632,7 +645,7 @@ async function start() {
     });
     await mission.load(secondTankUrl);
     if (disposed) { mission.dispose(); return; }
-    mission.scouts.forEach(scout => scout.actor.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh)));
+    mission.scouts.forEach(scout => addShadowCasters(shadows, scout.actor.tank.assets.meshes));
     if (missionRequested) mission.start();
   }
   fpv = new FpvDrone({ scene, canvas, initialMode: settings.droneMode,
@@ -695,7 +708,8 @@ async function start() {
     maxZ: followCamera.camera.maxZ, audio,
     gameCamera: () => mgMode ? machineGun!.camera : followCamera.camera, freeCameraActive: () => freeCamera.active,
     reset, frame: dt => frame(dt), startLoop, stopLoop: () => engine.stopRenderLoop() });
-  if (options.shell) applySettings(settings);
+  freezeSceneMaterials(scene);
+  applySettings(settings);
   // A single registry includes every actor source, without coupling thermal rendering to AI.
   if (opponent) thermalView.register(opponent.tank.assets.meshes);
   for (const bot of teamDuel?.bots ?? []) thermalView.register(bot.actor.tank.assets.meshes);
@@ -1050,10 +1064,12 @@ function applySettings(value: Settings) {
   teamDuel?.setDifficulty(value.difficulty);
   audio.setVolume(value.volume);
   const level = value.quality;
-  engine.setHardwareScalingLevel(level === 'low' ? 1.6 : level === 'medium' ? 1.2 : 1);
+  if (mobile) scaleMobile();
+  else engine.setHardwareScalingLevel(level === 'low' ? 1.6 : level === 'medium' ? 1.2 : 1);
+  const shadowsChanged = scene.shadowsEnabled !== (level !== 'low');
   scene.shadowsEnabled = level !== 'low';
-  shadows.numCascades = level === 'high' ? 4 : 2;
-  shadows.shadowMaxZ = level === 'high' ? 260 : 160;
+  if (shadowsChanged) for (const material of scene.materials) if (material.isFrozen) material.markDirty(true);
+  applySunShadowQuality(shadows, level, mobile);
   scene.particlesEnabled = level !== 'low';
   if (movementEffects) movementEffects.enabled = level !== 'low';
   damageHud.setState(damageHudState);

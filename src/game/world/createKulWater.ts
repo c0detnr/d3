@@ -1,3 +1,4 @@
+import { optimizeStaticProps } from './optimizeStaticProps.ts';
 import { Color3, Mesh, MeshBuilder, StandardMaterial, Vector3, type Scene } from '@babylonjs/core';
 import { KUL_CONNECTIONS, kulTerrainHeight } from './kulVadisiLayout.ts';
 
@@ -26,5 +27,6 @@ export function createKulWater(scene: Scene) {
     mesh.material = material; mesh.isPickable = false; mesh.metadata = { water: true };
     mesh.convertToFlatShadedMesh(); mesh.freezeWorldMatrix(); meshes.push(mesh);
   }
+  optimizeStaticProps(meshes, []);
   return { meshes, dispose() { meshes.forEach(m => m.dispose()); material.dispose(); } };
 }
