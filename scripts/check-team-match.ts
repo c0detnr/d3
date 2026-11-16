@@ -79,11 +79,15 @@ try {
   const spawn = layout.spawn('A', 0), player = await DuelTank.load(scene, source, new Vector3(spawn.x, spawn.y, spawn.z));
   const duel = new TeamDuel(scene, { tank: player.tank, vehicle: player.vehicle, damage: player.damage, team: 'A' }, layout);
   await duel.load(source);
+  assert.ok(duel.navigation && duel.navigation.nodes.length > 1000, 'film collider network loaded');
+  assert.ok(duel.bots.every(b => b.context.allies?.length === 2), 'allied separation context wired');
   assert.equal(duel.members.length, 6); assert.equal(duel.alive('A'), 3); assert.equal(duel.alive('B'), 3);
   const victim = duel.members[3];
   for (let i = 0; i < 186; i++) duel.beforeStep(1 / 60);
   const hit = { point: victim.vehicle.node.position.clone(), normal: Vector3.Up(), body: victim.vehicle.body, distance: 0 };
-  for (let i = 0; i < 12; i++) duel.playerImpact(hit);
+  duel.playerImpact(hit);
+  assert.equal(duel.bots.find(b => b.member === victim)!.ai.state, 'cover', 'shared impact path reaches tactical damage response');
+  for (let i = 0; i < 11; i++) duel.playerImpact(hit);
   assert.equal(victim.damage.hp, 0); assert.equal(duel.rules!.score.A, 1); assert.equal(duel.feed.length, 1);
   duel.finishStep(); assert.equal(duel.finished, false);
   for (let i = 0; i < 300; i++) duel.beforeStep(1 / 60);

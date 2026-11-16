@@ -3,7 +3,7 @@ import { DEFAULT_DEV_CONFIG, type DevSessionConfig } from './devConfig.ts';
 import { readSave, writeSave, type Settings } from './playerSave.ts';
 import { MISSIONS } from './missions.ts';
 import { setLanguage } from '../i18n/index.ts';
-export type ShellScreen = 'home' | 'developer' | 'missions' | 'briefing' | 'settings' | 'controls' | 'credits' | 'playing' | 'pause' | 'result';
+export type ShellScreen = 'home' | 'tankSelect' | 'droneSelect' | 'developer' | 'missions' | 'briefing' | 'settings' | 'controls' | 'credits' | 'playing' | 'pause' | 'result';
 /** Mission logic calls finishMission when authoritative objectives resolve. */
 export interface MissionResult { missionId: string; victory: boolean; seconds: number; shots: number; hits: number; damageTaken?: number; stars: number }
 const initial = readSave();

@@ -6,7 +6,7 @@ import { loadTankModel } from '../src/game/vehicle/loadTankModel.ts';
 import { TurretController } from '../src/game/vehicle/TurretController.ts';
 import { ShotCameraMotion } from '../src/game/camera/ShotCameraMotion.ts';
 import { CombatEffects, COMBAT_PARTICLE_CAPACITY } from '../src/game/combat/CombatEffects.ts';
-import { impactSurface } from '../src/game/combat/ImpactSurface.ts';
+import { IMPACT_FEEDBACK, impactSurface } from '../src/game/combat/ImpactSurface.ts';
 import { FixedStep } from '../src/game/core/fixedStep.ts';
 import { TankVehicle } from '../src/game/vehicle/TankVehicle.ts';
 import { extractTankRig } from '../src/game/vehicle/tankRig.ts';
@@ -208,12 +208,17 @@ function testEffects() {
         effects.reset(); effects.impact(Vector3.Zero(), Vector3.Up(), surface);
         assert.ok(effects.particles.length > 0);
         const bright = effects.particles.filter(p => p.kind === 'spark').length;
-        assert.equal(bright, surface === 'soil' ? 0 : surface === 'concrete' ? 2 : 9);
+        assert.equal(bright, IMPACT_FEEDBACK[surface].sparks);
+        if (surface !== 'metal') assert.ok(effects.particles.some(p => p.kind === 'clod'), `${surface}: debris chunks`);
       }
       effects.reset();
       effects.muzzleFlash(new Vector3(0, 2, 0), Vector3.Forward());
       assert.equal(effects.particles.filter(p => p.kind === 'dust').length, 0, 'no invented ground in the air');
-      assert.ok(effects.particles.filter(p => p.kind === 'smoke').every(p => p.velocity.z > 6), 'gas follows bore');
+      const smoke = effects.particles.filter(p => p.kind === 'smoke');
+      assert.ok(smoke.filter(p => p.velocity.z > 12).length >= 15, 'fast gas jet follows bore');
+      assert.ok(smoke.some(p => Math.abs(p.velocity.x) > 6), 'muzzle-brake side jets');
+      assert.ok(smoke.some(p => p.life > 2.5 && p.velocity.length() < 5), 'slow lingering smoke cloud');
+      assert.ok(effects.particles.filter(p => p.kind === 'flash').every(p => p.life < 0.1), 'flame is short-lived');
       const gasCount = effects.particles.length;
       effects.reset();
       effects.muzzleFlash(new Vector3(0, 2, 0), Vector3.Forward(), { point: Vector3.Zero(), normal: Vector3.Up() });
@@ -227,7 +232,7 @@ function testEffects() {
       assert.equal(effects.particles.filter(p => p.kind === 'dust').length, 0, 'high muzzle creates no soil blast');
       for (let i = 0; i < 1000; i++) effects.muzzleFlash(Vector3.Zero(), Vector3.Forward());
       assert.ok(effects.particles.length <= COMBAT_PARTICLE_CAPACITY);
-      for (let i = 0; i < 120; i++) effects.fixedUpdate(1 / 60);
+      for (let i = 0; i < 300; i++) effects.fixedUpdate(1 / 60);
       effects.render(0); assert.ok(effects.particles.every(p => p.age >= p.life));
       assert.ok(scene.spriteManagers.filter(m => m.name.startsWith('combat-')).every(m => m.sprites.every(s => !s.isVisible)), 'expired interpolated particles never reappear');
       effects.reset(); effects.destruction(Vector3.Zero()); effects.render(1);
@@ -242,6 +247,9 @@ function testEffects() {
       assert.equal(visibleExplosion().cellIndex, 24, 'last frame stays within the 5x5 atlas');
       effects.fixedUpdate(1 / 60); effects.render(1);
       assert.ok(explosion.sprites.every(s => !s.isVisible), 'finished explosion never loops');
+      effects.reset();
+      effects.armorImpact(Vector3.Zero(), Vector3.Up(), false, new Vector3(1, -1, 0));
+      assert.ok(effects.particles.filter(p => p.kind === 'spark').every(p => p.velocity.x > 0), 'ricochet sparks follow the deflection');
       effects.reset();
       effects.machineGunFlash(Vector3.Zero(), Vector3.Forward()); effects.render(1);
       assert.ok(scene.spriteManagers.find(m => m.name === 'combat-flash')!.sprites.some(s => s.isVisible), 'MG uses the muzzle texture');

@@ -66,7 +66,7 @@ export function isWebGL2Available(): boolean {
     const canvas = document.createElement('canvas');
     return !!canvas.getContext('webgl2');
   } catch (err) {
-    console.error('[IRON DUST] WebGL 2 check exception:', err);
+    console.error('[ASHFIELD] WebGL 2 check exception:', err);
     return false;
   }
 }
@@ -122,7 +122,7 @@ export class LoadingScreen {
       this.element.setAttribute('aria-valuemax', '100');
       this.element.innerHTML = `
         <div class="loading-content">
-          <div class="loading-title">IRON DUST</div>
+          <div class="loading-title"><img src="./brand/ashfield-wordmark.webp" alt="ASHFIELD" width="1200" height="312"/></div>
           <div class="loading-progress-box">
             <div class="loading-bar-track">
               <div id="loading-bar-fill" class="loading-bar-fill"></div>
@@ -166,7 +166,7 @@ export class LoadingScreen {
 
   private checkEnvironment() {
     if (!isWebGL2Available()) {
-      console.error('[IRON DUST] WebGL 2.0 is not supported or disabled on this device/browser.');
+      console.error('[ASHFIELD] WebGL 2.0 is not supported or disabled on this device/browser.');
       this.showError(this.texts.webglError, 'WebGL 2.0 context is unavailable.');
     }
   }
@@ -283,7 +283,7 @@ export class LoadingScreen {
         try {
           const response = await originalFetch.apply(this, args);
           if (!response.ok && response.status >= 400 && !urlStr.includes('/takes/') && !urlStr.includes('/renders')) {
-            console.error('[IRON DUST] Fetch failed:', response.status, urlStr);
+            console.error('[ASHFIELD] Fetch failed:', response.status, urlStr);
             self.showError(self.texts.assetError, `HTTP ${response.status} loading ${urlStr}`);
             return response;
           }
@@ -333,7 +333,7 @@ export class LoadingScreen {
           return response;
         } catch (fetchErr) {
           if (!urlStr.includes('/takes/') && !urlStr.includes('/renders')) {
-            console.error('[IRON DUST] Fetch network error:', fetchErr, urlStr);
+            console.error('[ASHFIELD] Fetch network error:', fetchErr, urlStr);
             self.showError(self.texts.assetError, String(fetchErr));
           }
           throw fetchErr;
@@ -365,13 +365,13 @@ export class LoadingScreen {
 
         this.addEventListener('load', () => {
           if (this.status >= 400) {
-            console.error('[IRON DUST] XHR failed with status:', this.status, url);
+            console.error('[ASHFIELD] XHR failed with status:', this.status, url);
             self.showError(self.texts.assetError, `XHR ${this.status} loading ${url}`);
           }
         });
 
         this.addEventListener('error', (err) => {
-          console.error('[IRON DUST] XHR network error:', err, url);
+          console.error('[ASHFIELD] XHR network error:', err, url);
           self.showError(self.texts.assetError, `Failed to load ${url}`);
         });
 
@@ -386,7 +386,7 @@ export class LoadingScreen {
         const target = event.target as HTMLElement | null;
         if (target && (target.tagName === 'SCRIPT' || target.tagName === 'LINK' || target.tagName === 'IMG')) {
           const src = (target as HTMLScriptElement).src || (target as HTMLLinkElement).href;
-          console.error('[IRON DUST] Asset load error on element:', src);
+          console.error('[ASHFIELD] Asset load error on element:', src);
           this.showError(this.texts.assetError, `Resource failed: ${src}`);
         }
       },
@@ -495,7 +495,7 @@ export class LoadingScreen {
   public showError(userMessage: string, technicalDetail?: unknown) {
     this.hasError = true;
     if (technicalDetail) {
-      console.error('[IRON DUST Loading Failure]:', technicalDetail);
+      console.error('[ASHFIELD Loading Failure]:', technicalDetail);
     }
     if (this.tipTimer) {
       clearInterval(this.tipTimer);

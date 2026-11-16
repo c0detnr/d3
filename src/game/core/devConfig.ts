@@ -14,4 +14,4 @@ export const DEFAULT_DEV_CONFIG: DevSessionConfig = {
   map: 'set', weather: 'storm', tank: '01', mode: 'free', base: 'A', filmSpot: 'runway',
 };
 
-export const PLAY_CONFIG: DevSessionConfig = { ...DEFAULT_DEV_CONFIG, mode: '3v3', filmSpot: 'runway' };
+export const PLAY_CONFIG: DevSessionConfig = { ...DEFAULT_DEV_CONFIG, tank: '02', mode: '3v3', filmSpot: 'runway' };

@@ -1,4 +1,9 @@
-.game-pointer-prompt { position: fixed; z-index: 25; left: 50%; top: 40%; transform: translate(-50%, -50%); max-width: 90vw; padding: 16px 28px; border: 0; border-top: 1px solid #e6b16470; border-bottom: 1px solid #e6b16470; border-radius: 0; background: linear-gradient(90deg, transparent, #111916d9 20% 80%, transparent); color: #eeeae0; font: 11px/1.5 'Arial Narrow', Arial, sans-serif; letter-spacing: .18em; text-shadow: 0 1px 4px #000; cursor: pointer; }
-.game-pointer-prompt:hover { color: #e6b164; }
-.game-pointer-prompt:focus-visible { outline: 1px solid #e6b164; outline-offset: 5px; }
+@import '../ui/hudTokens.css';
+.game-pointer-prompt { position: fixed; z-index: 25; left: 50%; top: 40%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 22px; padding: 12px 22px; border: 0; border-top: 1px solid rgb(242 160 6 / 55%); border-bottom: 1px solid rgb(242 160 6 / 55%); border-radius: 0; background: linear-gradient(90deg, transparent, rgb(16 17 16 / 88%) 18% 82%, transparent); color: #fefdfe; font: 600 16px/1 Barlow, sans-serif; text-shadow: 0 1px 4px #000; cursor: pointer; }
+.game-pointer-prompt .hud-chip { gap: 8px; }
+.game-pointer-prompt .hud-chip:first-child .hud-icon { width: 34px; height: 34px; color: #f2a006; }
+.game-pointer-prompt .hud-chip:last-child { font-size: 13px; color: rgb(254 253 254 / 80%); }
+.game-pointer-prompt[data-failed='true'] .hud-chip:first-child .hud-icon { color: #f16b61; }
+.game-pointer-prompt:hover { color: #f2a006; }
+.game-pointer-prompt:focus-visible { outline: 2px solid #f2a006; outline-offset: 5px; }
 .game-pointer-prompt[hidden] { display: none; }

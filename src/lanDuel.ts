@@ -241,7 +241,7 @@ function applyPose(visual: Visual, a: TankState, b: TankState, alpha: number) {
   if (shots > visual.shots) {
     const ray = visual.turret.getMuzzleRay(); effects.muzzleFlash(ray.origin, ray.direction);
     const offset = ray.origin.subtract(camera.position);
-    if (!audio.muted) combatAudio?.shot(offset.length(), Vector3.Dot(offset.normalizeToNew(), camera.getDirection(Vector3.Right())));
+    if (!audio.muted) combatAudio?.shot(visuals.indexOf(visual) === 0 ? '01' : '02', offset.length(),Vector3.Dot(offset.normalizeToNew(), camera.getDirection(Vector3.Right())));
   }
   visual.shots = shots;
 }

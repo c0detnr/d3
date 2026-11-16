@@ -27,6 +27,7 @@ export function duelOutcome(a: number, b: number): DuelTeam | 'draw' | undefined
 
 export interface TeamPoint { x: number; y: number; z: number }
 export interface TeamDuelLayout {
+  navigation?: 'film';
   teamSize: number;
   respawn: boolean;
   spawn: (team: DuelTeam, slot: number) => TeamPoint;

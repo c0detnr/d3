@@ -6,12 +6,12 @@
 }
 
 :root {
-  --loading-bg: #1b221e;
-  --loading-paper: #f3eddf;
-  --loading-dim: #d2d3c3;
-  --loading-accent: #e1bd8d;
-  --loading-surface: #26332b;
-  --loading-border: #96a38c;
+  --loading-bg: #101110;
+  --loading-paper: #fefdfe;
+  --loading-dim: #b6b4af;
+  --loading-accent: #f2a006;
+  --loading-surface: #191b18;
+  --loading-border: #747963;
 }
 
 #loading-screen {
@@ -100,7 +100,7 @@
 .loading-bar-fill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #c79e6b 0%, #e1bd8d 100%);
+  background: linear-gradient(90deg, #c79e6b 0%, #f2a006 100%);
   box-shadow: 0 0 8px rgba(225, 189, 141, 0.5);
   border-radius: 2px;
   transition: width 0.18s cubic-bezier(0.1, 0.7, 0.1, 1);
@@ -181,7 +181,7 @@
 .loading-retry-btn {
   padding: 8px 22px;
   background: var(--loading-accent);
-  color: #1b221e;
+  color: #101110;
   border: 1px solid var(--loading-accent);
   border-radius: 3px;
   font-family: Barlow, 'Barlow Condensed', sans-serif;
@@ -193,9 +193,23 @@
 }
 
 .loading-retry-btn:hover {
-  background: #f6d6aa;
+  background: #ffc34c;
 }
 
 .loading-retry-btn:active {
   transform: scale(0.98);
 }
+
+@font-face{font-family:'Black Ops One';src:url('./fonts/BlackOpsOne-Regular.ttf') format('truetype');font-weight:400;font-display:swap}
+#loading-screen{background:#101110;background-image:none}
+#loading-screen.loading-mission-mode{background:#101110f5;background-image:none}
+.loading-content{width:min(540px,86vw)}
+.loading-title{width:100%;margin-bottom:48px;font-family:'Black Ops One',Barlow,sans-serif}
+.loading-title img{width:100%;height:auto;display:block}
+.loading-title:before,.loading-title:after{display:none}
+.loading-bar-track,.loading-bar-fill,.loading-error-box,.loading-retry-btn{border-radius:0}
+.loading-bar-fill{background:#f2a006;box-shadow:none}
+.loading-bar-track{background:#292d21;border-color:#747963;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+.loading-tip-container{display:none}
+.loading-retry-btn:focus-visible{outline:3px solid #fff;outline-offset:4px}
+.loading-error-box[hidden]{display:none}

@@ -3,7 +3,7 @@ import { createFpvVideo } from './FpvVideo.ts';
 import { Color3, FreeCamera, MeshBuilder, PhysicsBody, PhysicsMotionType, PhysicsShapeSphere, Quaternion, StandardMaterial, TransformNode, Vector3, type Scene } from '@babylonjs/core';
 import type { ProjectileHit } from '../combat/ProjectileSystem.ts';
 import type { AudioGraph } from '../audio/AudioSystem.ts';
-import { FpvFlight, neutralFlight } from './FpvFlight.ts';
+import { FpvFlight, neutralFlight, type FlightMode } from './FpvFlight.ts';
 import { FpvHud } from './FpvHud.ts';
 
 export interface FpvTarget {
@@ -17,6 +17,7 @@ export interface FpvTarget {
 }
 
 export interface FpvWorld {
+  initialMode?: FlightMode;
   jammers?: readonly JammerPosition[];
   scene: Scene; canvas: HTMLCanvasElement;
   ready: () => boolean; controlsEnabled: () => boolean; tankAlive: () => boolean;
@@ -52,6 +53,7 @@ export class FpvDrone {
   get active() { return this.flight.active; }
   constructor(world: FpvWorld) {
     this.world = world;
+    this.flight.mode = world.initialMode ?? 'ASSIST';
     this.camera = new FreeCamera('fpv-camera', Vector3.Zero(), world.scene);
     this.camera.inputs.clear(); this.camera.minZ = .05; this.camera.maxZ = 3000; this.camera.fov = 1.25;
     this.camera.rotationQuaternion = Quaternion.Identity(); this.camera.layerMask = 0x0ffffffd;

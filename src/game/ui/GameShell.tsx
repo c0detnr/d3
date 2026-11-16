@@ -2,6 +2,8 @@ import { PLAY_CONFIG, type DevSessionConfig } from '../core/devConfig.ts';
 import { WEATHER_IDS } from '../world/atmosphereSettings.ts';
 import { FILM_SPOTS, type FilmSpot } from '../world/filmSetLayout.ts';
 import { gameMarkup } from './gameMarkup.ts';
+import { icon, keyBadge } from './icons.ts';
+import './hudTokens.css';
 import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createGameSession } from '../../mapPreview.ts';
@@ -13,6 +15,8 @@ import { translateGameDom } from '../i18n/dom.ts';
 import { ResultScreen, TeamResultScreen, Stars } from './ResultScreen.tsx';
 import { globalLoadingScreen } from './LoadingScreen.ts';
 import './gameShell.css';
+import tank01Preview from '../../../assets/tanks/iron_dust_01/previews/three_quarter.png';
+import tank02Preview from '../../../assets/tanks/iron_dust_02/previews/three_quarter.png';
 
 type Session = ReturnType<typeof createGameSession>;
 const controlKeys: TranslationKey[] = ['driveControl', 'aimControl', 'zoomControl', 'gunnerControl', 'fireControl', 'weaponControl', 'brakeControl', 'smokeControl', 'collectControl', 'recoverControl', 'pauseControl'];
@@ -34,7 +38,7 @@ function DeveloperPanel({ config, onChange, onStart, ready }: {
       {WEATHER_IDS.map(weather => <option key={weather} value={weather}>{t(`devWeather_${weather}`)}</option>)}
     </select></label>
     {config.map === 'test' && <p id="dev-weather-hint" className="muted">{t('devWeatherHint')}</p>}
-    <label>{t('devTank')}<select value={config.tank} onChange={event => onChange({ tank: event.target.value as DevSessionConfig['tank'] })}>{(['01', '02'] as const).map(tank => <option key={tank} value={tank}>IRON DUST {tank}</option>)}</select></label>
+    <label>{t('devTank')}<select value={config.tank} onChange={event => onChange({ tank: event.target.value as DevSessionConfig['tank'] })}>{(['01', '02'] as const).map(tank => <option key={tank} value={tank}>{t(tank === '01' ? 'tank01' : 'tank02')}</option>)}</select></label>
     <label>{t('devMode')}<select value={config.mode} onChange={event => onChange({ mode: event.target.value as DevSessionConfig['mode'] })}>
       {(['free', 'duel', '5v5', '3v3'] as const).map(mode => <option key={mode} value={mode} disabled={mode === '5v5' && config.map !== 'kul' || mode === '3v3' && config.map !== 'set'}>{t(`devMode_${mode}`)}</option>)}
     </select></label>
@@ -44,6 +48,37 @@ function DeveloperPanel({ config, onChange, onStart, ready }: {
     </select></label>}
     <div className="shell-actions"><button type="submit" className="primary" disabled={!ready}>{t('devApply')}</button></div>
   </form>;
+}
+function FeatureIcon({ kind }: { kind: 'gun' | 'shield' | 'control' }) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">{kind === 'gun' ? <path d="M3 16h14v4H3zM7 16v-5h8v5m-3-5V7h10"/> : kind === 'shield' ? <path d="m12 3 8 3v6c0 4-8 9-8 9s-8-5-8-9V6zM8 12l3 3 5-6"/> : <path d="M4 7h16M4 17h16M8 4v6m8 4v6"/>}</svg>;
+}
+function LoadoutSelection({ drone, settings, onChange, onNext, onBack, ready }: {
+  drone: boolean; settings: ReturnType<typeof useShellStore.getState>['settings'];
+  onChange: ReturnType<typeof useShellStore.getState>['updateSettings']; onNext: () => void; onBack: () => void; ready: boolean;
+}) {
+  const group = useRef<HTMLDivElement>(null);
+  const value = drone ? settings.droneMode : settings.tank;
+  const choices = drone ? ['ASSIST', 'ACRO'] as const : ['01', '02'] as const;
+  useEffect(() => { group.current?.querySelector<HTMLButtonElement>('[aria-checked="true"]')?.focus(); }, [drone]);
+  const select = (id: string) => drone ? onChange({ droneMode: id as 'ASSIST' | 'ACRO' }) : onChange({ tank: id as '01' | '02' });
+  return <div className="loadout-selection">
+    <div className="selection-steps" aria-label={t('play')}><span aria-current={!drone ? 'step' : undefined}>01 / {t('tankSelect')}</span><span aria-current={drone ? 'step' : undefined}>02 / {t('droneSelect')}</span></div>
+    <div ref={group} className="loadout-grid" role="radiogroup" aria-label={t(drone ? 'droneSelect' : 'tankSelect')} onKeyDown={event => {
+      if (['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp'].includes(event.key)) {
+        event.preventDefault();
+        const next = choices[value === choices[0] ? 1 : 0]; select(next);
+        group.current?.querySelector<HTMLButtonElement>(`[data-choice="${next}"]`)?.focus();
+      } else if (event.key === 'Enter' && ready) { event.preventDefault(); onNext(); }
+    }}>
+      {choices.map(id => <button key={id} className="loadout-card" type="button" role="radio" aria-checked={value === id} tabIndex={value === id ? 0 : -1} data-choice={id} onClick={() => select(id)}>
+        <span className="loadout-status">{value === id ? t('selectedLoadout') : ''}</span>
+        <img src={drone ? `./ui/select/drone-${id.toLowerCase()}.png` : id === '01' ? tank01Preview : tank02Preview} alt="" width="640" height="400"/>
+        <strong>{drone ? id : t(id === '01' ? 'tank01' : 'tank02')}</strong>
+        <span className="loadout-features"><span><FeatureIcon kind={drone ? 'control' : 'gun'}/>{t(drone ? id === 'ASSIST' ? 'assistHandling' : 'acroHandling' : 'cannon120')}</span><span><FeatureIcon kind="shield"/>{t(drone ? id === 'ASSIST' ? 'assistLevel' : 'acroLevel' : 'tankRole')}</span>{id === '01' && <span><FeatureIcon kind="gun"/>{t('machineGun')}</span>}</span>
+      </button>)}
+    </div>
+    <div className="shell-actions selection-actions"><button onClick={onBack}>← {t('back')}</button><button className="primary" disabled={!ready} onClick={onNext}>{t(drone ? 'deploy' : 'next')}<span aria-hidden="true">»</span></button></div>
+  </div>;
 }
 function GameShell() {
   const state = useShellStore();
@@ -59,11 +94,11 @@ function GameShell() {
     if (session.current) globalLoadingScreen?.showMissionTransition();
     session.current?.dispose();
     const currentSettings = useShellStore.getState().settings;
-    activeDev.current = currentSettings.devMode ? (dev ? { ...dev } : undefined) : { ...PLAY_CONFIG };
+    activeDev.current = currentSettings.devMode ? (dev ? { ...dev } : undefined) : { ...PLAY_CONFIG, tank: currentSettings.tank };
     setReady(false); setFailed(false); setTeamResult(undefined);
     const status = document.querySelector<HTMLElement>('#status')!;
     status.hidden = false; status.textContent = t('loading');
-    session.current = createGameSession({ shell: true, settings: currentSettings, dev: activeDev.current, onReady: () => {
+    session.current = createGameSession({ shell: true, settings: currentSettings, dev: attract ? { ...PLAY_CONFIG, mode: 'free', tank: '02', filmSpot: 'airfield' } : activeDev.current, onReady: () => {
       globalLoadingScreen?.finish();
       setReady(true);
       const playing = useShellStore.getState().screen === 'playing';
@@ -79,7 +114,7 @@ function GameShell() {
     createSession();
     const pause = () => { if (useShellStore.getState().screen === 'playing') navigate('pause'); };
     const pointer = () => { if (!document.pointerLockElement) pause(); };
-    const key = (event: KeyboardEvent) => { if (event.code === 'Escape') { event.preventDefault(); const current = useShellStore.getState(); if (current.screen === 'developer') navigate(current.returnTo); else pause(); } };
+    const key = (event: KeyboardEvent) => { if (event.code === 'Escape') { event.preventDefault(); const current = useShellStore.getState(); if (current.screen === 'tankSelect') navigate('home'); else if (current.screen === 'droneSelect') navigate('tankSelect'); else if (['developer', 'settings'].includes(current.screen)) navigate(current.returnTo); else if (['controls', 'credits'].includes(current.screen)) navigate('home'); else pause(); } };
     const visibility = () => { if (document.hidden) pause(); };
     document.addEventListener('pointerlockchange', pointer);
     document.addEventListener('visibilitychange', visibility);
@@ -109,10 +144,10 @@ function GameShell() {
     document.body.classList.toggle('shell-playing', screen === 'playing');
     session.current?.setPaused(screen !== 'playing');
     if (screen !== 'playing' && document.pointerLockElement) document.exitPointerLock();
-    heading.current?.focus();
+    if (screen === 'tankSelect' || screen === 'droneSelect') document.querySelector<HTMLButtonElement>('.loadout-card[aria-checked="true"]')?.focus(); else heading.current?.focus();
   }, [screen]);
   function play(restart = false) {
-    if (!useShellStore.getState().settings.devMode) { startDeveloper(PLAY_CONFIG); return; }
+    if (!useShellStore.getState().settings.devMode) { startDeveloper({ ...PLAY_CONFIG, tank: useShellStore.getState().settings.tank }); return; }
     const rebuild = restart || !!activeDev.current || session.current?.missionState !== 'briefing';
     if (rebuild) createSession(false);
     session.current?.setAttract(false);
@@ -145,16 +180,17 @@ function GameShell() {
     createSession(); navigate('missions');
   }
   function openSettings(returnTo: ShellScreen) { useShellStore.setState({ returnTo, screen: 'settings' }); }
-  const title = screen === 'home' ? t('campaign') : screen === 'briefing' ? t(selected.name) : screen === 'pause' ? t('paused') : screen === 'playing' || screen === 'result' ? '' : t(screen === 'missions' ? 'selectMission' : screen);
+  const title = screen === 'home' ? '' : screen === 'briefing' ? t(selected.name) : screen === 'pause' ? t('paused') : screen === 'playing' || screen === 'result' ? '' : t(screen === 'missions' ? 'selectMission' : screen);
   return <>
-    {screen === 'playing' ? <button className="pause-button" onClick={() => navigate('pause')} aria-label={t('paused')}>Esc · {t('paused')}</button> : <main className={`shell-layout shell-${screen}`}>
+    {screen === 'playing' ? <button className="pause-button" onClick={() => navigate('pause')} aria-label={t('paused')} title={t('paused')} dangerouslySetInnerHTML={{ __html: `${keyBadge('Esc')}${icon('pause')}` }}/> : <main className={`shell-layout shell-${screen}`}>
       <header className="shell-header flex items-center justify-between gap-4">
-        <button className="wordmark" onClick={() => { if (state.returnTo === 'pause' && (screen === 'settings' || screen === 'developer')) navigate('pause'); else goHome(); }}>{t('title')}</button>
+        <button className="wordmark" onClick={() => { if (state.returnTo === 'pause' && (screen === 'settings' || screen === 'developer')) navigate('pause'); else goHome(); }}><img src="./brand/ashfield-wordmark.webp" alt="ASHFIELD" width="1200" height="312"/></button>
         <div className="shell-header-tools">{screen === 'missions' && <button className="header-back" onClick={() => navigate('home')}>← {t('back')}</button>}<LanguageSwitch language={settings.language} onChange={language => updateSettings({ language })} /></div>
       </header>
       {screen === 'result' && teamResult ? <TeamResultScreen result={teamResult} onReplay={restartSession} onHome={goHome} /> : settings.devMode && screen === 'result' && state.result ? <ResultScreen result={state.result} onContinue={missionSelect} onReplay={() => play(true)} onMissionSelect={missionSelect} /> : <section className="shell-panel">
-        <h1 ref={heading} tabIndex={-1}>{title}</h1>
-        {screen === 'home' && <><p className="tagline">{t('tagline')}</p><nav className="main-navigation" aria-label={t('home')}><button className="primary" disabled={!settings.devMode && (!ready || failed)} onClick={() => settings.devMode ? navigate('missions') : startDeveloper(PLAY_CONFIG)}>{t(settings.devMode ? 'missions' : 'play')}<span aria-hidden="true">→</span></button>{settings.devMode && <button onClick={() => openDeveloper('home')}>{t('developer')}</button>}<button onClick={() => openSettings('home')}>{t('settings')}</button><button onClick={() => navigate('controls')}>{t('controls')}</button><button onClick={() => navigate('credits')}>{t('credits')}</button></nav></>}
+        <h1 ref={heading} tabIndex={-1} className={screen === 'home' ? 'home-title' : undefined}>{screen === 'home' ? <img src="./brand/ashfield-wordmark.webp" alt="ASHFIELD" width="1200" height="312"/> : title}</h1>
+        {(screen === 'tankSelect' || screen === 'droneSelect') && <LoadoutSelection key={screen} drone={screen === 'droneSelect'} settings={settings} onChange={updateSettings} ready={ready && !failed} onBack={() => navigate(screen === 'tankSelect' ? 'home' : 'tankSelect')} onNext={() => screen === 'tankSelect' ? navigate('droneSelect') : startDeveloper({ ...PLAY_CONFIG, tank: settings.tank })}/> }
+        {screen === 'home' && <><nav className="main-navigation" aria-label={t('home')}><button className="primary" disabled={!settings.devMode && (!ready || failed)} onClick={() => settings.devMode ? navigate('missions') : navigate('tankSelect')}>{t(settings.devMode ? 'missions' : 'play')}<span aria-hidden="true">→</span></button>{settings.devMode && <button onClick={() => openDeveloper('home')}>{t('developer')}</button>}<button onClick={() => openSettings('home')}>{t('settings')}</button><button onClick={() => navigate('controls')}>{t('controls')}</button><button onClick={() => navigate('credits')}>{t('credits')}</button></nav></>}
         {settings.devMode && screen === 'missions' && <div className="mission-workspace">
           <div className="mission-list">{MISSIONS.map((mission, index) => <button key={mission.id} className="mission-card" data-locked={!isMissionUnlocked(mission.id, progress)} aria-pressed={selected.id === mission.id} onClick={() => useShellStore.setState({ selected: mission.id })}>
             <span className="mission-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
@@ -178,12 +214,13 @@ function GameShell() {
           <label>{t('developerMode')}<input type="checkbox" checked={settings.devMode} onChange={e => updateSettings({ devMode: e.target.checked })} /></label>
           <label>{t('invertY')}<input type="checkbox" checked={settings.invertY} onChange={e => updateSettings({ invertY: e.target.checked })} /></label>
           <label>{t('volume')}<span><input type="range" min="0" max="1" step=".05" value={settings.volume} onChange={e => updateSettings({ volume: +e.target.value })} /><output>{Math.round(settings.volume * 100)}%</output></span></label>
-          <label>{t('quality')}<select value={settings.quality} onChange={e => updateSettings({ quality: e.target.value as typeof settings.quality })}>{(['low', 'medium', 'high'] as const).map(q => <option key={q} value={q}>{t(q)}</option>)}</select></label><p className="muted">{t('qualityHint')}</p><p className="muted">{t('saved')}</p>
+          <label>{t('difficulty')}<select value={settings.difficulty} onChange={e => updateSettings({ difficulty: e.target.value as typeof settings.difficulty })}>{(['easy', 'normal', 'hard'] as const).map(level => <option key={level} value={level}>{t(level)}</option>)}</select></label>
+          <label>{t('quality')}<select value={settings.quality} onChange={e => updateSettings({ quality: e.target.value as typeof settings.quality })}>{(['low', 'medium', 'high'] as const).map(q => <option key={q} value={q}>{t(q)}</option>)}</select></label>
         </div>}
         {screen === 'controls' && <ul className="control-list">{controlKeys.map(key => { const [binding, description] = t(key).split(' — '); return <li key={key}><kbd>{binding}</kbd><span>{description}</span></li>; })}</ul>}
         {screen === 'credits' && <div className="credits-copy"><p>{t('creditsIntro')}</p><ul>{(['originalCredit', 'natureCredit', 'vfxCredit', 'babylonCredit', 'fontCredit'] as const).map(key => <li key={key}>{t(key)}</li>)}<li><a href="./licenses/HAVOK.txt" target="_blank" rel="noreferrer">{t('havokCredit')}</a></li></ul></div>}
         {screen === 'pause' && <nav className="main-navigation"><button className="primary" onClick={resume}>{t('resume')}<span aria-hidden="true">→</span></button><button onClick={restartSession}>{t('restart')}</button>{settings.devMode && <button onClick={() => openDeveloper('pause')}>{t('developer')}</button>}<button onClick={() => openSettings('pause')}>{t('settings')}</button>{settings.devMode && <button onClick={missionSelect}>{t('selectMission')}</button>}<button onClick={goHome}>{t('home')}</button></nav>}
-        {!['home', 'pause', 'briefing', 'missions'].includes(screen) && <button className="back-button" onClick={() => navigate(screen === 'settings' || screen === 'developer' ? state.returnTo : screen === 'briefing' ? 'missions' : 'home')}>← {t('back')}</button>}
+        {!['home', 'pause', 'briefing', 'missions', 'tankSelect', 'droneSelect'].includes(screen) && <button className="back-button" onClick={() => navigate(screen === 'settings' || screen === 'developer' ? state.returnTo : screen === 'briefing' ? 'missions' : 'home')}>← {t('back')}</button>}
       </section>}
     </main>}
     {failed && <div className="shell-error" role="alert">{t('loadError')} <button onClick={() => createSession(screen !== 'playing', activeDev.current)}>{t('retry')}</button></div>}

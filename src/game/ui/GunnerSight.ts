@@ -1,6 +1,7 @@
 import { t } from '../i18n/index.ts';
 import { rangeVisible, type RangeSample, type SightMode } from '../aim/gunnerSightModel.ts';
 import './gunnerSight.css';
+import { icon, keyBadge } from './icons.ts';
 
 export interface GunnerSightState {
   active: boolean;
@@ -28,6 +29,8 @@ export class GunnerSight {
   private readonly help: HTMLElement;
   private readonly scale: SVGElement;
   private lastFov = -1;
+  private readonly rendered = new WeakMap<Element, string>();
+  private html(node: Element, markup: string) { if (this.rendered.get(node) !== markup) { this.rendered.set(node, markup); node.innerHTML = markup; } }
   constructor() {
     this.root.className = 'gunner-sight'; this.root.hidden = true;
     this.root.innerHTML = `<div class="gunner-sight__frame">
@@ -55,20 +58,21 @@ export class GunnerSight {
     this.root.hidden = !active;
     document.body.classList.toggle('gunner-sight-active', active);
     const visible = rangeVisible(sample, now);
-    const range = `${t('sightRange')} ${visible && sample?.meters !== null ? sample!.meters : '---'}${visible && sample?.meters !== null ? ` ${t('sightMeters')}` : ''}`;
+    const range = `${icon('range', t('sightRange'))}<span>${visible && sample?.meters !== null ? `${sample!.meters} m` : '---'}</span>`;
     this.normalRange.hidden = !enabled || active || !visible;
-    this.normalRange.textContent = range;
+    this.html(this.normalRange, range);
     if (!active) return;
     this.root.setAttribute('aria-label', t('sightLabel'));
-    this.mode.textContent = t(state.mode === 'DAY' ? 'sightDay' : state.mode === 'WHT' ? 'sightWhiteHot' : 'sightBlackHot');
+    this.html(this.mode, state.mode === 'DAY' ? icon('day', t('sightDay')) : `${icon('thermal', t(state.mode === 'WHT' ? 'sightWhiteHot' : 'sightBlackHot'))}<span>${state.mode === 'WHT' ? 'W' : 'B'}</span>`);
     this.zoom.textContent = `${state.magnification.toFixed(1)}×`;
-    this.ammo.textContent = `${t('sightAmmo')} ${state.reloadRemaining > 0 ? `${t('sightLoading')} ${state.reloadRemaining.toFixed(1)} ${t('sightSeconds')}` : t('sightReady')}`;
+    this.html(this.ammo, `${icon('shell', t('sightAmmo'))}${state.reloadRemaining > 0 ? `<span>${state.reloadRemaining.toFixed(1)} ${t('sightSeconds')}</span>` : icon('ready', t('sightReady'))}`);
     this.ammo.classList.toggle('is-loading', state.reloadRemaining > 0);
-    this.range.textContent = range;
-    this.azimuth.textContent = `${t('sightAzimuth')} ${state.azimuth}`;
-    this.status.textContent = t(state.blocked ? 'sightObstructed' : 'sightManual');
+    this.html(this.range, range);
+    this.html(this.azimuth, `${icon('heading', t('sightAzimuth'))}<span>${state.azimuth}</span>`);
+    this.html(this.status, state.blocked ? icon('blocked', t('sightObstructed')) : '');
     this.status.classList.toggle('is-obstructed', state.blocked);
-    this.help.textContent = t('sightControls');
+    this.html(this.help, `<span class="hud-chip">${keyBadge('T')}${icon('eye')}</span><span class="hud-chip">${keyBadge('L')}${icon('laser')}</span><span class="hud-chip">${icon('mouse')}${icon('zoom')}</span>`);
+    this.help.setAttribute('aria-label', t('sightControls'));
     if (Math.abs(state.fov - this.lastFov) > 0.0001) {
       this.lastFov = state.fov;
       let lines = '';

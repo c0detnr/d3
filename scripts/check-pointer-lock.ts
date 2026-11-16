@@ -4,7 +4,8 @@ import { CombatInput } from '../src/game/input/CombatInput.ts';
 import { bindDriveKeys } from '../src/game/input/DriveInput.ts';
 class Surface extends EventTarget {
   hidden = false;
-  textContent = '';
+  textContent = ''; innerHTML = ''; title = ''; dataset: Record<string, string> = {};
+  setAttribute() {}
   removed = false;
   closest() { return null; }
   focus() {}
@@ -57,7 +58,7 @@ win.dispatchEvent(new Event('blur')); assert.equal(lock.active, false, 'blur rel
 prompt.dispatchEvent(new Event('click')); doc.hidden = true; doc.dispatchEvent(new Event('visibilitychange')); assert.equal(lock.active, false);
 doc.hidden = false; prompt.dispatchEvent(new Event('click')); doc.exitPointerLock(); assert.equal(lock.active, false, 'browser initiated exit clears input');
 canvas.requestPointerLock = () => { throw Error('denied'); };
-prompt.dispatchEvent(new Event('click')); assert.match(prompt.textContent, /KİLİTLENEMEDİ/);
+prompt.dispatchEvent(new Event('click')); assert.equal(prompt.dataset.failed, 'true');
 lock.dispose(); combat.dispose(); keys.dispose(); assert.equal(prompt.removed, true);
 const mobile = new GamePointerLock(canvas as unknown as HTMLCanvasElement, () => assert.fail('mobile cleared'), () => true, false);
 assert.equal(mobile.active, true); mobile.dispose();

@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "docs/brand/banners/banner.html"
+        ],
+        "createdAt": "2026-11-15T19:32:17.411Z",
+        "reason": "Claude: white headline has thick dark-olive text-stroke and solid shadow; body text sits on white 72% pill; static check cannot see stroke/pill"
+      }
+    ]
+  }
+}

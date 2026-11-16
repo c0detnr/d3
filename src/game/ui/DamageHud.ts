@@ -4,6 +4,9 @@ import './hudTokens.css';
 import './tacticalHud.css';
 import './damageHud.css';
 import { acquireVehiclePanel } from './tacticalHudModel.ts';
+import { icon, srText, type IconName } from './icons.ts';
+
+const moduleName = (module: DamageModule) => t(module === 'engine' ? 'engineModule' : module === 'turret' ? 'turretModule' : module);
 
 /** HUD only: receives authoritative damage, never infers it from an animation. */
 export class DamageHud {
@@ -29,7 +32,7 @@ export class DamageHud {
     this.element.className = 'damage-hud';
     this.element.innerHTML = `<div class="damage-pulse" aria-hidden="true"></div>
       <div class="damage-bearings" aria-hidden="true"></div>
-      <div class="damage-confirm" role="status" aria-live="polite"><span class="damage-hitmark" aria-hidden="true">╳</span><span></span></div>
+      <div class="damage-confirm" role="status" aria-live="polite"><span class="damage-hitmark" aria-hidden="true">${icon('hit')}</span><span></span></div>
       `;
     this.vehicle = acquireVehiclePanel('damage', vehicleMarkup);
     this.vehicle.element.setAttribute('aria-label', t('vehicleDirection'));
@@ -48,25 +51,34 @@ export class DamageHud {
     if (state.hp === 0 || state.hp > 25) this.criticalLife = 0;
     this.lastHp = state.hp; this.lastModules = key;
     this.health.value = state.hp;
-    this.readout.textContent = `${t('hudHull')} ${state.hp}`;
+    this.readout.innerHTML = `${icon('hull', t('hullIntegrity'))}<span>${state.hp}</span>`;
     this.element.dataset.condition = state.hp === 0 ? 'destroyed' : state.hp <= 25 ? 'critical' : 'normal';
     this.vehicle.element.dataset.condition = this.element.dataset.condition;
     const issues: string[] = [];
+    const chips: string[] = [];
     for (const module of MODULES) {
       const hp = state.modules[module];
       this.parts[module].setAttribute('class', hp === 0 ? 'module-disabled' : hp < 100 ? 'module-damaged' : 'module-ok');
-      this.parts[module].setAttribute('aria-label', `${t(module === 'engine' ? 'engineModule' : module === 'turret' ? 'turretModule' : module)}: ${hp === 0 ? t('disabled') : hp < 100 ? t('damaged') : t('intact')}`);
+      this.parts[module].setAttribute('aria-label', `${moduleName(module)}: ${hp === 0 ? t('disabled') : hp < 100 ? t('damaged') : t('intact')}`);
       const repair = Math.ceil(state.repair[module]);
-      if (hp < 100) issues.push(`${t(module === 'engine' ? 'engineModule' : module === 'turret' ? 'turretModule' : module)} ${hp === 0 ? `${t('disabled')} · ${t('repairing')} ${repair} ${t('seconds')}` : t('damaged')}`);
+      if (hp >= 100) continue;
+      issues.push(`${moduleName(module)} ${hp === 0 ? `${t('disabled')} · ${t('repairing')} ${repair} ${t('seconds')}` : t('damaged')}`);
+      chips.push(`<span class="hud-chip" data-state="${hp === 0 ? 'disabled' : 'damaged'}">${icon(module as IconName)}${hp === 0 ? `${icon('repair')}<span>${repair}${t('seconds')}</span>` : ''}</span>`);
     }
-    if (state.fire > 0) issues.unshift(t('engineFire'));
+    if (state.fire > 0) { issues.unshift(t('engineFire')); chips.unshift(`<span class="hud-chip" data-state="fire">${icon('fire')}</span>`); }
     this.element.dataset.fire = String(state.fire > 0 && state.hp > 0);
-    if (this.noticeLife <= 0 || state.hp === 0) this.notice.textContent = state.hp === 0 ? t('vehicleDestroyed') : issues.join(' · ') || t('systemsOk');
+    if (this.noticeLife <= 0 || state.hp === 0) this.setNotice(state.hp === 0 ? `<span class="hud-chip" data-state="disabled">${icon('destroyed')}</span>` : chips.join(''), state.hp === 0 ? t('vehicleDestroyed') : issues.join(' · ') || t('systemsOk'));
+  }
+  private setNotice(markup: string, text: string) {
+    this.notice.innerHTML = markup + srText(text);
+    this.notice.title = text;
   }
   outgoing(module: DamageModule | null, disabled: boolean, destroyed: boolean, penetrated = true) {
     this.confirm.dataset.kind = destroyed ? 'destroyed' : penetrated ? 'hit' : 'blocked';
-    this.confirm.querySelector('span:last-child')!.textContent = destroyed ? t('targetDestroyed')
-      : !penetrated ? t('notPenetrated') : module ? `${t(module === 'engine' ? 'engineModule' : module === 'turret' ? 'turretModule' : module).toLocaleUpperCase()} ${disabled ? t('disabled').toLocaleUpperCase() : t('damaged').toLocaleUpperCase()}` : t('effectiveHit');
+    const text = destroyed ? t('targetDestroyed')
+      : !penetrated ? t('notPenetrated') : module ? `${moduleName(module).toLocaleUpperCase()} ${disabled ? t('disabled').toLocaleUpperCase() : t('damaged').toLocaleUpperCase()}` : t('effectiveHit');
+    const glyph = destroyed ? icon('destroyed') : !penetrated ? icon('blocked') : module ? `${icon(module as IconName)}${disabled ? icon('destroyed', undefined, 'hud-icon-small') : ''}` : '';
+    this.confirm.querySelector('span:last-child')!.innerHTML = `<span class="hud-chip">${glyph}</span>${srText(text)}`;
     this.confirmLife = destroyed ? 3 : 1.5;
   }
   incoming(angle: number, module: DamageModule | null, disabled: boolean, severe: boolean) {
@@ -80,7 +92,8 @@ export class DamageHud {
     this.pulseSpan = severe ? 0.6 : 0.3; this.pulsePeak = severe ? 0.28 : 0.12;
     this.pulseLife = this.pulseSpan;
     this.noticeLife = this.lastHp === 0 ? 0 : 2.5;
-    this.notice.textContent = this.lastHp === 0 ? t('vehicleDestroyed') : module ? `${t(module === 'engine' ? 'engineModule' : module === 'turret' ? 'turretModule' : module)} ${disabled ? t('disabled') : t('damageTaken')}` : t('hullDamaged');
+    this.setNotice(`<span class="hud-chip" data-state="${this.lastHp === 0 || disabled ? 'disabled' : 'damaged'}">${this.lastHp === 0 ? icon('destroyed') : `${icon('hit')}${module ? icon(module as IconName) : icon('hull')}`}</span>`,
+      this.lastHp === 0 ? t('vehicleDestroyed') : module ? `${moduleName(module)} ${disabled ? t('disabled') : t('damageTaken')}` : t('hullDamaged'));
   }
   update(dt: number, cameraYaw: number) {
     this.criticalLife = Math.max(0, this.criticalLife - dt);
@@ -121,8 +134,8 @@ export function vehicleMarkup() {
       <path data-module="engine" d="M41 95h38v18H41Z"/>
       <g class="hud-turret"><path data-module="turret" d="m45 52 15-6 15 6 4 26-8 10H49L41 78Z"/><path d="M57 49V8h6v41"/><circle cx="60" cy="68" r="7"/></g>
     </g></svg>
-    <div class="hud-speed"><output>0</output><span>${t('kmh')}</span><small class="hud-drive">${t('hudNeutral')}</small></div>
-    <div class="condition-data"><strong class="condition-value">${t('hudHull')} 100</strong>
+    <div class="hud-speed"><output>0</output><span>${t('kmh')}</span><small class="hud-drive">${icon('neutral', t('hudNeutral'))}</small></div>
+    <div class="condition-data"><strong class="condition-value">${icon('hull', t('hullIntegrity'))}<span>100</span></strong>
       <progress class="condition-health" max="100" value="100" aria-label="${t('hullIntegrity')}"></progress>
-      <span class="condition-notice" role="status" aria-live="polite">${t('systemsOk')}</span></div>`;
+      <span class="condition-notice" role="status" aria-live="polite">${srText(t('systemsOk'))}</span></div>`;
 }

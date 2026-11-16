@@ -69,7 +69,7 @@ import { FollowCamera } from './game/camera/FollowCamera.ts';
 import { CombatAudio } from './game/audio/CombatAudio.ts';
 import { impactSurface } from './game/combat/ImpactSurface.ts';
 import { AudioSystem } from './game/audio/AudioSystem.ts';
-import { IRON_DUST_AUDIO } from './game/audio/AudioDefinition.ts';
+import { IRON_DUST_AUDIO, type TankAudioId } from './game/audio/AudioDefinition.ts';
 import { VehicleAudio } from './game/audio/VehicleAudio.ts';
 import type { VehicleAudioSnapshot } from './game/audio/VehicleAudioModel.ts';
 import { WeaponSystem } from './game/combat/WeaponSystem.ts';
@@ -108,7 +108,7 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const HIT_SHAKE = 5, DESTROYED_SHAKE = 9; // camera shake relative to a cannon shot
 const HIT_IMPULSE_SCALE = 0.6; // incoming shell momentum relative to the cannon recoil impulse
 
-const dev = settings.devMode ? options.dev : PLAY_CONFIG;
+const dev = settings.devMode ? options.dev : options.shell && options.dev ? options.dev : { ...PLAY_CONFIG, tank: settings.tank };
 const teamDuelMode = dev ? (dev.map === 'kul' && dev.mode === '5v5' || dev.map === 'set' && dev.mode === '3v3') : !options.shell && ['5v5', '3v3'].includes(new URLSearchParams(location.search).get('duel') ?? '');
 const kulVadisi = dev ? dev.map === 'kul' : !options.shell && (new URLSearchParams(location.search).get('duel') === '5v5' || new URLSearchParams(location.search).get('map') === 'kul');
 const kulTeam = dev ? dev.mode === '3v3' ? 'A' : dev.base : new URLSearchParams(location.search).get('base') === 'B' ? 'B' : 'A';
@@ -335,6 +335,19 @@ function updateCombatHud() {
 function hitShake(direction: Vector3, destroyed: boolean) {
   if (!reducedMotion.matches) followCamera.impulse(direction, destroyed ? DESTROYED_SHAKE : HIT_SHAKE);
 }
+/** Cannon voice of the player's tank; bots always drive the other model. */
+const playerCannonAudio: TankAudioId = secondTank ? '02' : '01';
+const enemyCannonAudio: TankAudioId = secondTank ? '01' : '02';
+/** Bot cannon shot: muzzle effects (ground dust over terrain) and the firing tank's report, delayed and muffled by distance. */
+function remoteCannonShot(origin: Vector3, direction: Vector3, tankId: TankAudioId) {
+  const ground = scene.getPhysicsEngine()?.raycast(origin, origin.add(new Vector3(0, -4.5, 0)));
+  combatEffects!.muzzleFlash(origin, direction, ground?.hasHit && ground.body?.transformNode.name === 'natural-terrain'
+    ? { point: ground.hitPointWorld.clone(), normal: ground.hitNormalWorld.clone() } : undefined);
+  if (audio.muted) return;
+  const offset = origin.subtract(followCamera.camera.position);
+  const right = Vector3.Cross(Vector3.Up(), followCamera.direction).normalize();
+  combatAudio?.shot(tankId, offset.length(), Vector3.Dot(offset.normalizeToNew(), right));
+}
 function teamImpact(event: TeamImpact) {
   if (fpv?.intercept(event.hit)) return;
   if (laneDrones?.hit(event.hit, event.shooter.team, 25)) return;
@@ -538,11 +551,9 @@ async function start() {
     };
     teamDuel.blocksSight = (from, to) => smokeSupply!.model.blocksSight(from, to);
     teamDuel.onImpact = teamImpact;
-    teamDuel.onShot = (origin, direction) => {
-      combatEffects!.muzzleFlash(origin, direction);
-      if (!audio.muted) combatAudio?.shot();
-    };
+    teamDuel.onShot = (origin, direction) => remoteCannonShot(origin, direction, enemyCannonAudio);
     await teamDuel.load(secondTank ? tankUrl : secondTankUrl);
+    teamDuel.setDifficulty(settings.difficulty);
     if (disposed) { teamDuel.dispose(); return; }
     for (const bot of teamDuel.bots) bot.actor.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh));
     teamDuelHud = new TeamDuelHud(teamDuel, reset);
@@ -604,7 +615,7 @@ async function start() {
         oscillator.connect(gain); gain.connect(output); oscillator.start(); oscillator.stop(context.currentTime + .22);
         oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
       },
-      onShot: (origin, direction) => { combatEffects!.muzzleFlash(origin, direction); if (!audio.muted) combatAudio?.shot(); },
+      onShot: (origin, direction) => remoteCannonShot(origin, direction, '02'),
       onEnemyHit: (hit, destroyed, penetrated) => {
         combatEffects!.armorImpact(hit.point, hit.normal, penetrated);
         if (destroyed) combatEffects!.destruction(hit.point);
@@ -624,7 +635,7 @@ async function start() {
     mission.scouts.forEach(scout => scout.actor.tank.assets.meshes.filter(mesh => mesh.isVisible).forEach(mesh => shadows.addShadowCaster(mesh)));
     if (missionRequested) mission.start();
   }
-  fpv = new FpvDrone({ scene, canvas,
+  fpv = new FpvDrone({ scene, canvas, initialMode: settings.droneMode,
     jammers: kulVadisi ? KUL_JAMMERS.map(p => ({ ...p, y: mapHeight(p.x, p.z) + p.y })) : [],
     ready: () => !!vehicle && !paused && !attract && !resultView && !freeCamera.active && !teamDuel?.finished && !studio,
     controlsEnabled: () => !paused && pointerLock.active,
@@ -794,7 +805,7 @@ async function start() {
               ? { point: ground.hitPointWorld.clone(), normal: ground.hitNormalWorld.clone() } : undefined);
           followCamera.impulse(shot.direction);
           vehicle!.body.applyImpulse(shot.direction.scale(-SHOT_FEEDBACK.hullImpulse), turret!.pitchPivot.getAbsolutePosition());
-          if (!audio.muted) combatAudio?.shot();
+          if (!audio.muted) combatAudio?.shot(playerCannonAudio);
           lastCombatResult = t('shotFlying'); combatResultTime = 3;
         } else {
           lastCombatResult = t('reloadOngoing'); combatResultTime = 1;
@@ -808,8 +819,7 @@ async function start() {
           if (shot) {
             opponentProjectiles.spawn(shot.origin, shot.direction, IRON_DUST_01_WEAPON.ammo.muzzleVelocity);
             opponentAI.shotFired();
-            combatEffects!.muzzleFlash(shot.origin, shot.direction);
-            if (!audio.muted) combatAudio?.shot();
+            remoteCannonShot(shot.origin, shot.direction, enemyCannonAudio);
           }
         }
       }
@@ -850,7 +860,7 @@ async function start() {
         const right = Vector3.Cross(Vector3.Up(), followCamera.direction).normalize();
         const pan = Vector3.Dot(offset.normalizeToNew(), right);
         if (tankHit || armor) {
-          combatEffects!.armorImpact(hit.point, hit.normal, !!penetrated);
+          combatEffects!.armorImpact(hit.point, hit.normal, !!penetrated, shell.velocity);
           const module = tankHit ? tankDamageRegion(opponent!, hit.point) : null;
           const applied = tankHit && !glanced && applyDamage(opponent!.damage, module, tankHitFacing(opponent!, hit.point));
           const destroyed = !!applied && opponent!.damage.hp === 0;
@@ -873,7 +883,7 @@ async function start() {
           combatEffects!.impact(hit.point, hit.normal, impactSurface(hit.body)); return;
         }
         if (ricochets(shell.velocity, hit.normal)) {
-          combatEffects!.armorImpact(hit.point, hit.normal, false);
+          combatEffects!.armorImpact(hit.point, hit.normal, false, shell.velocity);
           if (!audio.muted) combatAudio?.armorHit(false, Vector3.Distance(hit.point, followCamera.camera.position), 0, false);
           lastCombatResult = t('shellRicochet'); combatResultTime = 4;
           return;
@@ -1037,6 +1047,7 @@ window.addEventListener('pagehide', dispose, { once: true });
 
 function applySettings(value: Settings) {
   settings = value;
+  teamDuel?.setDifficulty(value.difficulty);
   audio.setVolume(value.volume);
   const level = value.quality;
   engine.setHardwareScalingLevel(level === 'low' ? 1.6 : level === 'medium' ? 1.2 : 1);
@@ -1066,8 +1077,15 @@ return {
   dispose, applySettings,
   startMission() { missionRequested = true; if (mission?.director.state === 'briefing') mission.start(); },
   ...(import.meta.env.DEV ? { missionTest: {
+    loadout: () => ({ tank: secondTank ? '02' : '01', droneMode: fpv?.flight.mode, attract, position: vehicle?.node.position.asArray() }),
     team: () => teamDuel?.rules ? { score: teamDuel.rules.score, elapsed: teamDuel.rules.elapsed, result: teamDuel.result,
       members: teamDuel.members.map((m, i) => ({ hp: m.damage.hp, ...teamDuel!.rules!.members[i] })) } : undefined,
+    inspectAI: (index = 0) => {
+      const center = teamDuel?.bots[index]?.actor.vehicle.node.position;
+      if (!center) return;
+      followCamera.overview(); followCamera.camera.position.copyFrom(center.add(new Vector3(42, 65, -48))); followCamera.camera.setTarget(center);
+    },
+    ai: () => teamDuel?.bots.map(b => ({ team: b.member.team, slot: b.slot, state: b.ai.state, visible: b.visible, position: b.actor.vehicle.node.position.asArray(), hp: b.member.damage.hp, shots: b.actor.weapon.shotsFired, drive: b.state?.drive, path: b.context.navigation?.path.length })),
     teamHit: (victim = 0, shooter = 3) => {
       if (!teamDuel) return;
       const member = teamDuel.members[victim];

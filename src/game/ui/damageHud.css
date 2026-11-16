@@ -8,21 +8,26 @@
 .hud-vehicle .module-damaged { fill: rgb(230 177 100 / 22%); stroke: var(--hud-amber); stroke-dasharray: 3 2; }
 .hud-vehicle .module-disabled { fill: rgb(241 107 97 / 35%); stroke: var(--hud-danger); stroke-width: 2; stroke-dasharray: 2 2; }
 .condition-data { min-width: 0; display: grid; gap: 6px; }
-.condition-value { font-size: 18px; font-weight: 600; line-height: 1; }
+.condition-value { display: flex; align-items: center; gap: 6px; font: 600 24px/1 var(--hud-font); }
+.condition-value .hud-icon { color: var(--hud-amber); }
 .condition-health { display: block; width: 100%; height: 2px; border: none; background: var(--hud-line); accent-color: var(--hud-fg); appearance: none; }
 .condition-health::-webkit-progress-bar { background: var(--hud-line); }
-.condition-health::-webkit-progress-value { background: var(--hud-fg); }
-.condition-health::-moz-progress-bar { background: var(--hud-fg); }
-.condition-notice { color: var(--hud-muted); font-size: 10px; overflow-wrap: anywhere; }
+.condition-health::-webkit-progress-value { background: var(--hud-amber); }
+.condition-health::-moz-progress-bar { background: var(--hud-amber); }
+.condition-notice { display: flex; flex-wrap: wrap; gap: 6px 10px; min-height: 22px; font-size: 13px; }
+.condition-notice .hud-icon { width: 20px; height: 20px; }
+.condition-notice [data-state='damaged'] { color: var(--hud-amber); }
+.condition-notice [data-state='disabled'], .condition-notice [data-state='fire'] { color: var(--hud-danger); }
 .hud-vehicle[data-condition='critical'] .condition-value, .hud-vehicle[data-condition='destroyed'] .condition-value { color: var(--hud-danger); }
 .damage-bearings { position: absolute; width: 240px; height: 240px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 .damage-bearing { position: absolute; inset: 0; }
 .damage-bearing svg { width: 100%; height: 100%; overflow: visible; }
 .damage-bearing path { fill: none; stroke: var(--hud-amber); stroke-width: 2; stroke-dasharray: 8 4; stroke-linecap: butt; filter: drop-shadow(0 1px 3px #080a09); }
 .damage-bearing[data-severe='true'] path { stroke: var(--hud-danger); stroke-width: 3; }
-.damage-confirm { position: absolute; left: 50%; top: calc(50% + 70px); transform: translateX(-50%); display: grid; justify-items: center; gap: 6px; opacity: 0; color: var(--hud-fg); font-size: 10px; letter-spacing: .13em; text-shadow: 0 2px 4px #000; text-align: center; max-width: 80vw; }
-.damage-hitmark { font: 23px/1 var(--hud-font); }
+.damage-confirm { position: absolute; left: 50%; top: calc(50% + 70px); transform: translateX(-50%); display: grid; justify-items: center; gap: 6px; opacity: 0; color: var(--hud-fg); font-size: 22px; letter-spacing: .13em; text-shadow: 0 2px 4px #000; text-align: center; max-width: 80vw; }
+.damage-hitmark { font-size: 26px; line-height: 0; }
+.damage-confirm .hud-icon-small { width: .8em; height: .8em; color: var(--hud-danger); }
 .damage-confirm[data-kind='blocked'] { color: var(--hud-amber); }
 .damage-confirm[data-kind='destroyed'] { color: var(--hud-danger); }
-@media (max-width: 600px) { .condition-value { font-size: 14px; } .condition-notice { font-size: 9px; } }
+@media (max-width: 600px) { .condition-value { font-size: 16px; } .condition-notice { font-size: 11px; } }
 @media (prefers-reduced-motion: reduce) { .damage-pulse, .damage-hud::before { display: none; } }

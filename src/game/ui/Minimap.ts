@@ -3,6 +3,7 @@ import { t } from '../i18n/index.ts';
 import { MinimapContacts, worldToMinimap, type MapPosition } from './minimapModel.ts';
 import './hudTokens.css';
 import './minimap.css';
+import { icon, keyBadge } from './icons.ts';
 interface Pose extends MapPosition { yaw: number }
 interface Contact { id: string; position: MapPosition; friend: boolean; visible: boolean }
 export interface MinimapState {
@@ -121,7 +122,8 @@ export class Minimap {
     ctx.beginPath(); ctx.moveTo(-23, -58); ctx.lineTo(0, 0); ctx.lineTo(23, -58); ctx.stroke(); ctx.restore();
     arrow(state.tank, this.colors.fg); if (state.drone) arrow(state.drone, this.colors.friend);
     this.element.setAttribute('aria-label', t('minimap')); this.north.textContent = t('north');
-    this.zoom.textContent = t('minimapZoom'); this.zoom.setAttribute('aria-label', t('minimapZoomLabel'));
+    if (!this.zoom.firstChild) this.zoom.innerHTML = `${keyBadge('M')}${icon('zoom')}`;
+    this.zoom.setAttribute('aria-label', t('minimapZoomLabel')); this.zoom.title = t('minimapZoomLabel');
     this.scale.style.width = `${100 / this.span * 100}%`; this.scale.textContent = t('minimapScale');
   }
   reset() { this.contacts.clear(); this.lastDraw = -Infinity; }

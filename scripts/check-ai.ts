@@ -21,14 +21,14 @@ const createActor = (x: number, z: number, yaw = 0, speed = 0) => {
 function testStuckRecovery() {
   const ai = new EasyDuelAI();
   const self = createActor(0, 0);
-  const target = createActor(0, 80);
+  const target = createActor(0, 140);
 
   // Tank is driving towards target but blocked by an obstacle right in front.
   const dt = 1 / 60;
   let recoveredInSeconds: number | null = null;
   let phaseTurnSeen = false;
 
-  for (let frame = 0; frame < 180; frame++) {
+  for (let frame = 0; frame < 360; frame++) {
     const elapsed = frame * dt;
     // self stays at (0, 0) because obstacle stops it
     const decision = ai.update(self, target, true, dt);
@@ -42,8 +42,8 @@ function testStuckRecovery() {
 
   assert.ok(recoveredInSeconds !== null, 'Stuck detection must trigger recovery');
   assert.ok(
-    recoveredInSeconds <= 1.5,
-    `Stuck recovery triggered in ${recoveredInSeconds.toFixed(2)}s (expected <= 1.5s)`,
+    recoveredInSeconds <= EASY_AI_CONFIG.stuck.detectTime + .1,
+    `Stuck recovery triggered in ${recoveredInSeconds.toFixed(2)}s (expected configured last-resort delay)`,
   );
   assert.ok(phaseTurnSeen, 'Recovery transitions to bypass/turn maneuver to clear obstacle');
   console.log(`PASS: Stuck recovery detected and reversed in ${recoveredInSeconds.toFixed(2)}s, followed by clearance maneuver.`);
@@ -175,7 +175,8 @@ function testDamageReaction() {
 
   const decision = ai.update(self, target, true, 0.1);
   assert.ok(decision.drive.throttle < 0, 'Must reverse when taking damage');
-  assert.notEqual(decision.drive.steer, 0, 'Must angle hull/steer while falling back');
+  assert.equal(ai.state, 'cover', 'Damage requests shelter rather than a timed blind turn');
+  assert.ok(Math.abs(decision.drive.steer) < 1e-10, 'Keep frontal armour facing the known threat while reversing');
 
   console.log('PASS: Damage reaction triggers defensive reverse and hull angulation.');
 }

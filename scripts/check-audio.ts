@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { createCannonBlast } from '../src/game/audio/cannonBlast.ts';
 import { CombatAudio } from '../src/game/audio/CombatAudio.ts';
-import { IRON_DUST_AUDIO } from '../src/game/audio/AudioDefinition.ts';
+import { CANNON_AUDIO, COMBAT_AUDIO_DISTANCE, combatDistanceCue, IRON_DUST_AUDIO } from '../src/game/audio/AudioDefinition.ts';
+import { createImpactSound, IMPACT_SOUND_KINDS } from '../src/game/audio/impactSound.ts';
 import { AudioSystem } from '../src/game/audio/AudioSystem.ts';
 import { VehicleAudio } from '../src/game/audio/VehicleAudio.ts';
 import { resolveVehicleAudio, VehicleAudioModel, type VehicleAudioSnapshot } from '../src/game/audio/VehicleAudioModel.ts';
@@ -117,7 +118,7 @@ const fakeContext = () => {
     createStereoPanner() { counters.created++; return node({ pan: param() }); },
     createBuffer(channels: number, length: number, sampleRate: number) {
       const data = Array.from({ length: channels }, () => new Float32Array(length));
-      return { getChannelData: (channel: number) => data[channel], length, sampleRate };
+      return { getChannelData: (channel: number) => data[channel], length, sampleRate, numberOfChannels: channels };
     },
     suspend() { counters.suspends++; context.state = 'suspended'; return Promise.resolve(); },
     resume() { counters.resumes++; context.state = 'running'; return Promise.resolve(); },
@@ -148,7 +149,9 @@ for (let cycle = 0; cycle < 3; cycle++) {
   combat.shot(); assert.equal(combat.activeVoices, 1);
   combat.reload(); assert.equal(combat.activeVoices, 3);
   combat.impact('soil', 50, 0); combat.impact('concrete', 150, -1); combat.impact('metal', 300, 1);
-  for (let i = 0; i < 100; i++) combat.shot();
+  for (let i = 0; i < 100; i++) combat.shot(i % 2 ? '02' : '01', i * 7, (i % 3) - 1);
+  assert.equal(combat.activeShots, COMBAT_AUDIO_DISTANCE.maxShots, 'concurrent cannon reports bounded');
+  for (let i = 0; i < 40; i++) combat.impact('soil', i, 0);
   assert.equal(combat.activeVoices, combat.capacity, 'combat voices bounded');
   combat.reset(); assert.equal(combat.activeVoices, 0);
   combat.damageAmbience(25, 0, 5, 1); combat.damageAmbience(0, 0, 5, -1);
@@ -168,21 +171,48 @@ assert.equal(fake.counters.closed, true, 'AudioContext kapatılmalı');
 
 console.log('Ses kontrolleri geçti: eşleme sınırları, palet hızı/yön/dönüş, hava, model sıfırlama, ses grafiği kur/kapat ve kaynak temizliği.');
 
+const lowShare = (data: Float32Array, rate: number, hz: number, seconds: number) => {
+  // Two-pole low-pass energy share over the loud part of the report.
+  const a = 1 - Math.exp(-2 * Math.PI * hz / rate); let first = 0, second = 0, low = 0, all = 0;
+  for (let i = 0; i < Math.min(data.length, rate * seconds); i++) {
+    first += (data[i] - first) * a; second += (first - second) * a; low += second * second; all += data[i] * data[i];
+  }
+  return low / all;
+};
 for (const rate of [44100, 48000]) {
   const ctx = fakeContext().context;
   Object.defineProperty(ctx, 'sampleRate', { value: rate });
-  const buffer = createCannonBlast(ctx, 7153);
-  const left = buffer.getChannelData(0), right = buffer.getChannelData(1);
-  assert.equal(left.length, Math.ceil(rate * 1.65));
-  assert.notDeepEqual(left.slice(2000, 2200), right.slice(2000, 2200), 'diffuse stereo channels');
-  const rms = (a: number, b: number) => {
-    const samples = left.slice(Math.floor(a * rate), Math.floor(b * rate));
-    return Math.sqrt(samples.reduce((sum, n) => sum + n * n, 0) / samples.length);
-  };
-  assert.ok(rms(0, 0.1) > rms(0.3, 0.5) * 2, 'sharp report has a quieter decay');
-  assert.ok(rms(0.3, 0.5) > rms(1.4, 1.6) * 10, 'tail settles');
-  assert.ok(left.every(n => Number.isFinite(n) && Math.abs(n) <= 0.881), 'finite unclipped waveform');
-  assert.ok(Math.abs(left.reduce((sum, n) => sum + n, 0) / left.length) < 0.001, 'no DC offset');
-  assert.ok(Math.abs(left[left.length - 1]) < 0.0001, 'no truncated tail click');
+  const tails: Record<string, number> = {};
+  for (const id of ['01', '02'] as const) {
+    const profile = CANNON_AUDIO[id];
+    const buffer = createCannonBlast(ctx, 7153, profile);
+    const left = buffer.getChannelData(0), right = buffer.getChannelData(1);
+    assert.equal(left.length, Math.ceil(rate * profile.seconds));
+    assert.notDeepEqual(left.slice(2000, 2200), right.slice(2000, 2200), 'diffuse stereo channels');
+    const rms = (a: number, b: number) => {
+      const samples = left.slice(Math.floor(a * rate), Math.floor(b * rate));
+      return Math.sqrt(samples.reduce((sum, n) => sum + n * n, 0) / samples.length);
+    };
+    assert.ok(rms(0, 0.1) > rms(0.3, 0.5) * 2, 'sharp report has a quieter decay');
+    assert.ok(rms(0.5, 1) > rms(0, 0.1) * 0.01, `${id}: rumble tail lasts beyond 0.5 s, not a short click`);
+    assert.ok(rms(0.3, 0.5) > rms(profile.seconds - 0.2, profile.seconds) * 10, 'tail settles');
+    assert.ok(lowShare(left, rate, 120, 0.6) > 0.4, `${id}: low-frequency body dominates the report`);
+    assert.ok(left.every(n => Number.isFinite(n) && Math.abs(n) <= 0.891), 'finite unclipped waveform');
+    assert.ok(Math.abs(left.reduce((sum, n) => sum + n, 0) / left.length) < 0.001, 'no DC offset');
+    assert.ok(Math.abs(left[left.length - 1]) < 0.0001, 'no truncated tail click');
+    tails[id] = rms(0.8, 1.2) / rms(0, 0.1);
+  }
+  assert.ok(tails['02'] > tails['01'] * 1.5, 'heavy 02 report has the longer rolling tail');
+  for (const kind of IMPACT_SOUND_KINDS) {
+    const data = createImpactSound(ctx, kind, 4242).getChannelData(0);
+    assert.ok(data.every(n => Number.isFinite(n) && Math.abs(n) <= 0.891), `${kind}: finite unclipped impact`);
+    assert.ok(Math.abs(data[data.length - 1]) < 0.0001, `${kind}: no truncated tail click`);
+  }
 }
-console.log('Cannon audio: stereo waveform, report/decay balance, unclipped peak, DC and tail at 44.1/48 kHz passed.');
+const near = combatDistanceCue(0), mid = combatDistanceCue(150), far = combatDistanceCue(2000);
+assert.equal(near.delay, 0); assert.ok(near.cutoff > 17000, 'own shot is full band');
+assert.ok(mid.cutoff < near.cutoff && far.cutoff < mid.cutoff, 'distant reports are muffled');
+assert.ok(Math.abs(mid.delay - 150 / 343) < 1e-9 && far.delay === COMBAT_AUDIO_DISTANCE.maxDelay, 'speed-of-sound delay is capped');
+assert.ok(far.attenuation < mid.attenuation && mid.attenuation < near.attenuation);
+assert.ok(Number.isFinite(combatDistanceCue(NaN).cutoff));
+console.log('Cannon audio: 01/02 profiles, low-frequency body, rumble tail, unclipped peak, DC/tail, impact buffers and distance cues at 44.1/48 kHz passed.');

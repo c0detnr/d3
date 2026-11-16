@@ -38,7 +38,7 @@ interface CombatParticle {
   floor: number;
 }
 export interface BlastGround { point: Vector3; normal: Vector3 }
-export const COMBAT_PARTICLE_CAPACITY = 128;
+export const COMBAT_PARTICLE_CAPACITY = 160;
 
 /** Fixed-step world-space effects. Gas and dust use alpha blending; flashes, sparks and flames use additive blending. */
 export class CombatEffects {
@@ -49,10 +49,12 @@ export class CombatEffects {
   private cursor = 0;
   private readonly flashLight: PointLight;
   private flashAge = Infinity;
+  private flashDuration = 0.09;
+  private flashPeak = 30;
   constructor(scene: Scene) {
     this.flashLight = new PointLight('cannon-muzzle-light', Vector3.Zero(), scene);
     this.flashLight.diffuse = new Color3(1, 0.72, 0.42);
-    this.flashLight.range = 12;
+    this.flashLight.range = 22;
     this.flashLight.intensity = 0;
     this.sprites = {} as Record<ParticleKind, Sprite[]>;
     this.managers = PARTICLE_KINDS.map(kind => {
@@ -85,26 +87,50 @@ export class CombatEffects {
     this.cursor = (this.cursor + 1) % COMBAT_PARTICLE_CAPACITY;
     return particle;
   }
+  private light(position: Vector3, peak: number, seconds: number, color: Color3) {
+    this.flashLight.position.copyFrom(position);
+    this.flashLight.diffuse.copyFrom(color);
+    this.flashAge = 0; this.flashPeak = peak; this.flashDuration = seconds;
+  }
   muzzleFlash(origin: Vector3, direction: Vector3, ground?: BlastGround) {
     const forward = direction.normalizeToNew();
-    this.flashLight.position.copyFrom(origin);
-    this.flashAge = 0;
+    this.light(origin.add(forward.scale(1.2)), 30, 0.09, new Color3(1, 0.72, 0.42));
     const right = Vector3.Cross(Math.abs(forward.y) > 0.95 ? Vector3.Right() : Vector3.Up(), forward).normalize();
     const up = Vector3.Cross(forward, right).normalize();
-    // A compact flash, gone before the lingering gas: no long-lived orange fireball.
-    for (let i = 0; i < 3; i++) this.spawn(origin.add(forward.scale(0.15 + i * 0.4)),
-      forward.scale(18 + i * 5), 0.035 + this.random() * 0.025,
-      0.7 - i * 0.15, new Color4(1, 0.84, 0.52, 0.9), 0, 'flash');
-    // Cone of hot gas: fast axial flow, lateral expansion, then drag and buoyancy.
-    for (let i = 0; i < 24; i++) {
+    // Short main flame along the bore: large near the muzzle, tapering forward. Gone before the gas.
+    for (let i = 0; i < 4; i++) this.spawn(origin.add(forward.scale(0.25 + i * 0.5)),
+      forward.scale(22 + i * 6), 0.06 + this.random() * 0.03,
+      3.4 - i * 0.6, new Color4(1, 0.82 - i * 0.06, 0.5 - i * 0.06, 1), 0, 'flash');
+    // Muzzle-brake side jets: brief lateral flame and gas on both sides.
+    for (const side of [-1, 1]) {
+      const lateral = right.scale(side);
+      this.spawn(origin.add(lateral.scale(0.3)), lateral.scale(15).add(forward.scale(4)), 0.05 + this.random() * 0.025,
+        1.8, new Color4(1, 0.76, 0.42, 0.95), 0, 'flash');
+      for (let i = 0; i < 3; i++) {
+        const shade = 0.6 + this.random() * 0.1;
+        this.spawn(origin.add(lateral.scale(0.25)), lateral.scale(7 + this.random() * 6).add(forward.scale(1 + this.random() * 2))
+          .add(up.scale((this.random() - 0.3) * 2)), 0.7 + this.random() * 0.5, 0.55 + this.random() * 0.4,
+          new Color4(shade, shade * 0.97, shade * 0.9, 0.22), 0.5, 'smoke');
+      }
+    }
+    // Fast propellant gas jet: high axial speed, lateral expansion, then drag and buoyancy.
+    for (let i = 0; i < 20; i++) {
       const angle = this.random() * Math.PI * 2;
       const radial = right.scale(Math.cos(angle)).add(up.scale(Math.sin(angle)));
-      const speed = 9 + this.random() * 16;
+      const speed = 14 + this.random() * 22;
       const color = 0.57 + this.random() * 0.14;
-      this.spawn(origin.add(forward.scale(this.random() * 0.6)),
-        forward.scale(speed).add(radial.scale(1.5 + this.random() * 4)),
-        0.8 + this.random() * 0.8, 0.65 + this.random() * 0.8,
-        new Color4(color, color * 0.97, color * 0.89, 0.2 + this.random() * 0.12), 0.5, 'smoke');
+      this.spawn(origin.add(forward.scale(this.random() * 0.8)),
+        forward.scale(speed).add(radial.scale(1.5 + this.random() * 4.5)),
+        0.8 + this.random() * 0.8, 0.7 + this.random() * 0.8,
+        new Color4(color, color * 0.97, color * 0.89, 0.22 + this.random() * 0.12), 0.5, 'smoke');
+    }
+    // Lingering cloud: slow, large, rises a little and drifts with the wind for a few seconds.
+    for (let i = 0; i < 7; i++) {
+      const shade = 0.7 + this.random() * 0.1;
+      this.spawn(origin.add(forward.scale(1 + i * 0.9)).add(up.scale((this.random() - 0.5) * 0.4)),
+        forward.scale(1.5 + this.random() * 2.5).add(right.scale((this.random() - 0.5) * 1.2)),
+        2.6 + this.random() * 1.4, 2 + this.random() * 1.1,
+        new Color4(shade, shade * 0.97, shade * 0.91, 0.34 + this.random() * 0.1), 0.35, 'smoke');
     }
     if (ground) this.groundBlast(origin, forward, ground);
   }
@@ -119,57 +145,103 @@ export class CombatEffects {
     const projected = forward.subtract(normal.scale(Vector3.Dot(forward, normal)));
     const tangent = projected.lengthSquared() > 1e-6 ? projected.normalize() : Vector3.Cross(normal, Vector3.Right()).normalize();
     const right = Vector3.Cross(normal, tangent).normalize();
-    for (let i = 0; i < Math.ceil(20 * strength); i++) {
-      const angle = this.random() * Math.PI * 2;
+    const count = Math.ceil(18 * strength);
+    for (let i = 0; i < count; i++) {
+      // Even ring around the point under the muzzle, pushed harder in the firing direction.
+      const angle = (i + this.random() * 0.6) / count * Math.PI * 2;
       const radial = tangent.scale(Math.cos(angle)).add(right.scale(Math.sin(angle)));
-      const point = ground.point.add(normal.scale(0.12)).add(radial.scale(this.random() * 0.55));
-      this.spawn(point, radial.scale((3 + this.random() * 6) * strength).add(normal.scale(0.5 + this.random() * 0.7)),
+      const point = ground.point.add(normal.scale(0.12)).add(radial.scale(0.3 + this.random() * 0.5));
+      const push = 1 + 0.6 * Math.max(0, Math.cos(angle));
+      this.spawn(point, radial.scale((5 + this.random() * 5) * strength * push).add(normal.scale(0.4 + this.random() * 0.6)),
         0.75 + this.random() * 0.7, 0.65 + this.random() * 0.7,
         new Color4(0.58, 0.49, 0.36, 0.28 * strength), -0.25, 'dust');
     }
     this.clods(ground.point, normal, Math.ceil(6 * strength), 2 + 3 * strength, tangent.scale(2 * strength));
   }
   /** Ballistic mud chunks; they disappear when they fall back to the launch height. */
-  private clods(point: Vector3, normal: Vector3, count: number, speed: number, drift = Vector3.Zero()) {
+  private clods(point: Vector3, normal: Vector3, count: number, speed: number, drift = Vector3.Zero(), tint?: Color4) {
     for (let i = 0; i < count; i++) {
       const scatter = new Vector3(this.random() - 0.5, 0, this.random() - 0.5).scale(speed * 0.9);
       const shade = 0.16 + this.random() * 0.14;
       const clod = this.spawn(point.add(normal.scale(0.1)), normal.scale(speed * (0.7 + this.random() * 0.6)).add(scatter).add(drift),
-        1.4, 0.1 + this.random() * 0.22, new Color4(shade * 1.3, shade * 1.05, shade * 0.8, 1), -9.81, 'clod');
+        1.6, 0.1 + this.random() * 0.22, tint ? new Color4(tint.r * (0.7 + shade * 2), tint.g * (0.7 + shade * 2), tint.b * (0.7 + shade * 2), 1)
+          : new Color4(shade * 1.3, shade * 1.05, shade * 0.8, 1), -9.81, 'clod');
       clod.floor = point.y - 0.2;
+    }
+  }
+  private sparks(point: Vector3, direction: Vector3, count: number, speed: number, spread: number, life: number, color: Color4, size = 0.12) {
+    for (let i = 0; i < count; i++) {
+      const random = new Vector3(this.random() - 0.5, this.random() - 0.5, this.random() - 0.5).scale(spread);
+      this.spawn(point, direction.scale(speed * (0.5 + this.random() * 0.7)).add(random), life * (0.6 + this.random() * 0.8),
+        size * (0.7 + this.random() * 0.8), color, -9.81, 'spark');
+    }
+  }
+  private puffs(point: Vector3, velocity: Vector3, count: number, scatter: number, life: number, size: number, color: Color4, gravity: number, kind: 'dust' | 'smoke' = 'dust') {
+    for (let i = 0; i < count; i++) {
+      const random = new Vector3(this.random() - 0.5, this.random() * 0.4, this.random() - 0.5).scale(scatter);
+      this.spawn(point.add(random.scale(0.1)), velocity.scale(0.6 + this.random() * 0.7).add(random), life * (0.75 + this.random() * 0.5),
+        size * (0.75 + this.random() * 0.6), color, gravity, kind);
     }
   }
   impact(point: Vector3, normal: Vector3, surface: ImpactSurface) {
     const outward = normal.normalizeToNew();
     const feedback = IMPACT_FEEDBACK[surface];
-    for (let i = 0; i < feedback.sparks; i++) {
-      const random = new Vector3(this.random() - 0.5, this.random() - 0.5, this.random() - 0.5).scale(9);
-      this.spawn(point, outward.scale(3 + this.random() * 5).add(random), 0.16 + this.random() * 0.22,
-        0.18 + this.random() * 0.22, new Color4(1, 0.82, 0.42, 1), -9.81, 'spark');
+    const [r, g, b] = feedback.color;
+    this.sparks(point, outward, feedback.sparks, 6, 9, 0.3, new Color4(1, 0.82, 0.42, 1), 0.2);
+    if (surface === 'soil') {
+      // Tall dust column thrown up, a low skirt spreading out and clods falling back.
+      this.spawn(point.add(outward.scale(0.2)), outward.scale(4), 0.05, 1.1, new Color4(1, 0.7, 0.4, 0.7), 0, 'flash');
+      this.puffs(point, outward.scale(7).add(new Vector3(0, 2, 0)), 7, 2, 1.8, 1.2, new Color4(r, g, b, 0.55), -3);
+      this.puffs(point, new Vector3(0, 0.6, 0), feedback.fragments, 7, 1.3, 1.3, new Color4(r * 1.15, g * 1.15, b * 1.15, 0.4), 0);
+      this.clods(point, outward, 14, 7);
+    } else if (surface === 'concrete') {
+      // Grey masonry dust and grey debris chunks.
+      this.spawn(point.add(outward.scale(0.15)), Vector3.Zero(), 0.05, 0.9, new Color4(1, 0.85, 0.6, 0.8), 0, 'flash');
+      this.puffs(point.add(outward.scale(0.2)), outward.scale(3).add(new Vector3(0, 0.8, 0)), feedback.fragments, 4, 1.6, 1.4,
+        new Color4(r, g, b, 0.5), 0);
+      this.clods(point, outward, 10, 5, Vector3.Zero(), new Color4(0.5, 0.5, 0.47, 1));
+    } else {
+      this.spawn(point.add(outward.scale(0.1)), Vector3.Zero(), 0.05, 1, new Color4(1, 0.86, 0.6, 0.9), 0, 'flash');
+      this.puffs(point.add(outward.scale(0.15)), outward.scale(0.8).add(new Vector3(0, 0.8, 0)), feedback.fragments, 1.5, 0.9, 1.1,
+        new Color4(r, g, b, 0.5), 0);
     }
-    for (let i = 0; i < feedback.fragments; i++) {
-      this.spawn(point.add(outward.scale(0.15)), outward.scale(0.6 + this.random()).add(new Vector3(0, 0.8, 0)),
-        0.5 + this.random() * 0.45, 1.1 + this.random() * 1.2,
-        new Color4(feedback.color[0], feedback.color[1], feedback.color[2], 0.5), 0, 'dust');
-    }
-    if (surface === 'soil') this.clods(point, outward, 10, 5);
   }
-  armorImpact(point: Vector3, normal: Vector3, penetrated: boolean) {
-    this.impact(point, normal, 'metal');
+  /** Armour hit. `incoming` is the shell velocity; a non-penetrating hit streaks sparks along its deflection. */
+  armorImpact(point: Vector3, normal: Vector3, penetrated: boolean, incoming?: Vector3) {
     const outward = normal.normalizeToNew();
-    for (let i = 0; i < (penetrated ? 7 : 16); i++) {
-      const scatter = new Vector3(this.random() - 0.5, this.random() * 0.7, this.random() - 0.5);
-      const tangent = scatter.subtract(outward.scale(Vector3.Dot(scatter, outward)));
-      this.spawn(point.add(outward.scale(0.06)), outward.scale(penetrated ? 2 : 6).add(tangent.scale(penetrated ? 6 : 17)),
-        0.18 + this.random() * 0.3, 0.08 + this.random() * 0.09, new Color4(1, 0.7, 0.32, 1), -9.81, 'spark');
+    if (penetrated) {
+      this.light(point.add(outward.scale(0.4)), 22, 0.12, new Color3(1, 0.62, 0.32));
+      this.spawn(point.add(outward.scale(0.1)), Vector3.Zero(), 0.07, 1.6, new Color4(1, 0.9, 0.65, 1), 0, 'flash');
+      // Bright spark burst, then slower glowing fragments and a dark smoke plume.
+      this.sparks(point.add(outward.scale(0.06)), outward, 26, 11, 14, 0.35, new Color4(1, 0.78, 0.4, 1), 0.14);
+      this.sparks(point.add(outward.scale(0.06)), outward, 7, 4, 5, 0.9, new Color4(1, 0.42, 0.12, 1), 0.2);
+      this.puffs(point.add(outward.scale(0.15)), outward.scale(1).add(new Vector3(0, 1.2, 0)), 6, 1.2, 2.2, 0.8,
+        new Color4(0.12, 0.12, 0.12, 0.7), 0.4, 'smoke');
+      return;
     }
-    if (penetrated) for (let i = 0; i < 5; i++) this.spawn(point.add(outward.scale(0.12)),
-      outward.scale(0.8).add(new Vector3(0, 0.8, 0)), 1.1 + this.random() * 0.7, 0.4 + this.random() * 0.4,
-      new Color4(0.14, 0.15, 0.14, 0.65), 0.25, 'smoke');
+    // Deflection: mirror the incoming direction about the plate, otherwise pick one tangent streak.
+    let streak: Vector3;
+    if (incoming && incoming.lengthSquared() > 1e-6) {
+      const d = incoming.normalizeToNew();
+      streak = d.subtract(outward.scale(2 * Vector3.Dot(d, outward))).normalize();
+    } else {
+      const scatter = new Vector3(this.random() - 0.5, this.random() * 0.5, this.random() - 0.5);
+      const tangent = scatter.subtract(outward.scale(Vector3.Dot(scatter, outward)));
+      streak = (tangent.lengthSquared() > 1e-6 ? tangent.normalize() : Vector3.Up()).add(outward.scale(0.35)).normalize();
+    }
+    this.spawn(point.add(outward.scale(0.05)), Vector3.Zero(), 0.04, 0.8, new Color4(1, 0.92, 0.75, 1), 0, 'flash');
+    this.sparks(point.add(outward.scale(0.06)), streak, 16, 26, 5, 0.22, new Color4(1, 0.8, 0.45, 1), 0.1);
+    this.puffs(point.add(outward.scale(0.1)), outward.scale(0.5), 2, 0.8, 0.7, 0.7, new Color4(0.5, 0.48, 0.44, 0.45), 0);
   }
   destruction(point: Vector3) {
-    this.flashLight.position.copyFrom(point); this.flashAge = 0;
+    this.light(point.add(new Vector3(0, 1.5, 0)), 40, 0.45, new Color3(1, 0.55, 0.25));
     this.spawn(point, Vector3.Zero(), 1.25, 3.8, new Color4(1, 1, 1, 1), 0, 'explosion');
+    this.spawn(point.add(new Vector3(0, 1.4, 0)), new Vector3(0, 1.5, 0), 1.15, 5.2, new Color4(1, 0.9, 0.8, 0.85), 0, 'explosion');
+    for (let i = 0; i < 8; i++) this.spawn(point.add(new Vector3((this.random() - 0.5) * 1.6, 0.2, (this.random() - 0.5) * 1.6)),
+      new Vector3((this.random() - 0.5) * 3, 4 + this.random() * 4, (this.random() - 0.5) * 3), 0.5 + this.random() * 0.4,
+      1.1 + this.random() * 0.8, new Color4(1, 0.4 + this.random() * 0.2, 0.06, 0.7), 0, 'fire');
+    this.clods(point, Vector3.Up(), 10, 9, Vector3.Zero(), new Color4(0.12, 0.12, 0.11, 1));
+    this.puffs(point.add(new Vector3(0, 1, 0)), new Vector3(0, 3.5, 0), 7, 2.5, 3.8, 1.8, new Color4(0.08, 0.08, 0.08, 0.7), 0.8, 'smoke');
     this.armorImpact(point, Vector3.Up(), true);
   }
   /** Called at a fixed 20 Hz per vehicle; emitters follow the current engine deck. */
@@ -189,7 +261,7 @@ export class CombatEffects {
   }
   fixedUpdate(dt: number) {
     this.flashAge += dt;
-    this.flashLight.intensity = 14 * Math.max(0, 1 - this.flashAge / 0.065) ** 2;
+    this.flashLight.intensity = this.flashPeak * Math.max(0, 1 - this.flashAge / this.flashDuration) ** 2;
     for (const particle of this.particles) {
       if (!particle || particle.age >= particle.life) continue;
       particle.previous.copyFrom(particle.position);

@@ -1,20 +1,19 @@
-import { FILM_SPAWN, RUNWAY, WHOOPS, filmSetHeight } from '../world/filmSetLayout.ts';
+import { filmSetHeight } from '../world/filmSetLayout.ts';
 import type { DuelTeam, TeamDuelLayout } from './teamDuelLayout.ts';
-
-const south = FILM_SPAWN.z + 20;
-const north = RUNWAY.zMax - 22;
 const point = (x: number, z: number) => ({ x, y: filmSetHeight(x, z), z });
-/** Bases are 300 m apart. Flanks stay inside the existing runway camera lanes. */
+/** 310 m between bases, straddling the hangar, ruined house and west ridge. No world assets move. */
 export const FILM_TEAM_LAYOUT: TeamDuelLayout = {
-  teamSize: 3, respawn: true,
+  navigation: 'film', teamSize: 3, respawn: true,
   spawn(team: DuelTeam, slot: number) {
     if (!Number.isInteger(slot) || slot < 0 || slot >= 3) throw new RangeError('Film team slot must be 0..2');
-    return point((slot - 1) * RUNWAY.halfWidth * 1.5, team === 'A' ? south : north);
+    return point(-65 - slot * 18, team === 'A' ? -205 : 105);
   },
   yaw: team => team === 'A' ? 0 : Math.PI,
   route(team, slot) {
-    const x = [0, -RUNWAY.halfWidth * 4, WHOOPS.x][slot];
-    const points = [point(x, south), point(x, south + 22), point(x, -70), point(x, 0), point(x, 70), point(x, north - 22), point(x, north)];
-    return team === 'A' ? points : points.reverse();
+    // Strategic centre / west flank goals. FilmNavigation supplies the actual collision-safe A* path.
+    const x = [-120, -145, -120][slot];
+    const points = [point(x, -184), point(x, -105), point(x, -65), point(x - 8, 15), point(x, 80), point(-65 - slot * 18, 105)];
+    if (team === 'A') return points;
+    return [point(x, 80), point(x - 8, 15), point(x, -65), point(x, -105), point(x, -184), point(-65 - slot * 18, -205)];
   },
 };

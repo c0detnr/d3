@@ -1,13 +1,18 @@
 @font-face { font-family: Barlow; src: url('./fonts/BarlowCondensed-SemiBold.ttf') format('truetype'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Black Ops One'; src: url('./fonts/BlackOpsOne-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+/* ASHFIELD brand: ash/black surfaces, white type, amber accent, khaki secondary, 45° chamfers. */
 :root {
-  --hud-fg: #eeeae0;
-  --hud-amber: #e6b164;
+  --hud-fg: #fefdfe;
+  --hud-amber: #f2a006;
+  --hud-khaki: #3b421f;
   --hud-danger: #f16b61;
   --hud-friend: #6edbe3;
-  --hud-panel: rgb(10 17 18 / 88%);
-  --hud-line: rgb(238 234 224 / 38%);
+  --hud-panel: rgb(16 17 16 / 86%);
+  --hud-line: rgb(182 180 175 / 42%);
   --hud-font: 'Barlow', sans-serif;
-  --hud-muted: rgb(238 234 224 / 65%);
+  --hud-display: 'Black Ops One', 'Barlow', sans-serif;
+  --hud-muted: rgb(182 180 175 / 90%);
+  --hud-chamfer: 10px;
   --hud-margin: max(32px, env(safe-area-inset-left), env(safe-area-inset-right));
   --hud-top: max(22px, env(safe-area-inset-top));
   --hud-bottom: max(32px, env(safe-area-inset-bottom));
@@ -21,7 +26,16 @@
 @media (max-width: 850px), (pointer: coarse) { :root { --hud-margin: max(18px, env(safe-area-inset-left), env(safe-area-inset-right)); --hud-bottom: max(18px, env(safe-area-inset-bottom)); --hud-padding: 8px; --hud-gap: 8px; } }
 @media (pointer: coarse) { :root { --hud-right-base: calc(max(28px, env(safe-area-inset-bottom)) + clamp(112px, 24vh, 156px) + 24px); } }
 @media (pointer: coarse) and (orientation: portrait) { :root { --hud-right-base: 210px; } }
-:is(.hud-vehicle, .hud-weapons, .mission-objective, .mission-radio, .smoke-use, .team-duel-hud)::after {
-  content: ''; position: absolute; inset: -1px; pointer-events: none;
-  background: linear-gradient(var(--hud-fg),var(--hud-fg)) left top/10px 1px, linear-gradient(var(--hud-fg),var(--hud-fg)) left top/1px 10px, linear-gradient(var(--hud-fg),var(--hud-fg)) right top/10px 1px, linear-gradient(var(--hud-fg),var(--hud-fg)) right top/1px 10px, linear-gradient(var(--hud-fg),var(--hud-fg)) left bottom/10px 1px, linear-gradient(var(--hud-fg),var(--hud-fg)) left bottom/1px 10px, linear-gradient(var(--hud-fg),var(--hud-fg)) right bottom/10px 1px, linear-gradient(var(--hud-fg),var(--hud-fg)) right bottom/1px 10px; background-repeat: no-repeat;
+
+/* Chamfered panels (top-right / bottom-left) with an amber index tick. */
+:is(.hud-vehicle, .hud-weapons, .mission-objective, .mission-radio, .smoke-use, .team-duel-hud, .minimap) {
+  clip-path: polygon(0 0, calc(100% - var(--hud-chamfer)) 0, 100% var(--hud-chamfer), 100% 100%, var(--hud-chamfer) 100%, 0 calc(100% - var(--hud-chamfer)));
 }
+:is(.hud-vehicle, .hud-weapons, .mission-objective, .mission-radio, .team-duel-hud)::after {
+  content: ''; position: absolute; top: -1px; left: -1px; width: 22px; height: 2px; background: var(--hud-amber); pointer-events: none;
+}
+
+.hud-icon { display: inline-block; width: 1.25em; height: 1.25em; flex-shrink: 0; vertical-align: -.25em; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: square; stroke-linejoin: miter; overflow: visible; }
+.hud-key { display: inline-flex; align-items: center; justify-content: center; min-width: 1.6em; height: 1.6em; padding: 0 .3em; box-sizing: border-box; border: 1px solid currentColor; font: 600 .8em/1 var(--hud-font); letter-spacing: 0; color: inherit; background: rgb(16 17 16 / 55%); }
+.hud-chip { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

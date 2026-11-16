@@ -1,4 +1,5 @@
 import { t } from '../i18n/index.ts';
+import { icon, keyBadge } from '../ui/icons.ts';
 /** Owns desktop focus; the entry click never reaches weapon handlers. */
 export class GamePointerLock {
   private readonly prompt = document.createElement('button');
@@ -15,7 +16,7 @@ export class GamePointerLock {
     if (!enabled) return;
     this.prompt.className = 'game-pointer-prompt';
     this.prompt.type = 'button';
-    this.prompt.textContent = t('pointerEnter');
+    this.setPrompt(t('pointerEnter'), false);
     document.body.append(this.prompt);
     const options = { signal: this.listeners.signal };
     this.prompt.addEventListener('click', this.enter, options);
@@ -35,8 +36,13 @@ export class GamePointerLock {
     document.addEventListener('visibilitychange', () => { if (document.hidden) this.exit(); }, options);
   }
   private error = () => {
-    this.prompt.textContent = t('pointerError');
+    this.setPrompt(t('pointerError'), true);
   };
+  private setPrompt(label: string, failed: boolean) {
+    this.prompt.innerHTML = `<span class="hud-chip">${icon(failed ? 'blocked' : 'mouse')}</span><span class="hud-chip">${keyBadge('Esc')}${icon('pause')}</span>`;
+    this.prompt.setAttribute('aria-label', label); this.prompt.title = label;
+    this.prompt.dataset.failed = String(failed);
+  }
   enter = () => {
     if (this.active || !this.canEnter()) return;
     this.canvas.focus();

@@ -28,7 +28,7 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
     section.append(links); content.append(section);
   };
   group('HAREKÂT ALANI', 'map', [['test', 'Test sahası'], ['kul', 'Kül Vadisi'], ['set', 'Çekim sahası']], mapId);
-  group('ARAÇ', 'tank', [['01', 'IRON DUST 01'], ['02', 'IRON DUST 02']], params.get('tank') === '02' ? '02' : '01');
+  group('ARAÇ', 'tank', [['01', 'ASHFIELD 01'], ['02', 'ASHFIELD 02']], params.get('tank') === '02' ? '02' : '01');
   group('GÖREV TÜRÜ', 'duel', [['', 'Serbest sürüş'], ['1', 'Kolay düello']], params.has('duel') ? '1' : '');
   const mobile = document.createElement('section');
   const mobileHeading = document.createElement('h2'); mobileHeading.textContent = 'MOBİL'; mobile.append(mobileHeading);
@@ -64,11 +64,11 @@ export function addMapControls(camera: FollowCamera, active: boolean, spawnYaw =
   };
   railYard.addEventListener('click', viewRailYard);
   if (mapId === 'set') {
-    document.title = 'IRON DUST · Çekim Sahası';
+    document.title = 'ASHFIELD · Çekim Sahası';
     group('HAVA / IŞIK', 'weather', WEATHER_IDS.map(id => [id, WEATHER_LABELS[id]]), weatherFromSearch(location.search));
   }
   if (active) {
-    document.title = 'IRON DUST · Kül Vadisi';
+    document.title = 'ASHFIELD · Kül Vadisi';
     group('HAVA / IŞIK', 'weather', WEATHER_IDS.map(id => [id, WEATHER_LABELS[id]]), weatherFromSearch(location.search));
     group('BAŞLANGIÇ ÜSSÜ', 'base', [['A', 'A üssü'], ['B', 'B üssü']], params.get('base') === 'B' ? 'B' : 'A');
     const views = document.createElement('nav'); views.className = 'mission-views'; views.setAttribute('aria-label', 'Kamera görünümleri');

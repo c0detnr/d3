@@ -36,7 +36,8 @@
     "shell:test": "node --experimental-strip-types scripts/check-shell.ts",
     "mission:test": "node --experimental-strip-types scripts/check-missions.ts",
     "infantry:test": "node --experimental-strip-types scripts/check-infantry.ts",
-    "team:test": "node --experimental-strip-types scripts/check-team-match.ts"
+    "team:test": "node --experimental-strip-types scripts/check-team-match.ts",
+    "ai:test": "node --experimental-strip-types scripts/check-tactical-ai.ts"
   },
   "dependencies": {
     "@babylonjs/core": "9.32.0",
