@@ -212,3 +212,12 @@ CombatInput ve LAN fare kilitliyken setPointerCapture çağırmaz: bu çağrı [
 Gerçek iki GLB ve Havok ile drive:test geçti: düz zeminde düşük hız darbesinden sonra beş saniyede yaklaşık 0,00000036 m, eğimde parkta beş saniyede 0,00045 m altı yer değiştirme; her iki durumda tekerlek/palet animasyon mesafesi sabit. İleri/fren/geri, hareketli/yerinde dönüş, rampa, yan eğim, 30/60/120 FPS ve kaynak temizliği de geçti. Yeni duruş/palet regresyonu eski kodda başarısız oldu. Sonuçlar docs/driving-results.json ve assets/tanks/iron_dust_02/driving-results.json içinde.
 
 combat:test ve lan:check geçti. Yalnız bu düzeltmenin kaynaklarını içeren ayrı HEAD kopyasında map:build, drive:test ve lan:test geçti; mevcut büyük paket uyarısı sürüyor. Ortak çalışma ağacında ilk derleme, paralel src/game/items/SmokeScreen.ts çalışmasındaki API hatasında durdu; bu dosyaya müdahale edilmedi. Tarayıcı erişim sunucusu kullanılamadığı için etkileşimli fare/sürüş ve görsel insan kabulü yapılmadı; FPS sonucu verilmedi.
+
+
+## 2026-11-17 — Alt serbest bakış düzeltmesi
+
+- Kök neden: README'deki eski Alt/C ifadesine rağmen CombatInput Alt dinlemiyordu; yerel oyun her sabit adımda kamera ışınını tarete hedef veriyordu. AltLeft/AltRight basılı durumu artık hedef güncellemeyi durdurur ve `fixedUpdate(null)` ile devam eden taret/namlu hareketini de keser. Bırakınca normal takip sürer; gövde dönerken yerel açılar korunur.
+- `npm run combat:test` geçti. Odaklı giriş regresyonu iki Alt tuşu, son tuşu bırakma, Alt sırasında kamera hareketi, devre dışı giriş, blur/gizli sekme/pointer iptal/yakalama kaybı/Esc ve üç kur/kapat çevrimini kontrol eder. Pointer-lock regresyonu kilit çıkışında serbest bakışın temizlendiğini doğrular.
+- `npm run turret:test` iki gerçek GLB'de geçti; mevcut null hedef kontrolü yerel yaw/elevation açılarının anında tutulmasını ve gövde hareketinde korunmasını sınar. `npm run map:check` ve `git diff --check` geçti.
+- Headless Chromium / ANGLE SwiftShader, 1440×817 CSS, düşük kalite: güncel geliştirme görev akışı oyun ekranına ulaştı; gerçek Alt bas/tut/bırak kontrolü CDP `Not attached to an active page` hatası nedeniyle tamamlanamadı. İlk iki denemede eski menü seçicisi ve otomatik fare kilidi beklentisi aşıldı. Başarılı tarayıcı kanıtı yok; geçmeyen geçici kontrol ve gözlem alanları teslim kapsamından çıkarıldı.
+- İnsan oynanış hissi, gerçek GPU/FPS ve responsive kabulü yapılmadı. LAN girdi/sunucu yolu bu düzeltmenin kapsamı dışında; M1/M2/M3 genel kabulü açık.

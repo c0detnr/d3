@@ -48,7 +48,9 @@ pointer('pointermove', 1); assert.equal(combat.aiming, false, 'right release kee
 pointer('pointerup', 0); moves = 0;
 key('KeyW'); key('KeyQ'); pointer('pointerdown', 3); pointer('pointermove', 3);
 assert.equal(keys.keys.forward, true); assert.equal(combat.aiming, true); assert.equal(moves, 1);
+key('AltLeft'); assert.equal(combat.freeLooking, true);
 key('Escape');
+assert.equal(combat.freeLooking, false, 'lock exit clears free look');
 assert.equal(lock.active, false); assert.equal(prompt.hidden, false);
 assert.equal(keys.keys.forward, false); assert.equal(combat.fireHeld, false); assert.equal(combat.consumeFire(), false); assert.equal(combat.aiming, false);
 wheel(); assert.equal(zoom, 1, 'Escape stops zoom');

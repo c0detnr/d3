@@ -24,6 +24,11 @@ for (let cycle = 0; cycle < 3; cycle++) {
   const canvas = new Surface(); let ready = true, enabled = true, moves = 0, releases = 0, zoom = 0;
   const input = new CombatInput(canvas as unknown as HTMLCanvasElement, () => ready && enabled, () => enabled,
     () => moves++, () => releases++, notches => { zoom += notches; });
+  key('keydown', 'AltLeft'); assert.equal(input.freeLooking, true, 'Alt holds free look');
+  pointer(canvas, 'pointermove', 0); assert.equal(moves, 1, 'Alt keeps camera look enabled');
+  key('keydown', 'AltRight'); key('keyup', 'AltLeft');
+  assert.equal(input.freeLooking, true, 'other Alt remains held');
+  key('keyup', 'AltRight'); assert.equal(input.freeLooking, false, 'last Alt release resumes tracking');
   key('keydown', 'Space'); key('keydown', 'KeyQ'); key('keydown', 'KeyE');
   assert.equal(zoom, 0, 'retired alignment/turn keys do not issue camera commands');
   wheel(canvas, -100); assert.equal(zoom, -1, 'scroll up zooms in');
@@ -48,13 +53,15 @@ for (let cycle = 0; cycle < 3; cycle++) {
   assert.equal(input.consumeFire(), false, 'reload click is discarded at event time');
   pointer(canvas, 'pointermove', 1); assert.equal(input.consumeFire(), false, 'reload completion cannot auto fire');
   for (const cancel of ['blur', 'pointercancel', 'lostpointercapture', 'visibilitychange', 'keydown']) {
-    input.clear(); key('keydown', 'KeyQ'); wheel(canvas, -100); pointer(canvas, 'pointerdown', 3);
+    input.clear(); key('keydown', 'AltLeft'); assert.equal(input.freeLooking, true); key('keydown', 'KeyQ'); wheel(canvas, -100); pointer(canvas, 'pointerdown', 3);
     const event = new Event(cancel); Object.assign(event, { code: 'Escape' }); doc.hidden = true;
     (cancel === 'visibilitychange' ? doc : cancel === 'blur' || cancel === 'keydown' ? win : canvas).dispatchEvent(event);
+    assert.equal(input.freeLooking, false, cancel);
     assert.equal(input.aiming, false, cancel); assert.equal(input.consumeFire(), false, cancel);
     pointer(canvas, 'pointermove', 3); assert.equal(input.consumeFire(), false, 'hover cannot restore fire');
   }
   input.clear(); enabled = false; pointer(canvas, 'pointerdown', 3);
+  key('keydown', 'AltLeft'); assert.equal(input.freeLooking, false, 'disabled combat cannot enter free look');
   assert.equal(input.aiming, false); assert.equal(input.consumeFire(), false, 'overview blocks combat');
   const heldZoom = zoom;
   key('keydown', 'Space'); key('keydown', 'KeyQ'); wheel(canvas, -100);
@@ -66,7 +73,7 @@ for (let cycle = 0; cycle < 3; cycle++) {
   assert.equal(zoom, heldZoom, 'disposed listeners cannot zoom');
   const before = moves; pointer(canvas, 'pointermove', 0); assert.equal(moves, before);
 }
-console.log('Combat input: retired Q/E/Space, zoom pixel/line/page/bounds, UI gating, chords, single press, reload rejection, overview, cancel/focus/Esc and 3 disposal cycles passed.');
+console.log('Combat input: Alt hold/release/cleanup, retired Q/E/Space, zoom pixel/line/page/bounds, UI gating, chords, single press, reload rejection, overview, cancel/focus/Esc and 3 disposal cycles passed.');
 
 const drive = bindDriveKeys(win as unknown as Window, () => {});
 key('keydown', 'Space'); assert.equal(drive.keys.brake, false, 'Space aim cannot brake');

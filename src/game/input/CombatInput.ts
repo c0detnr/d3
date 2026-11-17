@@ -1,6 +1,8 @@
 /** One pointer owner, including chorded mouse buttons (reported through pointermove). */
 export class CombatInput {
   aiming = false;
+  private readonly freeLookKeys = new Set<string>();
+  get freeLooking() { return this.freeLookKeys.size > 0; }
   get fireHeld() { return this.left && this.canAim(); }
   private left = false;
   private pending = false;
@@ -26,6 +28,7 @@ export class CombatInput {
     canvas.addEventListener('contextmenu', this.context);
     window.addEventListener('blur', this.clear);
     window.addEventListener('keydown', this.key);
+    window.addEventListener('keyup', this.keyUp);
     canvas.addEventListener('wheel', this.wheel, { passive: false });
     document.addEventListener('visibilitychange', this.visibility);
   }
@@ -62,11 +65,16 @@ export class CombatInput {
   };
   private key = (e: KeyboardEvent) => {
     if (e.code === 'Escape') { this.clear(); return; }
+    if ((e.code === 'AltLeft' || e.code === 'AltRight') && !e.repeat && this.canAim()
+      && !(e.target as HTMLElement)?.closest?.('input, textarea, select, button, [contenteditable="true"]')) {
+      e.preventDefault(); this.freeLookKeys.add(e.code); return;
+    }
     if (!this.canAim() || e.repeat || e.ctrlKey || e.altKey || e.metaKey
       || (e.target as HTMLElement)?.closest?.('input, textarea, select, button, [contenteditable="true"]')) return;
     if (e.code === 'KeyT' && this.aiming) { e.preventDefault(); this.pendingThermal = true; }
     if (e.code === 'KeyL') { e.preventDefault(); this.pendingRange = true; }
   };
+  private keyUp = (e: KeyboardEvent) => { this.freeLookKeys.delete(e.code); };
   private wheel = (e: WheelEvent) => {
     e.preventDefault();
     if (!this.canAim() || !e.deltaY) return;
@@ -81,6 +89,7 @@ export class CombatInput {
   consumeRange() { const pending = this.pendingRange; this.pendingRange = false; return pending; }
   consumeFire() { const fire = this.pending; this.pending = false; return fire; }
   clear = () => {
+    this.freeLookKeys.clear();
     if (this.aiming) this.released();
     this.aiming = false; this.left = false; this.pending = false; this.pendingThermal = false; this.pendingRange = false;
     const id = this.pointerId; this.pointerId = undefined;
@@ -95,6 +104,7 @@ export class CombatInput {
     this.canvas.removeEventListener('lostpointercapture', this.captureLost);
     this.canvas.removeEventListener('contextmenu', this.context);
     window.removeEventListener('blur', this.clear); window.removeEventListener('keydown', this.key);
+    window.removeEventListener('keyup', this.keyUp);
     this.canvas.removeEventListener('wheel', this.wheel);
     document.removeEventListener('visibilitychange', this.visibility);
   }

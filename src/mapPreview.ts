@@ -779,7 +779,7 @@ async function start() {
         : input.resolve(observation?.keys() ?? Object.fromEntries(Object.entries(keys.keys).map(([key, value]) => [key, value || touch.keys[key as keyof typeof touch.keys]])) as typeof keys.keys, vehicle!.speed, step, vehicle!.definition.reverseDelay);
       let turn = touch.turn;
       let elevation = touch.elevation * step * 15 * Math.PI / 180;
-      const desktopTracking = !mobile && pointerLock.active && !freeCamera.active && !fpv?.active && !mgMode && !followCamera.isOverview;
+      const desktopTracking = !mobile && !combatInput.freeLooking && pointerLock.active && !freeCamera.active && !fpv?.active && !mgMode && !followCamera.isOverview;
       const viewTarget = desktopTracking ? followCamera.aimTarget(vehicle!) : undefined;
       // Preserve the ray hit distance in Studio’s existing relative aim vector.
       alignDirection = viewTarget ? viewTarget.subtract(turret!.yawPivot.getAbsolutePosition()).scale(1 / 10000) : undefined;
@@ -812,7 +812,7 @@ async function start() {
       // Joint calculations use the current physics pose; render interpolation follows below.
       visual!.syncHull(vehicle!, 1);
       teamDuel?.afterStep(step);
-      if (fpv?.active || freeCamera.active || (!mobile && !pointerLock.active && !studio?.rendering)) turret!.fixedUpdate(null, step);
+      if (combatInput.freeLooking || fpv?.active || freeCamera.active || (!mobile && !pointerLock.active && !studio?.rendering)) turret!.fixedUpdate(null, step);
       else if (alignDirection) {
         turret!.yawPivot.computeWorldMatrix(true);
         turret!.fixedUpdate(turret!.yawPivot.getAbsolutePosition().add(alignDirection.scale(10000)), step);

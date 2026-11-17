@@ -358,3 +358,8 @@ Kullanıcının seçimiyle ücretsiz Quick Tunnel açıldı. Ayrı paylaşım su
 ASSIST'te hareket bırakılınca yatay, yükselme/alçalma bırakılınca dikey fren güçlendirildi; düşük hız tam sıfırlanarak konum tutma sağlandı. 26 m/s yatay hızdan eski 1,80 s / 7,20 m süzülme yerine 0,53 s / 1,95 m'de tam duruş ölçüldü. ACRO'nun manuel itki, yatış ve sürüklenme davranışı korunur.
 
 `node --experimental-strip-types scripts/check-fpv.ts`, `npm run map:check`, mevcut `scripts/check-fpv-browser.ts` ve `/tmp/d3-check-fpv-brake-browser.ts` hedefli gerçek klavye bırakma kontrolü geçti. Headless Chromium / ANGLE SwiftShader, 1440×817, düşük kalite: W ve Space bırakıldıktan sonra 0,65 simülasyon saniyesinde fren; ardından 1,08 saniye boyunca aynı xyz konumu ve sıfır sayfa hatası (`artifacts/fpv-brake/report.json`). Genel `npm run typecheck`, kök `tsconfig.json` bulunmadığından kontrol yapamıyor; ilgili harita TypeScript kontrolü başarılı. İnsan uçuş hissi ve FPS ölçülmedi; M1/M2/M3 genel kabulü değişmez.
+
+
+### 2026-11-17 — Alt ile taret bağımsız serbest bakış
+
+Yerel masaüstü oyunda Alt basılıyken kamera fareyle döner; taret ve namlu yerel açılarını anında korur. Alt bırakılınca kamera hedefine normal takip sürer. İki Alt tuşu, odak/kilit kaybı ve sıfırlama temizliği mevcut giriş yaşam döngüsüne bağlandı. `combat:test`, iki gerçek GLB ile `turret:test`, `map:check` ve `git diff --check` geçti. Headless Chromium/CDP denemesi bağlantı hatasıyla tamamlanamadı; tarayıcı ve insan oynanış kabulü açık. LAN yolu değiştirilmedi; M1/M2/M3 genel kabulü değişmez.

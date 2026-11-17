@@ -95,13 +95,13 @@ Sürüş ayarları `src/game/vehicle/VehicleDefinition.ts` içinde SI birimleriy
 
 ## Taret ve ateş prototipi (M3.1)
 
-Harita önizlemesinde fareyi sürükleyerek taret hedefini değiştir. Taret 35°/s hızla yetişir; namlu −8°…+20° arasında 15°/s hareket eder. Bunlar ilk oyun ayarlarıdır. Alt basılıyken sürükle veya C ile serbest bakışı aç/kapat: kamera dönerken son nişan hedefi korunur. R tankla birlikte tareti, silahı ve hedefleri sıfırlar.
+Harita önizlemesinde fareyi sürükleyerek taret hedefini değiştir. Taret 35°/s hızla yetişir; namlu −8°…+20° arasında 15°/s hareket eder. Bunlar ilk oyun ayarlarıdır. Alt basılıyken fareyle etrafa bak: kamera dönerken taret ve namlu yerel açılarını korur. Alt bırakılınca kamera yönüne normal taret takibi yeniden başlar. R tankla birlikte tareti, silahı ve hedefleri sıfırlar.
 
 Merkez artısı hedef yönünü, halka namlunun gerçek doğrultusunu gösterir. Turuncu halka 12 m içindeki fizik engelini belirtir. Nişan sırasında kamera kendiliğinden gövdenin arkasına dönmez. Genel görünüş yeni hedef vermez.
 
 Sol tık tek 120 mm AP mermisi ateşler; 6,5 saniyelik dolum süresi HUD'da görünür. Mermi gerçek namlu ağzından çıkar, yerçekimiyle düşer ve her sabit adımda önceki→yeni konum arasında ışın sorgusu yaptığı için ince hedefleri atlamaz. Patikadaki üç sabit zırhlı hedefte gövde/kule ve ön/yan/üst yüzey kalınlıkları ayrıdır; sonuç mesafe ve geliş açısına göre `DELDİ`, `SEKTİ`, `DELMEDİ` veya `ENGEL` olarak raporlanır. 70° üzeri geliş açısı sekmedir. Mermi başına fizik gövdesi yoktur; hasar, modül hasarı ve hedef yıkılması bu adımda yoktur. Namlu alevi, tracer, isabet kıvılcımı ve duman görsel-only'dir; savaş sesi eklenmedi.
 
-`npm run turret:test` gerçek GLB üzerinde dönüş/yükseliş, hedef takibi, eğimli gövde, interpolasyon, kare hızından bağımsızlık ve kaynak temizliğini kontrol eder. `npm run combat:test` dolum/geri tepme, balistik düşüş, tünelleme yokluğu, açı/mesafe delmesi, sekme ve hedef bölgelerini doğrular. Nişancı görüşü ve görsel efektlerin tarayıcı kabulü ile performans ölçümü açık; M1/M2 son kabulü sürüyor.
+`npm run turret:test` gerçek GLB üzerinde dönüş/yükseliş, hedef takibi, eğimli gövde, interpolasyon, kare hızından bağımsızlık ve kaynak temizliğini kontrol eder. `npm run combat:test` Alt serbest bakış girdisi/bırakma/temizleme, dolum/geri tepme, balistik düşüş, tünelleme yokluğu, açı/mesafe delmesi, sekme ve hedef bölgelerini doğrular. Nişancı görüşü ve görsel efektlerin tarayıcı kabulü ile performans ölçümü açık; M1/M2 son kabulü sürüyor.
 
 ## Makineli tüfek (MG 02)
 
