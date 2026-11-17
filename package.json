@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --experimental-strip-types --test src/game/core/fixedStep.test.ts src/game/combat/DamageModel.test.ts src/game/combat/LaneDroneJammer.test.ts && npm run mission:test",
+    "test": "node --experimental-strip-types --test src/game/core/fixedStep.test.ts src/game/core/waveRules.test.ts src/game/combat/DamageModel.test.ts src/game/combat/LaneDroneJammer.test.ts && npm run mission:test",
     "map:dev": "vite --config vite.map.config.ts --host 127.0.0.1 --open /map-preview.html",
     "studio": "vite --config vite.map.config.ts --host 127.0.0.1 --open \"/map-preview.html?studio=1\"",
     "map:check": "tsc -p tsconfig.map.json",

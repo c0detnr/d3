@@ -1,8 +1,8 @@
-import { PhysicsRaycastResult, Vector3, type PhysicsBody, type PhysicsEngineV2, type Scene } from '@babylonjs/core';
+import { PhysicsMotionType, PhysicsRaycastResult, Vector3, type PhysicsBody, type PhysicsEngineV2, type Scene } from '@babylonjs/core';
 import { DuelTank } from './DuelTank.ts';
 import { EasyDuelAI, type AIContext } from './EasyDuelAI.ts';
 import { FilmNavigation, NavigationAgent, FILM_NAV } from './FilmNavigation.ts';
-import { AI_TACTICS, type AIDifficulty } from './easyAIConfig.ts';
+import { EASY_AI_CONFIG, AI_TACTICS, type AIDifficulty } from './easyAIConfig.ts';
 import { applyDamage, freshDamage, type DamageModule, type DamageState } from './DamageModel.ts';
 import { ProjectileSystem, type ProjectileHit } from './ProjectileSystem.ts';
 import { pickTankHit, tankDamageRegion, tankHitFacing } from './tankHit.ts';
@@ -10,6 +10,7 @@ import { IRON_DUST_01_WEAPON } from './WeaponDefinition.ts';
 import { duelOutcome, KUL_TEAM_LAYOUT, type TeamDuelLayout, type TeamPoint, type DuelTeam } from './teamDuelLayout.ts';
 import { chooseSpawn, seededRandom, spawnYaw } from './spawnSelection.ts';
 
+import { WaveRules, waveDifficulty, WAVE_MAX_ALIVE } from '../core/waveRules.ts';
 import { TeamMatchRules } from './teamMatchRules.ts';
 
 export interface DuelParticipant {
@@ -20,7 +21,7 @@ export interface TeamImpact {
   applied: boolean; module: DamageModule | null; disabled: boolean; destroyed: boolean;
 }
 interface Bot {
-  actor: DuelTank; member: DuelParticipant; ai: EasyDuelAI; shells: ProjectileSystem;
+  active: boolean; actor: DuelTank; member: DuelParticipant; ai: EasyDuelAI; shells: ProjectileSystem;
   route: Vector3[]; waypoint: number; slot: number; target?: DuelParticipant;
   state?: ReturnType<EasyDuelAI['update']>; delay: number; context: AIContext; sensorIn: number; visible: boolean;
 }
@@ -36,6 +37,9 @@ export class TeamDuel {
   onShot?: (origin: Vector3, direction: Vector3) => void;
   blocksSight: (from: Vector3, to: Vector3) => boolean = () => false;
   rules?: TeamMatchRules;
+  wave?: WaveRules;
+  onWaveStart?: (wave: number) => void;
+  onWaveBreak?: () => void;
   readonly feed: { killer: string; victim: string; team: DuelTeam; time: number }[] = [];
   onRespawn?: () => void;
   /** Player placed by the random spawn pool (match start, reset, respawn); yaw in radians. */
@@ -58,8 +62,9 @@ export class TeamDuel {
   private perception = 0;
   private disposed = false;
   /** `seed` drives the random spawn pool deterministically; give each match a new one. */
-  constructor(scene: Scene, player: DuelParticipant, layout: TeamDuelLayout = KUL_TEAM_LAYOUT, seed = 1) {
+  constructor(scene: Scene, player: DuelParticipant, layout: TeamDuelLayout = KUL_TEAM_LAYOUT, seed = 1, survival = false) {
     this.scene = scene; this.player = player; this.layout = layout; this.participants = [player]; this.random = seededRandom(seed);
+    if (survival) this.wave = new WaveRules();
   }
   name(member: DuelParticipant) { return member === this.player ? `${member.team} · 01` : `${member.team} · ${String(this.bots.find(b => b.member === member)!.slot + 1).padStart(2, '0')}`; }
   private spawnPoint(team: DuelTeam, slot: number) { const p = this.layout.spawn(team, slot); return new Vector3(p.x, p.y, p.z); }
@@ -102,7 +107,7 @@ export class TeamDuel {
   }
   /** Current spawn of each member, for diagnostics and tests. */
   get spawnPoints() { return this.members.map(m => m.vehicle.node.position.clone()); }
-  private makeRules() { this.rules = this.layout.respawn ? new TeamMatchRules(this.members.map(m => m.team)) : undefined; }
+  private makeRules() { this.rules = !this.wave && this.layout.respawn ? new TeamMatchRules(this.members.map(m => m.team)) : undefined; }
   private respawn(index: number) {
     const member = this.members[index], bot = this.bots.find(b => b.member === member);
     const contact = this.radio[index];
@@ -124,24 +129,25 @@ export class TeamDuel {
     if (!bot) this.onRespawn?.();
   }
   get members() { return this.participants; }
-  setDifficulty(level: AIDifficulty) { for (const bot of this.bots) bot.ai.difficulty = level; }
+  setDifficulty(level: AIDifficulty) { if (this.wave) return; for (const bot of this.bots) bot.ai.difficulty = level; }
   get finished() { return this.result !== undefined; }
   alive(team: DuelTeam) { return this.members.filter(member => member.team === team && member.damage.hp > 0).length; }
 
   async load(source: string | Uint8Array) {
     try {
       if (this.layout.navigation === 'film') this.navigation = new FilmNavigation(this.scene);
-      const plan = this.layout.spawnPool ? this.planMatch() : undefined;
-      for (const team of ['A', 'B'] as const) for (let slot = 0; slot < this.layout.teamSize; slot++) {
+      const plan = !this.wave && this.layout.spawnPool ? this.planMatch() : undefined;
+      for (const team of ['A', 'B'] as const) for (let slot = 0; slot < (this.wave ? WAVE_MAX_ALIVE : this.layout.teamSize); slot++) {
+        if (this.wave && team === this.player.team) continue;
         if (team === this.player.team && slot === 0) continue;
         const at = plan?.(team, slot).at;
-        const actor = await DuelTank.load(this.scene, source, at ? new Vector3(at.x, at.y, at.z) : this.spawnPoint(team, slot));
+        const actor = await DuelTank.load(this.scene, source, at ? new Vector3(at.x, at.y, at.z) : this.spawnPoint(team, slot % this.layout.teamSize));
         if (this.disposed) { actor.dispose(); return; }
         actor.vehicle.reset(actor.vehicle.spawn, plan?.(team, slot).yaw ?? this.layout.yaw(team)); actor.render(1);
         const member: DuelParticipant = { tank: actor.tank, vehicle: actor.vehicle, damage: actor.damage, team };
         const shells = new ProjectileSystem(this.scene, (from, to) => this.raycast(actor.vehicle.body, from, to), 3);
         this.participants.push(member);
-        this.bots.push({ actor, member, shells, ai: new EasyDuelAI({}, 51723 + slot * 117 + (team === 'A' ? 0 : 700)), route: this.layout.route(team, slot).map(p => new Vector3(p.x, p.y, p.z)),
+        this.bots.push({ active: !this.wave, actor, member, shells, ai: new EasyDuelAI({}, 51723 + slot * 117 + (team === 'A' ? 0 : 700)), route: this.layout.route(team, slot % this.layout.teamSize).map(p => new Vector3(p.x, p.y, p.z)),
           waypoint: 0, slot, delay: slot * 1.8, visible: false, sensorIn: 0,
           context: { slot, playerVelocity: Vector3.Zero(), navigation: this.navigation ? new NavigationAgent(this.navigation) : undefined,
             sensors: this.navigation ? { front: 100, left: 100, right: 100, rear: 100 } : undefined } });
@@ -153,7 +159,52 @@ export class TeamDuel {
       }
       for (const _member of this.members) this.radio.push({ point: Vector3.Zero(), pending: Vector3.Zero(), due: 0, expires: 0 });
       this.makeRules();
+      if (this.wave) {
+        for (const bot of this.bots) this.parkWaveBot(bot);
+        this.respawn(0);
+        this.startWave();
+      }
     } catch (error) { this.dispose(); throw error; }
+  }
+
+  private parkWaveBot(bot: Bot) {
+    const wasActive = bot.active;
+    bot.active = false; bot.member.damage.hp = 0; bot.state = undefined;
+    bot.actor.tank.anchor.setEnabled(false);
+    bot.actor.vehicle.body.shape = null;
+    bot.actor.vehicle.body.setMotionType(PhysicsMotionType.STATIC);
+    if (wasActive) this.updateWaveAllies();
+  }
+  private startWave() {
+    const tuning = waveDifficulty(this.wave!.wave);
+    for (const bot of this.bots) {
+      bot.ai.difficulty = 'normal';
+      bot.ai.config.fairness.reactionDelay = EASY_AI_CONFIG.fairness.reactionDelay * tuning.reaction;
+      const base = EASY_AI_CONFIG.fairness.aimDispersion, spread = bot.ai.config.fairness.aimDispersion;
+      spread.base = base.base * tuning.dispersion;
+      spread.distanceFactor = base.distanceFactor * tuning.dispersion;
+      spread.speedFactor = base.speedFactor * tuning.dispersion;
+    }
+    this.onWaveStart?.(this.wave!.wave);
+    this.fillWave();
+  }
+  private fillWave() {
+    let spawned = false;
+    for (const bot of this.bots) if (!bot.active && this.wave!.takeSpawn()) {
+      bot.actor.vehicle.body.shape = bot.actor.vehicle.shape;
+      bot.actor.vehicle.body.setMotionType(PhysicsMotionType.DYNAMIC);
+      bot.actor.vehicle.body.setMassProperties({ mass: bot.actor.vehicle.definition.mass });
+      this.respawn(this.members.indexOf(bot.member));
+      bot.active = true; bot.delay = .5; spawned = true;
+      bot.actor.tank.anchor.setEnabled(true);
+    }
+    if (spawned) this.updateWaveAllies();
+  }
+  private updateWaveAllies() {
+    for (const bot of this.bots) {
+      const allies = bot.context.allies!; allies.length = 0;
+      for (const other of this.bots) if (other !== bot && other.active) allies.push(other.member);
+    }
   }
 
   raycast(shooter: PhysicsBody, from: Vector3, to: Vector3): ProjectileHit | undefined {
@@ -162,7 +213,7 @@ export class TeamDuel {
       ? { point: hit.hitPointWorld.clone(), normal: hit.hitNormalWorld.clone(), body: hit.body, distance: hit.hitDistance } : undefined;
     const segment = to.subtract(from), lengthSquared = segment.lengthSquared();
     for (const member of this.members) {
-      if (member.vehicle.body === shooter) continue;
+      if (member.vehicle.body === shooter || this.wave && member.damage.hp <= 0) continue;
       const t = lengthSquared ? Math.max(0, Math.min(1, Vector3.Dot(member.vehicle.node.position.subtract(from), segment) / lengthSquared)) : 0;
       // Only tanks close to this swept segment need a visual turret triangle query.
       if (Vector3.DistanceSquared(member.vehicle.node.position, from.add(segment.scale(t))) > 100) continue;
@@ -216,6 +267,7 @@ export class TeamDuel {
   }
   beforeStep(dt: number) {
     this.elapsed += dt;
+    if (this.wave?.advance(dt, this.player.damage.hp > 0)) this.startWave();
     if (this.rules) {
       for (const index of this.rules.advance(dt)) this.respawn(index);
       this.result = this.rules.result;
@@ -231,6 +283,7 @@ export class TeamDuel {
     }
     for (let index = 0; index < this.bots.length; index++) {
       const bot = this.bots[index];
+      if (this.wave && !bot.active) continue;
       if (this.finished || bot.member.damage.hp === 0) { bot.state = undefined; bot.actor.beforeStep(dt); continue; }
       bot.delay = Math.max(0, bot.delay - dt);
       if (bot.delay > 0) { bot.state = undefined; bot.actor.beforeStep(dt); continue; }
@@ -277,6 +330,7 @@ export class TeamDuel {
     let budget = FILM_NAV.expansionsPerStep;
     for (let i = 0; i < this.bots.length && budget > 0; i++) {
       const bot = this.bots[(i + this.pathTurn) % this.bots.length];
+      if (this.wave && !bot.active) continue;
       budget -= bot.context.navigation?.step(Math.min(32, budget)) ?? 0;
     }
     this.pathTurn = (this.pathTurn + 1) % Math.max(1, this.bots.length);
@@ -284,6 +338,7 @@ export class TeamDuel {
 
   afterStep(dt: number) {
     for (const bot of this.bots) {
+      if (this.wave && !bot.active) continue;
       let aim = bot.state?.target;
       if (aim && bot.target && bot.visible) {
         const distance = Vector3.Distance(bot.actor.turret.getMuzzleRay().origin, aim);
@@ -338,10 +393,29 @@ export class TeamDuel {
   }
   finishStep() {
     if (this.finished) return;
+    if (this.wave) {
+      const playerAlive = this.player.damage.hp > 0;
+      for (const bot of this.bots) if (bot.active && bot.member.damage.hp <= 0) {
+        this.parkWaveBot(bot);
+        if (this.wave.killed()) {
+          for (const other of this.bots) other.shells.reset();
+          if (playerAlive) this.onWaveBreak?.();
+        }
+      }
+      // Count simultaneous kills, but never heal or advance after the player's death.
+      this.wave.advance(0, playerAlive);
+      if (this.wave.finished) {
+        this.result = 'B';
+        for (const bot of this.bots) bot.shells.reset();
+        return;
+      }
+      this.fillWave();
+      return;
+    }
     this.result = this.rules ? this.rules.resolve() : duelOutcome(this.alive('A'), this.alive('B'));
     if (this.finished) for (const bot of this.bots) bot.shells.reset();
   }
-  render(alpha: number) { for (const bot of this.bots) { bot.actor.render(alpha); bot.shells.render(alpha); } }
+  render(alpha: number) { for (const bot of this.bots) { if (!this.wave || bot.active) bot.actor.render(alpha); bot.shells.render(alpha); } }
   reset() {
     this.result = undefined; this.perception = 0; this.elapsed = 0; this.pathTurn = 0;
     for (const r of this.radio) { r.due = r.expires = 0; }

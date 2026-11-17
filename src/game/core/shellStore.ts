@@ -9,6 +9,8 @@ export interface MissionResult { missionId: string; victory: boolean; seconds: n
 const initial = readSave();
 setLanguage(initial.settings.language);
 interface ShellState {
+  bestWave: number;
+  recordWave: (wave: number) => void;
   devConfig: DevSessionConfig;
   screen: ShellScreen; returnTo: ShellScreen; selected: string; settings: Settings; progress: typeof initial.missions; result?: MissionResult; storageAvailable: boolean;
   navigate: (screen: ShellScreen) => void;
@@ -16,13 +18,20 @@ interface ShellState {
   finishMission: (result: MissionResult) => void;
 }
 export const useShellStore = create<ShellState>((set, get) => ({
+  bestWave: initial.bestWave ?? 0,
+  recordWave: wave => {
+    const bestWave = Math.max(get().bestWave, Math.floor(wave));
+    if (bestWave === get().bestWave) return;
+    const storageAvailable = writeSave({ version: 1, bestWave, settings: get().settings, missions: get().progress });
+    set({ bestWave, storageAvailable });
+  },
   devConfig: { ...DEFAULT_DEV_CONFIG },
   screen: 'home', returnTo: 'home', selected: 'rookie', settings: initial.settings, progress: initial.missions, storageAvailable: true,
   navigate: screen => set({ screen: !get().settings.devMode && ['developer', 'missions', 'briefing'].includes(screen) ? 'home' : screen }),
   updateSettings: patch => {
     const settings = { ...get().settings, ...patch };
     setLanguage(settings.language);
-    const storageAvailable = writeSave({ version: 1, settings, missions: get().progress });
+    const storageAvailable = writeSave({ version: 1, bestWave: get().bestWave, settings, missions: get().progress });
     set({ settings, storageAvailable, ...(!settings.devMode ? {
       ...(['developer', 'missions', 'briefing', 'result'].includes(get().screen) ? { screen: 'home' as const } : {}),
       ...(['developer', 'missions', 'briefing', 'result'].includes(get().returnTo) ? { returnTo: 'home' as const } : {}),
@@ -33,7 +42,7 @@ export const useShellStore = create<ShellState>((set, get) => ({
     const clean = { ...result, damageTaken: Math.max(0, Number.isFinite(result.damageTaken) ? result.damageTaken! : 0), seconds: Math.max(0, Number.isFinite(result.seconds) ? result.seconds : 0), shots: Math.max(0, Number.isFinite(result.shots) ? result.shots : 0), hits: Math.max(0, Number.isFinite(result.hits) ? result.hits : 0), stars: result.victory ? Math.max(0, Math.min(3, Math.round(result.stars) || 0)) : 0 };
     const progress = { ...get().progress };
     if (clean.victory) progress[clean.missionId] = { completed: true, stars: Math.max(progress[clean.missionId]?.stars ?? 0, clean.stars), stats: { seconds: clean.seconds, shots: clean.shots, hits: clean.hits, damageTaken: clean.damageTaken } };
-    const storageAvailable = writeSave({ version: 1, settings: get().settings, missions: progress });
+    const storageAvailable = writeSave({ version: 1, bestWave: get().bestWave, settings: get().settings, missions: progress });
     set({ result: clean, progress, screen: 'result', storageAvailable });
   },
 }));

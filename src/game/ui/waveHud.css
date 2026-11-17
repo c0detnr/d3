@@ -1,0 +1,20 @@
+.wave-hud {
+  position: absolute;
+  top: calc(var(--hud-top, 18px) + 80px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 12px;
+  border-block: 1px solid rgb(255 255 255 / 35%);
+  color: #fff;
+  font: 12px/1.4 system-ui, sans-serif;
+  letter-spacing: .1em;
+  text-shadow: 0 1px 3px #000, 0 0 6px #000;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.wave-hud strong { font-size: 14px; font-weight: 600; }
+.shell-menu .wave-hud { visibility: hidden; }
+@media (max-width: 600px) { .wave-hud { top: calc(var(--hud-top, 18px) + 142px); gap: 8px; font-size: 10px; } }

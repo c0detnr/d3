@@ -15,3 +15,10 @@ export function TeamResultScreen({ result, onReplay, onHome }: {
 }) {
   return <section className="shell-panel result-panel"><div className="result-summary"><p>{t('teamClash')}</p><h1>{t(result.outcome === 'draw' ? 'draw' : result.outcome === 'A' ? 'victory' : 'defeat')}</h1><p className="team-result-score">A {result.score.A} — {result.score.B} B</p></div><dl className="result-stats"><div><dt>{t('teamKills')}</dt><dd>{result.kills}</dd></div><div><dt>{t('teamDeaths')}</dt><dd>{result.deaths}</dd></div><div><dt>{t('duration')}</dt><dd>{Math.floor(result.seconds / 60)}:{String(Math.floor(result.seconds % 60)).padStart(2, '0')}</dd></div></dl><div className="shell-actions"><button className="primary" onClick={onReplay}>{t('teamReplay')}</button><button onClick={onHome}>{t('home')}</button></div></section>;
 }
+
+export interface WaveResult { wave: number; best: number; kills: number }
+export function WaveResultScreen({ result, onReplay, onHome }: {
+  result: WaveResult; onReplay: () => void; onHome: () => void;
+}) {
+  return <section className="shell-panel result-panel"><div className="result-summary"><h1>{t('survival')}</h1><p>{t('waveReached')} {result.wave} · {t('waveBest')} {result.best} · {t('waveKills')} {result.kills}</p></div><div className="shell-actions"><button className="primary" onClick={onReplay}>{t('teamReplay')}</button><button onClick={onHome}>{t('waveMenu')}</button></div></section>;
+}

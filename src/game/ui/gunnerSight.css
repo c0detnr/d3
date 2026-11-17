@@ -9,7 +9,7 @@
   font-family: var(--hud-font);
   font-variant-numeric: var(--hud-numerals);
   text-shadow: 0 1px 3px rgb(0 0 0 / 90%);
-  background: radial-gradient(ellipse at center, transparent 40%, rgb(0 0 0 / 42%) 100%);
+  background: radial-gradient(ellipse at center, transparent 40%, rgb(0 0 0 / 15%) 100%);
 }
 .gunner-sight[hidden], .gunner-range[hidden] { display: none; }
 .gunner-sight__frame { position: absolute; inset: 18% 14% 22%; }
@@ -26,7 +26,7 @@
 .gunner-sight__reticle path { vector-effect: non-scaling-stroke; }
 .gunner-sight .is-loading { color: var(--hud-amber); }
 .gunner-sight .is-obstructed { color: var(--hud-danger); }
-.gunner-range { position: fixed; top: calc(50% + 40px); left: 50%; transform: translateX(-50%); z-index: 15; display: inline-flex; align-items: center; gap: 5px; pointer-events: none; color: var(--hud-fg); background: var(--hud-panel); padding: 3px 7px; font: 14px var(--hud-font); font-variant-numeric: var(--hud-numerals); }
+.gunner-range { position: fixed; top: calc(50% + 40px); left: 50%; transform: translateX(-50%); z-index: 15; display: inline-flex; align-items: center; gap: 5px; pointer-events: none; color: var(--hud-fg); background: var(--hud-panel); padding: 3px 7px; text-shadow: 0 1px 3px #000; font: 14px var(--hud-font); font-variant-numeric: var(--hud-numerals); }
 /* Only competing center decorations recede; the projected #aim-bore is preserved. */
 .gunner-sight-active .hud-cross, .gunner-sight-active .hud-range { visibility: hidden; }
 @media (max-width: 850px) {
@@ -38,5 +38,5 @@
 
 .gunner-sight__block > span, .gunner-sight__block > strong { display: inline-flex; align-items: center; gap: 6px; }
 .gunner-sight__block .hud-icon { width: 20px; height: 20px; }
-.gunner-sight__ammo [data-icon='ready'] { color: var(--hud-amber); }
+.gunner-sight__ammo [data-icon='ready'] { color: var(--hud-fg); }
 .gunner-sight__block [data-status]:empty { display: none; }

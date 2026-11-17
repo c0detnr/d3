@@ -14,6 +14,7 @@ export class DamageHud {
   private readonly health: HTMLProgressElement;
   private readonly readout: HTMLElement;
   private readonly notice: HTMLElement;
+  private readonly moduleIndicators: NodeListOf<HTMLElement>;
   private readonly confirm: HTMLElement;
   private readonly directions: HTMLDivElement;
   private noticeLife = 0;
@@ -40,6 +41,7 @@ export class DamageHud {
     this.health = this.vehicle.element.querySelector('progress')!;
     this.readout = this.vehicle.element.querySelector('.condition-value')!;
     this.notice = this.vehicle.element.querySelector('.condition-notice')!;
+    this.moduleIndicators = this.vehicle.element.querySelectorAll('[data-module-status]');
     this.confirm = this.element.querySelector('.damage-confirm')!;
     this.directions = this.element.querySelector('.damage-bearings')!;
     this.parts = Object.fromEntries(MODULES.map(module => [module, this.vehicle.element.querySelector(`[data-module="${module}"]`)!])) as Record<DamageModule, Element>;
@@ -54,6 +56,12 @@ export class DamageHud {
     this.readout.innerHTML = `${icon('hull', t('hullIntegrity'))}<span>${state.hp}</span>`;
     this.element.dataset.condition = state.hp === 0 ? 'destroyed' : state.hp <= 25 ? 'critical' : 'normal';
     this.vehicle.element.dataset.condition = this.element.dataset.condition;
+    for (const node of this.moduleIndicators) {
+      const module = node.dataset.moduleStatus as DamageModule;
+      const hp = state.modules[module];
+      node.dataset.state = hp === 0 ? 'disabled' : hp < 100 ? 'damaged' : 'ok';
+      node.title = `${moduleName(module)}: ${hp === 0 ? t('disabled') : hp < 100 ? t('damaged') : t('intact')}`;
+    }
     const issues: string[] = [];
     const chips: string[] = [];
     for (const module of MODULES) {
@@ -137,5 +145,6 @@ export function vehicleMarkup() {
     <div class="hud-speed"><output>0</output><span>${t('kmh')}</span><small class="hud-drive">${icon('neutral', t('hudNeutral'))}</small></div>
     <div class="condition-data"><strong class="condition-value">${icon('hull', t('hullIntegrity'))}<span>100</span></strong>
       <progress class="condition-health" max="100" value="100" aria-label="${t('hullIntegrity')}"></progress>
+      <span class="condition-modules" aria-hidden="true">${MODULES.map(module => `<span data-module-status="${module}">${icon(module as IconName)}</span>`).join('')}</span>
       <span class="condition-notice" role="status" aria-live="polite">${srText(t('systemsOk'))}</span></div>`;
 }

@@ -1,4 +1,15 @@
 export const tr = {
+  survival: 'Hayatta Kal',
+  devMode_survival: 'Hayatta Kal · Dalgalar',
+  waveNumber: 'Dalga',
+  waveRemaining: 'Kalan düşman',
+  waveNext: 'Sonraki dalga',
+  waveSeconds: 'sn',
+  waveReached: 'Ulaşılan dalga',
+  waveBest: 'En iyi',
+  waveKills: 'Vurulan tank',
+  waveMenu: 'Menü',
+
   teamReplay: 'Tekrar oyna',
   teamClash: 'Takım Çatışması',
   teamKills: 'İmha',

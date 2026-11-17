@@ -43,7 +43,7 @@ export class TacticalHud {
     const ticks = Array.from({ length: 49 }, (_, i) => {
       const angle = i * 15 - 180;
       const normalized = (angle + 360) % 360;
-      const label = normalized % 90 === 0 ? [t('north'), t('east'), t('south'), t('west')][normalized / 90] : String(normalized).padStart(3, '0');
+      const label = normalized % 90 === 0 ? [t('north'), t('east'), t('south'), t('west')][normalized / 90] : `${String(normalized).padStart(3, '0')}°`;
       return `<span style="left:${i * 45}px" class="${normalized % 90 === 0 ? 'cardinal' : ''}">${label}</span>`;
     }).join('');
     this.element.innerHTML = `<section class="hud-compass" aria-label="${t('cameraDirection')}">
@@ -55,11 +55,11 @@ export class TacticalHud {
         <output class="hud-range" aria-label="${t('boreRange')}"></output>
       </section>
       <section class="hud-weapons" aria-label="${t('weaponSelect')}">
-        <button type="button" data-weapon="cannon" aria-pressed="true" aria-label="${t('cannon120')}" title="${t('cannon120')}">${icon('shell')}${keyBadge('1')}</button>
+        <button type="button" data-weapon="cannon" aria-pressed="true" aria-label="${t('cannon120')}" title="${t('cannon120')}">${icon('shell')}<span class="hud-weapon-name">${t('cannon120')}</span>${keyBadge('1')}</button>
         <svg class="hud-shell" viewBox="0 0 220 24" aria-hidden="true"><path d="M3 7h125l42-3 28 3 18 5-18 5-28 3-42-3H3Z M12 7v10m116-10v10m42-13v16"/></svg>
         <progress max="1" value="1" aria-label="${t('mainReload')}"></progress>
-        <span class="hud-weapon-state" role="status">${icon('ready', t('ready'))}</span>
-        ${hasMachineGun ? `<button type="button" data-weapon="mg" aria-pressed="false" aria-label="${t('machineGun')}" title="${t('machineGun')}">${icon('mg')}${keyBadge('2')}</button>` : ''}
+        <span class="hud-weapon-state" role="status">${icon('ready')}<span class="hud-ready-label">${t('ready')}</span></span>
+        ${hasMachineGun ? `<button type="button" data-weapon="mg" aria-pressed="false" aria-label="${t('machineGun')}" title="${t('machineGun')}">${icon('mg')}<span class="hud-weapon-name">${t('machineGun')}</span>${keyBadge('2')}</button>` : ''}
       </section>`;
     const get = <T extends Element = HTMLElement>(selector: string) => this.element.querySelector<T>(selector)!;
     this.ribbon = get('.compass-ribbon'); this.heading = get('.compass-heading');
@@ -104,7 +104,7 @@ export class TacticalHud {
     const weaponState = ready ? 'ready' : `${state.reloadRemaining.toFixed(1)} ${t('hudSeconds')}`;
     if (weaponState !== this.lastWeaponState) {
       this.lastWeaponState = weaponState;
-      this.weaponState.innerHTML = ready ? icon('ready', t('ready')) : `${icon('clock', t('reloading'))}<span>${weaponState}</span>`;
+      this.weaponState.innerHTML = ready ? `${icon('ready')}<span class="hud-ready-label">${t('ready')}</span>` : `${icon('clock', t('reloading'))}<span>${weaponState}</span>`;
     }
     this.element.dataset.reloading = String(!ready);
     this.element.dataset.blocked = String(!!state.blocked);

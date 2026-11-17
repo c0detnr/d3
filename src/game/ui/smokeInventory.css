@@ -1,10 +1,10 @@
-.smoke-inventory { position: fixed; z-index: 8; bottom: calc(var(--hud-bottom) + 212px); right: calc(var(--hud-margin) + 238px); width: 168px; display: flex; align-items: center; gap: var(--hud-gap); color: var(--hud-fg); font: 11px/1.4 var(--hud-font); font-variant-numeric: var(--hud-numerals); pointer-events: none; }
+.smoke-inventory { position: fixed; z-index: 8; bottom: calc(var(--hud-right-base) + 238px); right: calc(var(--hud-margin) + 192px); width: 60px; display: flex; align-items: center; gap: var(--hud-gap); color: var(--hud-fg); font: 11px/1.4 var(--hud-font); font-variant-numeric: var(--hud-numerals); pointer-events: none; }
 .smoke-inventory button { pointer-events: auto; font: inherit; color: inherit; cursor: pointer; }
-.smoke-use { flex: 0 0 60px; position: relative; width: 60px; height: 60px; padding: 5px 8px 14px; border: 1px solid var(--hud-line); border-radius: 0; background: var(--hud-panel); }
+.smoke-use { flex: 0 0 60px; position: relative; width: 60px; height: 60px; padding: 5px 8px 14px; border: 0; border-bottom: 1px solid var(--hud-line); border-radius: 0; background: var(--hud-panel); }
 .smoke-use:hover:not(:disabled), .smoke-use:focus-visible, .smoke-pickup:focus-visible { outline: 1px solid var(--hud-amber); outline-offset: 3px; }
 .smoke-use:disabled { cursor: default; }
-.smoke-inventory[data-empty='true'] .smoke-use img { opacity: .38; }
-.smoke-use img { width: 100%; height: 100%; object-fit: contain; }
+.smoke-inventory[data-empty='true'] .smoke-use > .hud-icon { opacity: .38; }
+.smoke-use > .hud-icon { width: 100%; height: 100%; object-fit: contain; }
 .smoke-inventory kbd { font-size: 10px; }
 .smoke-use > kbd { position: absolute; top: 5px; left: 5px; font-size: 9px; }
 .smoke-count { position: absolute; bottom: 5px; right: 7px; font-size: 13px; }
@@ -12,8 +12,8 @@
 .smoke-use progress::-webkit-progress-bar { background: var(--hud-line); }
 .smoke-use progress::-webkit-progress-value { background: var(--hud-amber); }
 .smoke-use progress::-moz-progress-bar { background: var(--hud-amber); }
-.smoke-wait { font-size: 16px; color: var(--hud-amber); text-shadow: 0 1px 4px #000; }
-.smoke-pickup, .smoke-feedback { position: absolute; bottom: calc(100% + 12px); right: 0; box-sizing: border-box; width: max-content; max-width: min(320px, 85vw); padding: var(--hud-padding); background: var(--hud-panel); border: 1px solid var(--hud-line); font-size: 12px; }
+.smoke-wait { position: absolute; bottom: calc(100% + 4px); right: 0; font-size: 16px; color: var(--hud-amber); text-shadow: 0 1px 4px #000; }
+.smoke-pickup, .smoke-feedback { position: absolute; bottom: calc(100% + 12px); right: 0; box-sizing: border-box; width: max-content; max-width: min(320px, 85vw); padding: var(--hud-padding); background: var(--hud-panel); border: 0; font-size: 12px; }
 .smoke-pickup { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; }
 .smoke-pickup kbd { font-size: 12px; color: var(--hud-amber); }
 .smoke-feedback .hud-chip { font-size: 16px; }
@@ -21,6 +21,6 @@
 .smoke-pickup:disabled { opacity: .7; cursor: default; }
 .smoke-feedback { bottom: calc(100% + 72px); color: var(--hud-amber); }
 .smoke-inventory[data-notice='true'] .smoke-use { border-color: var(--hud-amber); }
-@media (max-width: 850px), (pointer: coarse) { .smoke-inventory { bottom: calc(var(--hud-right-base) + 316px); right: var(--hud-margin); width: 140px; gap: 6px; } .smoke-use { flex-basis: 52px; width: 52px; height: 56px; } }
+@media (max-width: 850px), (pointer: coarse) { .smoke-inventory { bottom: calc(var(--hud-right-base) + 158px); right: calc(var(--hud-margin) + 152px); width: 52px; gap: 6px; } .smoke-use { flex-basis: 52px; width: 52px; height: 56px; } }
 @media (pointer: coarse) { .smoke-use > kbd { display: none; } }
-@media (max-height: 500px) and (min-width: 601px) { .smoke-inventory { right: calc(var(--hud-margin) + 280px); bottom: var(--hud-right-base); width: 110px; } }
+@media (max-height: 500px) and (min-width: 601px) { .smoke-inventory { right: calc(var(--hud-margin) + 280px); bottom: var(--hud-right-base); width: 52px; } }

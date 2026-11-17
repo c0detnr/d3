@@ -1,6 +1,6 @@
 .mission-hud { position: fixed; inset: 0; z-index: 18; pointer-events: none; color: var(--hud-fg); font: 12px/1.4 var(--hud-font); font-variant-numeric: var(--hud-numerals); }
 body:not(.shell-playing) .mission-hud { display: none; }
-.mission-objective { position: absolute; left: var(--hud-margin); top: var(--hud-top); width: min(300px, 24vw); box-sizing: border-box; padding: var(--hud-padding); background: var(--hud-panel); border: 1px solid var(--hud-line); }
+.mission-objective { position: absolute; left: var(--hud-margin); top: var(--hud-top); width: min(300px, 24vw); box-sizing: border-box; padding: var(--hud-padding); background: var(--hud-panel); border: 0; border-top: 1px solid var(--hud-line); }
 .mission-objective strong { display: block; font-size: 18px; font-weight: 600; }
 .mission-confirmation { display: block; color: var(--hud-friend); font-size: 14px; margin-top: 5px; }
 .mission-confirmation.confirmed { animation: mission-confirm 1.7s ease-out both; }
@@ -8,12 +8,12 @@ body:not(.shell-playing) .mission-hud { display: none; }
 .mission-waypoint { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: center; flex-direction: column; color: var(--hud-amber); font-size: 20px; font-variant-numeric: tabular-nums; text-shadow: 0 2px 4px #101615; }
 .mission-waypoint span { position: absolute; left: 110px; top: 0; padding: 4px 8px; white-space: nowrap; background: var(--hud-panel); }
 .mission-waypoint svg { width: 30px; height: 30px; fill: var(--hud-amber); stroke: var(--hud-panel); stroke-width: 1.5; }
-.mission-radio { position: absolute; left: var(--hud-margin); top: calc(var(--hud-top) + 92px); width: min(340px, 25vw); min-height: 92px; box-sizing: border-box; display: flex; gap: var(--hud-gap); padding: var(--hud-padding); background: var(--hud-panel); border: 1px solid var(--hud-line); }
+.mission-radio { position: absolute; left: var(--hud-margin); top: calc(var(--hud-top) + 92px); width: min(340px, 25vw); min-height: 92px; box-sizing: border-box; display: flex; gap: var(--hud-gap); padding: var(--hud-padding); background: var(--hud-panel); border: 0; border-top: 1px solid var(--hud-line); }
 .mission-radio[hidden], .mission-waypoint[hidden], .mission-confirmation[hidden] { display: none; }
 .mission-radio strong { font-size: 13px; color: var(--hud-friend); }
 .mission-radio p { min-height: 44px; margin: 5px 0 0; font-size: 16px; line-height: 1.4; white-space: normal; overflow-wrap: anywhere; display: grid; }
 /* Compact radio signal mark; speaker identity remains in the translated text. */
-.radio-badge { position: relative; flex: 0 0 28px; height: 32px; border: 1px solid var(--hud-line); color: var(--hud-friend); }
+.radio-badge { position: relative; flex: 0 0 28px; height: 32px; border: 0; border-top: 1px solid var(--hud-line); color: var(--hud-friend); }
 .radio-badge::before, .radio-badge::after { content: ''; position: absolute; left: 6px; right: 6px; border-top: 1px solid currentColor; }
 .radio-badge::before { top: 10px; height: 10px; border-bottom: 1px solid currentColor; }
 .radio-badge::after { top: 15px; left: 9px; right: 9px; }

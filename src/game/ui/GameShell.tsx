@@ -1,4 +1,4 @@
-import { PLAY_CONFIG, type DevSessionConfig } from '../core/devConfig.ts';
+import { SURVIVAL_CONFIG, PLAY_CONFIG, type DevSessionConfig } from '../core/devConfig.ts';
 import { MENU_WEATHER_IDS, WEATHER_IDS, randomWeather, type WeatherId } from '../world/atmosphereSettings.ts';
 import { FILM_SPOTS, type FilmSpot } from '../world/filmSetLayout.ts';
 import { gameMarkup } from './gameMarkup.ts';
@@ -12,7 +12,7 @@ import { useShellStore, type ShellScreen } from '../core/shellStore.ts';
 import type { Language } from '../core/playerSave.ts';
 import { t, type TranslationKey } from '../i18n/index.ts';
 import { translateGameDom } from '../i18n/dom.ts';
-import { ResultScreen, TeamResultScreen, Stars } from './ResultScreen.tsx';
+import { ResultScreen, TeamResultScreen, WaveResultScreen, type WaveResult, Stars } from './ResultScreen.tsx';
 import { globalLoadingScreen } from './LoadingScreen.ts';
 import './gameShell.css';
 import tank01Preview from '../../../assets/tanks/iron_dust_01/previews/three_quarter.png';
@@ -36,7 +36,7 @@ function DeveloperPanel({ config, onChange, onStart, ready }: {
     <p className="muted">{t('devHint')}</p>
     <label>{t('devMap')}<select value={config.map} onChange={event => {
       const map = event.target.value as DevSessionConfig['map'];
-      onChange({ map, mode: (map !== 'kul' && config.mode === '5v5' || map !== 'set' && config.mode === '3v3') ? 'free' : config.mode });
+      onChange({ map, mode: (map !== 'kul' && config.mode === '5v5' || map !== 'set' && (config.mode === '3v3' || config.mode === 'survival')) ? 'free' : config.mode });
     }}>{(['test', 'kul', 'set'] as const).map(map => <option key={map} value={map}>{t(`devMap_${map}`)}</option>)}</select></label>
     <label>{t('devWeather')}<select value={config.weather} disabled={config.map === 'test'} aria-describedby={config.map === 'test' ? 'dev-weather-hint' : undefined} onChange={event => onChange({ weather: event.target.value as DevSessionConfig['weather'] })}>
       {WEATHER_IDS.map(weather => <option key={weather} value={weather}>{t(`devWeather_${weather}`)}</option>)}
@@ -44,7 +44,7 @@ function DeveloperPanel({ config, onChange, onStart, ready }: {
     {config.map === 'test' && <p id="dev-weather-hint" className="muted">{t('devWeatherHint')}</p>}
     <label>{t('devTank')}<select value={config.tank} onChange={event => onChange({ tank: event.target.value as DevSessionConfig['tank'] })}>{(['01', '02'] as const).map(tank => <option key={tank} value={tank}>{t(tank === '01' ? 'tank01' : 'tank02')}</option>)}</select></label>
     <label>{t('devMode')}<select value={config.mode} onChange={event => onChange({ mode: event.target.value as DevSessionConfig['mode'] })}>
-      {(['free', 'duel', '5v5', '3v3'] as const).map(mode => <option key={mode} value={mode} disabled={mode === '5v5' && config.map !== 'kul' || mode === '3v3' && config.map !== 'set'}>{t(`devMode_${mode}`)}</option>)}
+      {(['free', 'duel', '5v5', '3v3', 'survival'] as const).map(mode => <option key={mode} value={mode} disabled={mode === '5v5' && config.map !== 'kul' || (mode === '3v3' || mode === 'survival') && config.map !== 'set'}>{t(`devMode_${mode}`)}</option>)}
     </select></label>
     {config.map === 'kul' && <label>{t('devBase')}<select value={config.base} onChange={event => onChange({ base: event.target.value as DevSessionConfig['base'] })}>{(['A', 'B'] as const).map(base => <option key={base} value={base}>{base}</option>)}</select></label>}
     {config.map === 'set' && <label>{t('devFilmSpot')}<select value={config.filmSpot} onChange={event => onChange({ filmSpot: event.target.value as FilmSpot })}>
@@ -92,14 +92,16 @@ function GameShell() {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [teamResult, setTeamResult] = useState<{ outcome: 'A' | 'B' | 'draw'; score: { A: number; B: number }; kills: number; deaths: number; seconds: number }>();
+  const [waveResult, setWaveResult] = useState<WaveResult>();
+  const playMode = useRef<'3v3' | 'survival'>('3v3');
   const heading = useRef<HTMLHeadingElement>(null);
   const selected = MISSIONS.find(m => m.id === state.selected) ?? MISSIONS[0];
   function createSession(attract = true, dev?: DevSessionConfig) {
     if (session.current) globalLoadingScreen?.showMissionTransition();
     session.current?.dispose();
     const currentSettings = useShellStore.getState().settings;
-    activeDev.current = currentSettings.devMode ? (dev ? { ...dev } : undefined) : { ...PLAY_CONFIG, tank: currentSettings.tank, weather: matchWeather() };
-    setReady(false); setFailed(false); setTeamResult(undefined);
+    activeDev.current = currentSettings.devMode ? (dev ? { ...dev } : undefined) : { ...(dev ?? PLAY_CONFIG), tank: currentSettings.tank, weather: matchWeather() };
+    setReady(false); setFailed(false); setTeamResult(undefined); setWaveResult(undefined);
     const status = document.querySelector<HTMLElement>('#status')!;
     status.hidden = false; status.textContent = t('loading');
     session.current = createGameSession({ shell: true, onDefaultQuality: quality => useShellStore.getState().updateSettings({ quality }), settings: currentSettings, dev: attract ? { ...PLAY_CONFIG, mode: 'free', tank: '02', filmSpot: 'airfield', weather: matchWeather(true) } : activeDev.current, onReady: () => {
@@ -109,6 +111,10 @@ function GameShell() {
       session.current?.setAttract(!playing && attract);
       session.current?.setPaused(!playing);
       translateGameDom();
+    }, onWaveStart: wave => useShellStore.getState().recordWave(wave), onWaveResult: result => {
+      const store = useShellStore.getState(); store.recordWave(result.wave);
+      setWaveResult({ ...result, best: useShellStore.getState().bestWave });
+      store.navigate('result');
     }, onTeamResult: result => { setTeamResult(result); useShellStore.getState().navigate('result'); }, onError: () => { setFailed(true); globalLoadingScreen?.showError(t('loadError')); }, onMissionResult: score => useShellStore.getState().finishMission(score) });
     session.current.applySettings(useShellStore.getState().settings);
     if (import.meta.env.DEV) (window as unknown as { __missionTest: Session['missionTest'] }).__missionTest = session.current.missionTest;
@@ -191,10 +197,10 @@ function GameShell() {
         <button className="wordmark" onClick={() => { if (state.returnTo === 'pause' && (screen === 'settings' || screen === 'developer')) navigate('pause'); else goHome(); }}><img src="./brand/ashfield-wordmark.webp" alt="ASHFIELD" width="1200" height="312"/></button>
         <div className="shell-header-tools">{screen === 'missions' && <button className="header-back" onClick={() => navigate('home')}>← {t('back')}</button>}<LanguageSwitch language={settings.language} onChange={language => updateSettings({ language })} /></div>
       </header>
-      {screen === 'result' && teamResult ? <TeamResultScreen result={teamResult} onReplay={restartSession} onHome={goHome} /> : settings.devMode && screen === 'result' && state.result ? <ResultScreen result={state.result} onContinue={missionSelect} onReplay={() => play(true)} onMissionSelect={missionSelect} /> : <section className="shell-panel">
+      {screen === 'result' && waveResult ? <WaveResultScreen result={waveResult} onReplay={restartSession} onHome={goHome} /> : screen === 'result' && teamResult ? <TeamResultScreen result={teamResult} onReplay={restartSession} onHome={goHome} /> : settings.devMode && screen === 'result' && state.result ? <ResultScreen result={state.result} onContinue={missionSelect} onReplay={() => play(true)} onMissionSelect={missionSelect} /> : <section className="shell-panel">
         <h1 ref={heading} tabIndex={-1} className={screen === 'home' ? 'home-title' : undefined}>{screen === 'home' ? <img src="./brand/ashfield-wordmark.webp" alt="ASHFIELD" width="1200" height="312"/> : title}</h1>
-        {(screen === 'tankSelect' || screen === 'droneSelect') && <LoadoutSelection key={screen} drone={screen === 'droneSelect'} settings={settings} onChange={updateSettings} ready={ready && !failed} onBack={() => navigate(screen === 'tankSelect' ? 'home' : 'tankSelect')} onNext={() => screen === 'tankSelect' ? navigate('droneSelect') : startDeveloper({ ...PLAY_CONFIG, tank: settings.tank })}/> }
-        {screen === 'home' && <><nav className="main-navigation" aria-label={t('home')}><button className="primary" disabled={!settings.devMode && (!ready || failed)} onClick={() => settings.devMode ? navigate('missions') : navigate('tankSelect')}>{t(settings.devMode ? 'missions' : 'play')}<span aria-hidden="true">→</span></button>{settings.devMode && <button onClick={() => openDeveloper('home')}>{t('developer')}</button>}<button onClick={() => openSettings('home')}>{t('settings')}</button><button onClick={() => navigate('controls')}>{t('controls')}</button><button onClick={() => navigate('credits')}>{t('credits')}</button></nav></>}
+        {(screen === 'tankSelect' || screen === 'droneSelect') && <LoadoutSelection key={screen} drone={screen === 'droneSelect'} settings={settings} onChange={updateSettings} ready={ready && !failed} onBack={() => navigate(screen === 'tankSelect' ? 'home' : 'tankSelect')} onNext={() => screen === 'tankSelect' ? navigate('droneSelect') : startDeveloper({ ...(playMode.current === 'survival' ? SURVIVAL_CONFIG : PLAY_CONFIG), tank: settings.tank })}/> }
+        {screen === 'home' && <><nav className="main-navigation" aria-label={t('home')}><button className="primary" disabled={!settings.devMode && (!ready || failed)} onClick={() => { playMode.current = '3v3'; settings.devMode ? navigate('missions') : navigate('tankSelect'); }}>{t(settings.devMode ? 'missions' : 'play')}<span aria-hidden="true">→</span></button><button disabled={!ready || failed} onClick={() => { playMode.current = 'survival'; navigate('tankSelect'); }}>{t('survival')}</button>{settings.devMode && <button onClick={() => openDeveloper('home')}>{t('developer')}</button>}<button onClick={() => openSettings('home')}>{t('settings')}</button><button onClick={() => navigate('controls')}>{t('controls')}</button><button onClick={() => navigate('credits')}>{t('credits')}</button></nav></>}
         {settings.devMode && screen === 'missions' && <div className="mission-workspace">
           <div className="mission-list">{MISSIONS.map((mission, index) => <button key={mission.id} className="mission-card" data-locked={!isMissionUnlocked(mission.id, progress)} aria-pressed={selected.id === mission.id} onClick={() => useShellStore.setState({ selected: mission.id })}>
             <span className="mission-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>

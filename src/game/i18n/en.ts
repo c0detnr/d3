@@ -1,5 +1,15 @@
 import type { TranslationKey } from './tr.ts';
 export const en: Record<TranslationKey, string> = {
+  survival: 'Survive',
+  devMode_survival: 'Survive · Waves',
+  waveNumber: 'Wave',
+  waveRemaining: 'Enemies remaining',
+  waveNext: 'Next wave in',
+  waveSeconds: 's',
+  waveReached: 'Wave reached',
+  waveBest: 'Best',
+  waveKills: 'Tanks destroyed',
+  waveMenu: 'Menu',
   teamReplay: 'Play again',
   teamClash: 'Team Deathmatch',
   teamKills: 'Kills',

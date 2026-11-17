@@ -1,5 +1,4 @@
 import { t } from '../i18n/index.ts';
-import smokeArt from '../../../assets/items/smoke_supply_01/inventory.svg?url';
 import { SMOKE, type SmokeModel } from '../items/SmokeModel.ts';
 import './hudTokens.css';
 import './smokeInventory.css';
@@ -20,7 +19,7 @@ export class SmokeInventory {
     this.element.setAttribute('aria-label', t('smokeInventoryLabel'));
     this.element.innerHTML = `<button class="smoke-pickup" type="button" hidden aria-label="${t('smokePickup')}">${keyBadge('F')}${icon('smoke')}<span>+1</span></button>
       <button class="smoke-use" type="button" aria-label="${t('smokeUseLabel')}" title="${t('smokeDescription')}">
-        ${keyBadge('G')}<img src="${smokeArt}" alt="${t('smokeIconLabel')}"/><span class="smoke-count">${SMOKE.initialCharges} / ${SMOKE.capacity}</span>
+        ${keyBadge('G')}${icon('smoke', t('smokeIconLabel'))}<span class="smoke-count">${SMOKE.initialCharges} / ${SMOKE.capacity}</span>
         <progress max="${SMOKE.cooldown}" value="0" aria-label="${t('smokeCooldownLabel')}"></progress>
       </button><output class="smoke-wait" aria-hidden="true"></output><output class="smoke-feedback" role="status" aria-live="polite" hidden></output>`;
     this.use = this.element.querySelector('.smoke-use')!;
@@ -39,7 +38,6 @@ export class SmokeInventory {
     this.cooldown.value = model.cooldown;
     this.element.setAttribute('aria-label', t('smokeInventoryLabel'));
     this.use.title = t('smokeDescription');
-    this.element.querySelector('img')!.alt = t('smokeIconLabel');
     this.cooldown.setAttribute('aria-label', t('smokeCooldownLabel'));
     this.use.setAttribute('aria-label', t('smokeChargeLabel').replace('{count}', String(model.count)).replace('{capacity}', String(SMOKE.capacity)) + (model.cooldown > 0 ? ` · ${t('smokeCooldownSeconds').replace('{seconds}', String(Math.ceil(model.cooldown)))}` : ''));
     this.cooldown.setAttribute('aria-valuetext', t('smokeCooldownSeconds').replace('{seconds}', String(Math.ceil(model.cooldown))));

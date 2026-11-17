@@ -6,7 +6,7 @@ import { smokeSound } from '../audio/SmokeAudio.ts';
 import { SmokeScreen } from './SmokeScreen.ts';
 registerBuiltInLoaders();
 
-interface Supply { position: Vector3; nodes: InstantiatedEntries; anchor: TransformNode; collected: boolean }
+interface Supply { position: Vector3; nodes: InstantiatedEntries; anchor: TransformNode; collected: boolean; fall: number }
 interface Capsule { origin: Vector3; target: Vector3; nodes: InstantiatedEntries; anchor: TransformNode; age: number }
 
 function placeInstance(scene: Scene, nodes: InstantiatedEntries, position: Vector3) {
@@ -70,14 +70,14 @@ export class SmokeSupply {
         marker.position.copyFrom(position); marker.position.y += .08;
         marker.isPickable = false; marker.material = system.markerMaterial;
         system.markers.push(marker);
-        system.supplies.push({ position, nodes, anchor, collected: false });
+        system.supplies.push({ position, nodes, anchor, collected: false, fall: 0 });
       }
       return system;
     } catch (error) { supplyAssets.dispose(); capsuleAssets?.dispose(); throw error; }
   }
 
   nearest(position: Vector3) {
-    return this.supplies.filter(s => !s.collected && Vector3.Distance(position, s.position) <= SMOKE.pickupRange)
+    return this.supplies.filter(s => !s.collected && s.fall === 0 && Vector3.Distance(position, s.position) <= SMOKE.pickupRange)
       .sort((a, b) => Vector3.DistanceSquared(a.position, position) - Vector3.DistanceSquared(b.position, position))[0];
   }
 
@@ -89,6 +89,26 @@ export class SmokeSupply {
     this.markers[this.supplies.indexOf(supply)].setEnabled(false);
     smokeSound('pickup');
     return true;
+  }
+
+  /** Reuse the existing crate pool; no new scene resources accumulate between waves. */
+  dropNear(position: Vector3, clearPath: (to: Vector3) => boolean) {
+    const supply = this.supplies.find(s => s.collected) ?? this.supplies[0];
+    if (!supply) return;
+    const at = position.clone();
+    for (let i = 0; i < 16; i++) {
+      const angle = i * Math.PI / 8;
+      at.set(position.x + Math.sin(angle) * 5, 0, position.z + Math.cos(angle) * 5);
+      at.y = this.height(at.x, at.z) + .6;
+      if (!clearPath(at)) continue;
+      at.y -= .57;
+      supply.position.copyFrom(at); supply.anchor.position.copyFrom(at);
+      supply.collected = false; supply.fall = 8; supply.anchor.position.y += supply.fall;
+      supply.anchor.setEnabled(true);
+      const marker = this.markers[this.supplies.indexOf(supply)];
+      marker.position.copyFrom(at); marker.position.y += .08; marker.setEnabled(true);
+      return;
+    }
   }
 
   fire(origin: Vector3, forward: Vector3, clip: (from: Vector3, to: Vector3) => Vector3) {
@@ -120,6 +140,10 @@ export class SmokeSupply {
   }
 
   fixedUpdate(dt: number) {
+    for (const supply of this.supplies) if (supply.fall > 0) {
+      supply.fall = Math.max(0, supply.fall - dt * 6);
+      supply.anchor.position.y = supply.position.y + supply.fall;
+    }
     this.model.fixedUpdate(dt); this.particles.fixedUpdate(dt); this.time += dt;
     this.markerMaterial.alpha = .5 + Math.sin(this.time * 2) * .15;
     // shortcut: Capsule flight is visual; add swept flight collision when low ceilings require it.
@@ -137,7 +161,7 @@ export class SmokeSupply {
   reset() {
     this.model.reset(); this.screen.dispose(); this.particles.reset();
     this.capsules.forEach(c => { c.nodes.dispose(); c.anchor.dispose(); }); this.capsules.length = 0;
-    this.supplies.forEach(s => { s.collected = false; s.anchor.setEnabled(true); });
+    this.supplies.forEach(s => { s.collected = false; s.fall = 0; s.anchor.position.copyFrom(s.position); s.anchor.setEnabled(true); });
     this.markers.forEach(m => m.setEnabled(true));
   }
   dispose() {
